@@ -87,7 +87,7 @@ class FSM(object):
         return self._state == other
 
     def __repr__(self):
-        return f'FSM:<{self._state}>'
+        return f"FSM:'{self._state}'"
 
     @property
     def state(self) -> str:

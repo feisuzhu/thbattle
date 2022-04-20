@@ -158,8 +158,10 @@ class GameState(TypedDict):
 
 
 def state_of(g: THBattle) -> Optional[GameState]:
-    players = getattr(g, 'players', None)
-    if not players:
+    try:
+        players = g.players
+        deck = g.deck
+    except AttributeError:
         return None
 
     runner = g.runner
@@ -169,7 +171,7 @@ def state_of(g: THBattle) -> Optional[GameState]:
     me = core.game.theone_of(g)
 
     p = None
-    for ch in g.players:
+    for ch in players:
         if ch.get_player() is me:
             p = ch
         chs.append(character(ch))
@@ -178,7 +180,7 @@ def state_of(g: THBattle) -> Optional[GameState]:
 
     return {
         'characters': chs,
-        'deck_remaining': len(g.deck.cards),
+        'deck_remaining': len(deck.cards),
         'my_pid': me.pid,
         'my_skills': skills,
     }

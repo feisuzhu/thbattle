@@ -4,10 +4,12 @@ from __future__ import annotations
 # -- stdlib --
 from typing import Dict, List, Set, TYPE_CHECKING, Tuple, TypedDict
 import logging
+import time
 
 # -- third party --
 # -- own --
 from endpoint import Endpoint
+from game.base import Game
 from server.endpoint import Client
 from server.utils import command
 from utils.misc import throttle
@@ -30,6 +32,16 @@ def Au(self: Matching, u: Client) -> MatchingAssocOnClient:
     return u._[self]
 
 
+class MatchingAssocOnGame(TypedDict):
+    match_time: float
+    fallen: bool
+    tearing_down: bool
+
+
+def Ag(self: Matching, g: Game) -> MatchingAssocOnGame:
+    return g._[self]
+
+
 class Matching(object):
     def __init__(self, core: Core):
         self.core = core
@@ -37,12 +49,16 @@ class Matching(object):
         core.events.user_state_transition += self.handle_user_state_transition
         core.events.core_initialized += self.handle_core_initialized
         core.events.client_dropped += self.handle_client_dropped
+        core.events.game_left += self.handle_game_left
+
+        core.tasks['matching/gc-stuck-matching'] = self._task_gc_stuck_matching
 
         D = core.events.client_command
         D[wire.StartMatching] += self._start_matching
         D[wire.QueryMatching] += self._query_matching
 
         self.outstanding: Dict[str, Set[Client]] = {}
+        self.pending_start: List[Game] = []
 
     def __repr__(self) -> str:
         return self.__class__.__name__
@@ -60,6 +76,13 @@ class Matching(object):
     def handle_client_dropped(self, c: Client) -> Client:
         self._clear(c)
         return c
+
+    def handle_game_left(self, v: Tuple[Game, Client]) -> Tuple[Game, Client]:
+        g, u = v
+        if g in self.pending_start:
+            Ag(self, g)['fallen'] = True
+
+        return v
 
     def handle_user_state_transition(self, ev: Tuple[Client, str, str]) -> Tuple[Client, str, str]:
         c, f, t = ev
@@ -96,6 +119,44 @@ class Matching(object):
             for u in ul:
                 u.raw_write(d)
 
+    def _task_gc_stuck_matching(self) -> None:
+        core = self.core
+        while True:
+            core.runner.sleep(1)
+            self._do_gc_stuck_matching()
+
+    def _do_gc_stuck_matching(self) -> None:
+        nxt: List[Game]
+        core = self.core
+        last = self.pending_start
+        self.pending_start = nxt = []
+        for g in last:
+            if core.room.is_started(g):
+                continue
+
+            if Ag(self, g)['tearing_down']:
+                continue
+
+            if Ag(self, g)['fallen']:
+                self._teardown(g)
+                continue
+
+            if Ag(self, g)['match_time'] + 15 < time.time():
+                self._teardown(g)
+                continue
+
+            nxt.append(g)
+
+    def _teardown(self, g: Game) -> None:
+        if Ag(self, g)['tearing_down']:
+            return
+
+        Ag(self, g)['tearing_down'] = True
+        core = self.core
+
+        for u in core.room.online_users_of(g):
+            core.room.exit_game(u)
+
     @throttle(0.5)
     def notify_matching_for_all(self) -> None:
         core = self.core
@@ -122,9 +183,17 @@ class Matching(object):
                 for u in candidates:
                     self._clear(u)
 
-                g = core.room.create_game(cls, "匹配的游戏", {})
+                g = core.room.create_game(cls, "匹配的游戏", core.room.RoomFlags(matching=True))
+                ag: MatchingAssocOnGame = {
+                    'match_time': time.time(),
+                    'fallen': False,
+                    'tearing_down': False,
+                }
+                g._[self] = ag
                 for u in candidates:
                     core.room.join_game(g, u)
+
+                self.pending_start.append(g)
 
                 break
             else:

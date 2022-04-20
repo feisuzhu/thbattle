@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, TypedDict
 import logging
 import time
@@ -33,7 +34,7 @@ class RoomAssocOnGame(TypedDict):
     users: BatchList[Client]
     left: Dict[Client, bool]
     name: str
-    flags: wire.msg.CreateRoomFlags
+    flags: Room.RoomFlags
     start_time: float
     greenlet: Optional[Greenlet]
 
@@ -45,6 +46,13 @@ def Ag(self: Room, g: Game) -> RoomAssocOnGame:
 
 
 class Room(object):
+
+    @dataclass
+    class RoomFlags:
+        contest: bool = False
+        matching: bool = False
+        invite: bool = False
+        chat: bool = False
 
     def __init__(self, core: Core):
         self.core = core
@@ -182,7 +190,14 @@ class Room(object):
         if ev.mode not in modes:
             return
 
-        g = self.create_game(modes[ev.mode], ev.name, ev.flags)
+        flags = self.RoomFlags(
+            matching=False,
+            contest=False,
+            chat=bool(ev.flags.get('chat', False)),
+            invite=bool(ev.flags.get('invite', False)),
+        )
+
+        g = self.create_game(modes[ev.mode], ev.name, flags)
         core.invite.add_invited(g, u)
         self.join_game(g, u, 0)
 
@@ -341,7 +356,7 @@ class Room(object):
     def name_of(self, g: Game) -> str:
         return Ag(self, g)['name']
 
-    def flags_of(self, g: Game) -> wire.msg.CreateRoomFlags:
+    def flags_of(self, g: Game) -> RoomFlags:
         return Ag(self, g)['flags']
 
     def start_time_of(self, g: Game) -> int:
@@ -353,7 +368,7 @@ class Room(object):
     def is_started(self, g: Game) -> bool:
         return bool(Ag(self, g)['greenlet'])
 
-    def create_game(self, gamecls: type, name: str, flags: wire.msg.CreateRoomFlags) -> Game:
+    def create_game(self, gamecls: type, name: str, flags: RoomFlags) -> Game:
         core = self.core
         gid = self._new_gid()
         g = core.game.create_game(gamecls)
@@ -364,7 +379,7 @@ class Room(object):
             'users': BatchList([self.FREESLOT] * g.n_persons),
             'left': defaultdict(bool),
             'name': name,
-            'flags': flags,  # {'match': 1, 'invite': 1}
+            'flags': flags,
             'start_time': 0,
             'greenlet': None,
 
@@ -427,10 +442,8 @@ class Room(object):
 
         users = self.online_users_of(g)
 
-        if users:
-            return
-
-        self.nuke_game(g)
+        if not users:
+            self.nuke_game(g)
 
     def nuke_game(self, g: Game) -> None:
         core = self.core
@@ -479,6 +492,7 @@ class Room(object):
     def _init_freeslot(self) -> None:
         core = self.core
         self.FREESLOT = u = Client(core, None)
+        self.FREESLOT.tag = 'FREESLOT'
         core.auth.set_auth(u, pid=0)
         core.lobby.init_freeslot(u)
         core.lobby.state_of(u).transit('freeslot')

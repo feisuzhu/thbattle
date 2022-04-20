@@ -58,7 +58,7 @@ class Contest(object):
         flags = core.room.flags_of(g)
         users = core.room.users_of(g)
 
-        if flags.get('contest'):
+        if flags.contest:
             core.connect.speaker(
                 '文文', '“%s”开始了！参与玩家：%s' % (
                     name, '，'.join([f'*[pid:{core.auth.pid_of(u)}]' for u in users])
@@ -69,7 +69,7 @@ class Contest(object):
 
     def handle_game_aborted(self, g: Game) -> Game:
         core = self.core
-        if core.room.is_started(g) and core.room.flags_of(g).get('contest'):
+        if core.room.is_started(g) and core.room.flags_of(g).contest:
             core.connect.speaker(
                 '文文', '“%s”意外终止了，比赛结果作废！' % core.room.name_of(g)
             )
@@ -79,7 +79,7 @@ class Contest(object):
     def handle_game_ended(self, g: Game) -> Game:
         core = self.core
 
-        if not core.room.flags_of(g).get('contest'):
+        if not core.room.flags_of(g).contest:
             return g
 
         if core.game.is_aborted(g):
@@ -104,7 +104,7 @@ class Contest(object):
         core = self.core
         old, g = ev
         flags = core.room.flags_of(g)
-        if flags.get('contest'):
+        if flags.contest:
             fields = old._[self]
             g._[self] = fields
             self._start_poll(g, fields['pids'])
@@ -120,7 +120,7 @@ class Contest(object):
             c.write(wire.Error(msg='wrong_players_count'))
             return
 
-        g = core.room.create_game(gamecls, ev.name, {'contest': True})
+        g = core.room.create_game(gamecls, ev.name, core.room.RoomFlags(contest=True))
 
         assoc: ContestAssocOnGame = {
             'pids': ev.pids,
@@ -139,7 +139,7 @@ class Contest(object):
         flags = core.room.flags_of(g)
         pid = core.auth.pid_of(u)
 
-        if flags.get('contest'):
+        if flags.contest:
             pid = core.auth.pid_of(u)
             if pid not in A(self, g)['pids']:
                 u.write(wire.Error('not_competitor'))

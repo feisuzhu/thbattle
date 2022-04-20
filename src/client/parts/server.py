@@ -73,16 +73,16 @@ class Server(object):
 
         log.info('Connecting to %s', uri)
 
-        uri = urlparse(uri)
-        assert uri.scheme == 'tcp'
+        parsed = urlparse(uri)
+        assert parsed.scheme == 'tcp'
 
         if not self.state == 'initial':
             return 'already_connected'
 
         try:
             self.state = 'connecting'
-            assert uri.port
-            addr = uri.hostname, uri.port
+            assert parsed.port
+            addr = parsed.hostname, parsed.port
             s = socket.create_connection(addr)
             self._ep = Endpoint(s, addr)
             self._recv_gr = core.runner.spawn(self._recv)

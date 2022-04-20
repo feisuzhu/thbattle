@@ -4,6 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 from typing import Any, Dict, TYPE_CHECKING
 import base64
+import dataclasses
 import datetime
 import json
 import logging
@@ -56,7 +57,7 @@ class Archive(object):
         core = self.core
         start = core.room.start_time_of(g)
 
-        flags = dict(core.room.flags_of(g))
+        flags = dict(dataclasses.asdict(core.room.flags_of(g)))
         flags['crashed'] = core.game.is_crashed(g)
         flags['aborted'] = core.game.is_aborted(g)
 

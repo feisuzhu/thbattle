@@ -130,7 +130,7 @@ class GameStarted(Message, ServerToClient):
 class PresenceState(IntEnum):
     ONLINE  = 1
     DROPPED = 2
-    FLED   = 3
+    FLED    = 3
 
 
 @message
@@ -243,7 +243,6 @@ class Auth(Message, ClientToServer):
 
 # ----- room -----
 class CreateRoomFlags(TypedDict, total=False):
-    contest: bool
     invite: bool
     chat: bool
 

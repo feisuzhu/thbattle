@@ -26,12 +26,13 @@ class Pivot(Exception):
 
 
 class Client(object):
-    __slots__ = ('_ep', '_gr', 'core', '_')
+    __slots__ = ('_ep', '_gr', 'core', '_', 'tag')
 
     def __init__(self, core: Core, ep: Optional[Endpoint]):
         self._ep: Optional[Endpoint] = ep
         self._gr: Optional[Greenlet] = None
         self.core = core
+        self.tag = '?'
 
         self._: dict = {}
 
@@ -99,9 +100,7 @@ class Client(object):
                 *self._ep.address,
             )  # noqa
         else:
-            return '%s:?' % (
-                self.__class__.__name__,
-            )
+            return f'{self.__class__.__name__}:{self.tag}'
 
     def get_greenlet(self) -> Optional[Greenlet]:
         return self._gr

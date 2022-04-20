@@ -48,3 +48,9 @@ class TestMatching(object):
         assert a.events.game_joined in t
         assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'room'
         assert s.lobby.state_of(s.lobby.get(b.auth.pid)) == 'room'
+        a.room.leave()
+        wait()
+        s.matching._do_gc_stuck_matching()
+        assert a.events.game_left in t
+        assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'lobby'
+        assert s.lobby.state_of(s.lobby.get(b.auth.pid)) == 'lobby'

@@ -91,7 +91,7 @@ class Invite(object):
             return EventHub.STOP_PROPAGATION
 
         # invite
-        if flags.get('invite') and pid not in invited:
+        if flags.invite and pid not in invited:
             u.write(wire.Error('not_invited'))
             return EventHub.STOP_PROPAGATION
 
