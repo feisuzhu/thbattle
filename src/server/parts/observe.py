@@ -100,6 +100,10 @@ class Observe(object):
         return ev
 
     def handle_client_dropped(self, c: Client) -> Client:
+        core = self.core
+        if core.lobby.state_of(c) == 'connected':
+            return c
+
         for u in list(Au(self, c)['obs']):
             self.observe_detach(u)
 
