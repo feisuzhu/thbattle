@@ -214,8 +214,6 @@ class Matching(object):
         filtered = list(set(modes) & set(ev.modes))
         Au(self, u)['modes'] = filtered
         u.write(wire.StartMatching(modes=filtered))
-        if not filtered:
-            return
 
         for m in filtered:
             self.outstanding[m].add(u)
