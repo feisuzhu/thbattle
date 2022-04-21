@@ -292,6 +292,10 @@ class THBattle2v2(THBattle):
     draw_extra: bool
 
     def can_leave(g, p: Player):
+        pl = getattr(g, 'players', None)
+        if pl is None:
+            return False
+
         for ch in g.players:
             if ch.player is p:
                 return ch.dead

@@ -546,8 +546,10 @@ class THBattleRole(THBattle):
     double_curtain: bool
 
     def can_leave(self, p: Player) -> bool:
-        if getattr(self, 'players', None):
+        pl = getattr(self, 'players', None)
+        if pl is None:
             return False
+
         try:
             ch = self.find_character(p)
             return ch.dead
