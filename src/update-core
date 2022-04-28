@@ -3,6 +3,7 @@
 THIS=$(pwd)
 
 cd ~/my_projects/thb-update/core
+git checkout develop
 rm -rf *
 cp -a $THIS/* .
 git checkout -- bundle.json
