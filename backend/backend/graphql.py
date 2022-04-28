@@ -14,12 +14,23 @@ from unlock.schema import UnlockOps
 
 
 # -- code --
-class Query(UserQuery, PlayerQuery, GameQuery, SystemQuery, gh.ObjectType):
-    pass
+Query = type('Query', (
+    UserQuery,
+    PlayerQuery,
+    GameQuery,
+    SystemQuery,
+    gh.ObjectType
+), {})
 
 
-class Mutation(UserOps, PlayerOps, GameOps, ItemOps, UnlockOps, SystemOps, gh.ObjectType):
-    pass
-
+Mutation = type('Mutation', (
+    UserOps,
+    PlayerOps,
+    GameOps,
+    ItemOps,
+    UnlockOps,
+    SystemOps,
+    gh.ObjectType,
+), {})
 
 schema = gh.Schema(query=Query, mutation=Mutation)

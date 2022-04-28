@@ -64,10 +64,8 @@ class Reward(object):
 
         core.backend.query('''
             mutation AddReward($gid: Int!, $rewards: [GameRewardInput!]!) {
-              game {
-                addReward(gameId: $gid, rewards: $rewards) {
+              GmAddReward(gameId: $gid, rewards: $rewards) {
                   id
-                }
               }
             }
         ''', gid=core.room.gid_of(g), rewards=rewards)

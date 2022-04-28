@@ -41,10 +41,8 @@ class Archive(object):
 
         core.backend.query('''
             mutation ArchiveGame($meta: GameInput!, $archive: String!) {
-              game {
-                archive(game: $meta, archive: $archive) {
+              GmArchive(game: $meta, archive: $archive) {
                   id
-                }
               }
             }
         ''', meta=meta, archive=archive)
