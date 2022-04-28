@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+from typing import List
+
 # -- third party --
 # -- own --
 from thb import actions, characters
 from thb.cards.base import Card, VirtualCard
-from thb.meta.common import ui_meta, N
+from thb.meta.common import N, ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.kogasa.Jolly)
 class Jolly:
     # Skill
@@ -114,6 +115,9 @@ class SurpriseAction:
             return '效果拔群！'
         else:
             return '似乎没有什么效果'
+
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        return ''
 
 
 @ui_meta(characters.kogasa.Kogasa)

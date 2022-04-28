@@ -569,6 +569,7 @@ class DropCards(GenericAction):
         return True
 
 
+
 class UseCard(GenericAction):
 
     def __init__(self, target, card):
