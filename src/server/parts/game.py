@@ -92,6 +92,8 @@ class GamePart(object):
 
             self.replay(u, u)
 
+            self._notify_presence(g)
+
         return u
 
     def handle_game_started(self, g: ServerGame) -> ServerGame:
