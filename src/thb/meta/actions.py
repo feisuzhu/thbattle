@@ -244,6 +244,14 @@ class DropCards:
         return f'{N.char(act.target)}弃置'
 
 
+@ui_meta(actions.Reforge)
+class Reforge:
+
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        act = trans.action
+        return f'{N.char(act.target)}重铸'
+
+
 @ui_meta(actions.Fatetell)
 class Fatetell:
 

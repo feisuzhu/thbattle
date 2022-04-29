@@ -341,6 +341,13 @@ class HarvestCard:
         return 'thb-cv-card_harvest'
 
 
+@ui_meta(spellcard.Harvest)
+class Harvest:
+
+    def detach_cards_tip(self, trans, cards) -> str:
+        return ''
+
+
 @ui_meta(spellcard.HarvestEffect)
 class HarvestEffect:
     def effect_string(self, act):
