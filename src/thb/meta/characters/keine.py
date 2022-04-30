@@ -146,10 +146,7 @@ class DevotedDrawCards:
 @ui_meta(characters.keine.DevotedAction)
 class DevotedAction:
     def effect_string(self, act):
-        return f'{N.char(act.source)}的伤害由{N.char(act.target)}承受了（<style=Skill.Name>决意</style>）。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}的伤害由{N.char(act.target)}承受了（<style=Skill.Name>决意</style>）。'
 
 
 @ui_meta(characters.keine.Keine)
