@@ -393,17 +393,15 @@ class MigrateCardsTransaction:
 
         for m in trans.movements:
             # -- card actions --
-            getops = [CARD(m.card), AREA(m.fr), GET]
+            cops = [CARD(m.card), AREA(m.fr), GET]
 
-            showing = (m.fr.type == 'showncards', m.to.type == 'showncards')
-
-            if showing == (True, False):
-                ops += getops + [DUP, UNSHOW]
-            elif showing == (False, True):
-                ops += getops + [DUP, SHOW]
+            if m.to.type == 'showncards':
+                cops += [DUP, SHOW]
+            else:
+                cops += [DUP, UNSHOW]
 
             if m.to in (me.cards, me.showncards):
-                ops += getops + [DUP, UNGRAY, AREA('hand'), MOVE]
+                cops += [DUP, UNGRAY, AREA('hand'), MOVE]
             elif m.to.type == 'droppedcard':
                 if tip is None:
                     meta = getattr(trans.action, 'ui_meta', None)
@@ -411,11 +409,13 @@ class MigrateCardsTransaction:
                         tip = f(trans)
                     else:
                         tip = trans.action.__class__.__name__
-                ops += getops + [DUP, GRAY, DUP, DESC(tip), AREA('dropped'), MOVE]
+                cops += [DUP, GRAY, DUP, DESC(tip), AREA('dropped'), MOVE]
             elif m.to.owner and m.to.type != 'special':
-                ops += getops + [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
+                cops += [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
             else:
                 continue  # no animation
+
+            ops += cops
 
         return ops
 
