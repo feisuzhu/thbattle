@@ -7,8 +7,8 @@ from typing import cast
 # -- third party --
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DistributeCards
-from thb.actions import DropCards, FatetellAction, ForEach, GenericAction, LaunchCard
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, BaseFatetell, Damage
+from thb.actions import DistributeCards, DropCards, ForEach, GenericAction, LaunchCard
 from thb.actions import MigrateCardsTransaction, PrepareStage, UseCard, UserAction
 from thb.actions import VitalityLimitExceeded, register_eh, ttags, user_choose_cards
 
@@ -358,7 +358,7 @@ class ExinwanHandler(EventHandler):
                 act = trans.action
 
                 # do not trigger when distributing cards and doing fatetell
-                if isinstance(act, (DistributeCards, FatetellAction)):
+                if isinstance(act, (DistributeCards, BaseFatetell)):
                     return arg
 
                 tgt = act.source
