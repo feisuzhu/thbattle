@@ -217,11 +217,14 @@ class KeineGuardHandler(THBEventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
             src = act.target
+
             g = self.game
+            if not src.has_skill(KeineGuard):
+                return act
 
             candidates = list(p for p in g.players if not p.dead and p is not src and p.life < p.maxlife)
 
-            if not (src.has_skill(KeineGuard) and bool(candidates)):
+            if not candidates:
                 return act
 
             tl = user_choose_players(self, src, candidates)
@@ -244,5 +247,5 @@ class KeineGuardHandler(THBEventHandler):
 @register_character_to('common', '-kof')
 class Keine(Character):
     skills = [Teach, KeineGuard]
-    eventhandlers_required = [KeineGuardHandler, DevotedHandler]
+    eventhandlers = [KeineGuardHandler, DevotedHandler]
     maxlife = 4
