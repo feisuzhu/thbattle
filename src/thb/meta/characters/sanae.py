@@ -51,7 +51,7 @@ class Miracle:
         return self.my_turn()
 
     def effect_string(self, act):
-        return f'{N.char(act.source)}发动了<style=Skill.Name>奇迹</style>，弃置了{len(act.card.associated_cards)}张牌。'
+        return f'{N.char(act.source)}发动了<style=Skill.Name>奇迹</style>，弃置了{N.card(act.card.associated_cards)}。'
 
     def is_action_valid(self, sk, tl):
         cards = sk.associated_cards
