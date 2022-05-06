@@ -300,16 +300,24 @@ class Gate(object):
                     else:
                         raise Exception("Invalid ExtType")
 
-            ret = eval(call['method'], env)(*args)
+            try:
+                ret = eval(call['method'], env)(*args)
+            except Exception as e:
+                raise Exception(f'Gate: Error calling {call}') from e
 
         if cid := call.get('call_id'):
             if call['as_ref']:
                 ret = self._new_ref(ret)
 
             log.debug('call resp: %s -> %s', cid, ret)
+            try:
+                rst = msgpack.packb(ret, use_bin_type=True)
+            except Exception as e:
+                self.post('call_response', {'call_id': cid, 'result': None})
+                raise Exception(f'Gate: error serializing result: call = {call}, result = {ret}') from e
+
             self.post('call_response', {
-                'call_id': cid,
-                'result': msgpack.packb(ret, use_bin_type=True),
+                'call_id': cid, 'result': rst,
             })
 
     def do_exec(self, v: str) -> None:
