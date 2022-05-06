@@ -228,7 +228,7 @@ class UmbrellaCard:
 @ui_meta(equipment.UmbrellaSkill)
 class UmbrellaSkill:
     # Skill
-    name = '紫的阳伞'
+    name = '阳伞'
 
 
 @ui_meta(equipment.UmbrellaEffect)
