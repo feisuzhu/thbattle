@@ -472,7 +472,7 @@ class IbukiGourdSkill(RedUFOSkill):
 
 @register_eh
 class IbukiGourdHandler(THBEventHandler):
-    interested = ['action_apply', 'action_after', 'card_migration']
+    interested = ['action_apply', 'action_after', 'post_card_migration']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
