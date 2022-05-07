@@ -52,7 +52,7 @@ for c in char_cls:
         'Designer': getattr(c.ui_meta, 'designer', ''),
         'Illustrator': getattr(c.ui_meta, 'illustrator', ''),
         'CharacterVoice': getattr(c.ui_meta, 'cv', ''),
-        'SkillStrings': [sk.__name__ for sk in c.skills],
+        'SkillStrings': [sk.__name__ for sk in c.skills +  c.boss_skills],
     }
 
 
