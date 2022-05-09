@@ -132,33 +132,13 @@ class Room(object):
     def handle_game_ended(self, g: Game) -> Game:
         core = self.core
         self.games.pop(Ag(self, g)['gid'], 0)
-
         online_users = self.online_users_of(g)
-        if not online_users:
-            return g
 
-        old = g
-
-        g = self.create_game(
-            old.__class__,
-            Ag(self, old)['name'],
-            Ag(self, old)['flags'],
-        )
         for u in online_users:
             core.lobby.state_of(u).transit('finishing')
+            core.lobby.state_of(u).transit('lobby')
 
-        core.events.game_successive_create.emit((old, g))
-
-        for u in Ag(self, old)['users']:
-            if self.is_online(old, u):
-                self.join_game(g, u)
-
-        if not self.online_users_of(g):
-            # This may happen if all `online_users` are dropped
-            # after the initial `if not online_users` guard statement
-            self.nuke_game(g)
-
-        return old
+        return g
 
     def handle_client_dropped(self, u: Client) -> Client:
         core = self.core
@@ -394,7 +374,7 @@ class Room(object):
     def join_game(self, g: Game, u: Client, slot: Optional[int] = None) -> None:
         core = self.core
 
-        assert core.lobby.state_of(u) in ('lobby', 'finishing'), core.lobby.state_of(u)
+        assert core.lobby.state_of(u) == 'lobby', core.lobby.state_of(u)
 
         slot = slot if slot is not None else self._next_slot(g)
 

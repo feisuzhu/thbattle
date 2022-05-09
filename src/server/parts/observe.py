@@ -346,7 +346,7 @@ class Observe(object):
         if not g: return
         gid = core.room.gid_of(g)
         ob.write(wire.GameEnded(gid))
-        core.lobby.state_of(ob).transit('ob')
+        core.lobby.state_of(ob).transit('lobby')
 
     def _notify(self, g: Game) -> None:
         notifier = Ag(self, g)['_notifier']

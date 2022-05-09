@@ -38,7 +38,6 @@ class Contest(object):
         core.events.game_started += self.handle_game_started
         core.events.game_aborted += self.handle_game_aborted
         core.events.game_ended += self.handle_game_ended
-        core.events.game_successive_create += self.handle_game_successive_create
 
         D = core.events.client_command
         D[wire.SetupContest] += self._contest
@@ -99,16 +98,6 @@ class Contest(object):
         )
 
         return g
-
-    def handle_game_successive_create(self, ev: Tuple[Game, Game]) -> Tuple[Game, Game]:
-        core = self.core
-        old, g = ev
-        flags = core.room.flags_of(g)
-        if flags.contest:
-            fields = old._[self]
-            g._[self] = fields
-            self._start_poll(g, fields['pids'])
-        return ev
 
     # ----- Client Commands -----
     @command('*')

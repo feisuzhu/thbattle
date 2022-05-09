@@ -58,7 +58,6 @@ class GamePart(object):
         core.events.game_ended += self.handle_game_ended
         core.events.game_joined += self.handle_game_joined
         core.events.game_left += self.handle_game_left
-        core.events.game_successive_create += self.handle_game_successive_create
         core.events.user_state_transition += self.handle_user_state_transition
         core.events.client_pivot += self.handle_client_pivot
 
@@ -139,20 +138,6 @@ class GamePart(object):
             self._notify_presence(g)
 
         Au(self, u)['game'] = None
-
-        return ev
-
-    def handle_game_successive_create(self, ev: Tuple[ServerGame, ServerGame]) -> Tuple[ServerGame, ServerGame]:
-        old, g = ev
-        core = self.core
-
-        assert old.ended
-        assert not g.ended
-
-        params = Ag(self, old)['params']
-        Ag(self, g)['params'] = params
-        gid = core.room.gid_of(g)
-        core.room.online_users_of(old).write(wire.GameParams(gid=gid, params=params))
 
         return ev
 

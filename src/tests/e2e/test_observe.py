@@ -113,12 +113,5 @@ class TestObserve(object):
         assert t.take(youmu.events.game_ended)
         assert t.take(yuyuko.events.game_ended)
 
-        # Happy path, successive game
-        assert t.take(youmu.events.game_joined)
-        assert t.take(yuyuko.events.game_joined)
-        youmu.room.get_ready(); wait()
-        assert not youmu.game.is_observe(t[youmu.events.game_started])
-        assert yuyuko.game.is_observe(t[yuyuko.events.game_started])
-        youmu.game.start_game(t[youmu.events.game_started])
-        yuyuko.game.start_game(t[yuyuko.events.game_started])
-        wait()
+        assert s.lobby.state_of(s.lobby.get(youmu.auth.pid)) == 'lobby'
+        assert s.lobby.state_of(s.lobby.get(yuyuko.auth.pid)) == 'lobby'

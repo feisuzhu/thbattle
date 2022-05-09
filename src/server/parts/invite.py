@@ -38,7 +38,6 @@ class Invite(object):
 
         core.events.game_created += self.handle_game_created
         core.events.game_left += self.handle_game_left
-        core.events.game_successive_create += self.handle_game_successive_create
 
         D = core.events.client_command
         D[wire.Invite] += self._invite
@@ -56,11 +55,6 @@ class Invite(object):
         }
         g._[self] = assoc
         return g
-
-    def handle_game_successive_create(self, ev: Tuple[Game, Game]) -> Tuple[Game, Game]:
-        old, g = ev
-        g._[self] = old._[self]
-        return ev
 
     def handle_game_left(self, ev: Tuple[Game, Client]) -> Tuple[Game, Client]:
         g, c = ev

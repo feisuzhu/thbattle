@@ -149,10 +149,8 @@ class MockBackend(object):
     def add_reward(self, v: Any) -> Any:
         '''
         mutation AddReward($gid: Int!, $rewards: [GameRewardInput!]!) {
-          game {
-            addReward(gameId: $gid, rewards: $rewards) {
-              id
-            }
+          GmAddReward(gameId: $gid, rewards: $rewards) {
+            id
           }
         }
         '''
@@ -162,10 +160,8 @@ class MockBackend(object):
     def archive(self, v: Any) -> Any:
         '''
         mutation ArchiveGame($meta: GameInput!, $archive: String!) {
-          game {
-            archive(game: $meta, archive: $archive) {
-              id
-            }
+          GmArchive(game: $meta, archive: $archive) {
+            id
           }
         }
         '''

@@ -85,7 +85,7 @@ class Events(object):
         # Fires after old game ended and new game created.
         # Actors should copy settings from old to new
         # ev = (old: Game, g: Game)
-        self.game_successive_create = EventHub[Tuple[Game, Game]]()
+        # self.game_successive_create = EventHub[Tuple[Game, Game]]()
 
         # Game started running
         # ev = (g: Game)
