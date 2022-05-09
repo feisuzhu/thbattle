@@ -239,7 +239,7 @@ def reseat_effects(g: THBattle, core: Core, evt: str, arg: Any):
 
 def render_game_results(g: THBattle, core: Core, evt: str, arg: Any):
     rst = {
-        'win': core.game.theone_of(g) in g.winners,
+        'my_pid': core.game.theone_of(g).pid,
         'detail': [{
             'pid': p.pid,
             'char': g.find_character(p).__class__.__name__,
