@@ -271,6 +271,9 @@ events_mapping: Dict[str, Callable] = {
     'ui_show_disputed':    ui_show_disputed_effect,
     'game_finished':       fuse(sync_game_state, render_game_results),
 
+    'pindian_card_chosen':   pindian_effect_chosen,
+    'pindian_card_revealed': pindian_effect_card_reveal,
+
     'game_begin':          simple_event,
     'action_stage_action': fuse(sync_game_state, simple_event),
     'switch_character':    simple_event,
