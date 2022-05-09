@@ -442,7 +442,13 @@ class Gate(object):
     def on_game_crashed(self, g: Game) -> Game:
         core = self.core
         self.current_game = None
-        self.post("game_crashed", core.game.gid_of(g))
+        gr = core.game.greenlet_of(g)
+        import traceback
+        s = ''.join(traceback.format_exception(*gr.exc_info))
+        self.post("game_crashed", {
+            'gid': core.game.gid_of(g),
+            'tb': s,
+        })
         return g
 
     def on_client_game_finished(self, g: Game) -> Game:

@@ -267,6 +267,9 @@ class GamePart(object):
         else:
             raise Exception("Couldn't find Theone!")
 
+    def greenlet_of(self, g: Game) -> Optional[Greenlet]:
+        return A(self, g)['greenlet']
+
     def is_dropped(self, g: Game, p: Player) -> bool:
         assert isinstance(p, Player), p
         idx = A(self, g)['players'].index(p)
