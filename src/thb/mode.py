@@ -52,6 +52,7 @@ class THBattle(Game[THBAction, THBEventHandler]):
     players: BatchList[Character]
     roles: Dict[Player, PlayerRole]
     dispatcher: THBEventDispatcher
+    round: int = 0
 
     dispatcher_cls = THBEventDispatcher
 

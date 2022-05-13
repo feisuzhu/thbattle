@@ -183,4 +183,5 @@ def state_of(g: THBattle) -> Optional[GameState]:
         'deck_remaining': len(deck.cards),
         'my_pid': me.pid,
         'my_skills': skills,
+        'round': g.round,
     }

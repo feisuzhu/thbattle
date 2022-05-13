@@ -188,6 +188,7 @@ class THBattleFaithBootstrap(BootstrapAction):
 
         for i, idx in enumerate(cycle(order)):
             if i >= 6000: break
+            g.round = (i // 6) + 1
             ch = g.players[idx]
             if ch.dead: continue
 

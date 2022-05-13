@@ -515,6 +515,7 @@ class THBattleRoleBootstrap(BootstrapAction):
 
         for i, ch in enumerate(cycle(g.players.rotate_to(boss_ch))):
             if i >= 6000: break
+            g.round = i // 8 + 1
             if not ch.dead:
                 try:
                     g.process_action(PlayerTurn(ch))

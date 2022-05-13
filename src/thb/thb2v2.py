@@ -20,7 +20,7 @@ from thb.characters.base import Character
 from thb.common import CharChoice, PlayerRole, roll
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from thb.mode import THBEventHandler, THBattle
-from utils.misc import BatchList, partition
+from utils.misc import BatchList
 import settings
 
 
@@ -265,6 +265,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
 
         for i, ch in enumerate(cycle(g.players)):
             if i >= 6000: break
+            g.round = i // 4 + 1
             if not ch.dead:
                 try:
                     g.process_action(PlayerTurn(ch))

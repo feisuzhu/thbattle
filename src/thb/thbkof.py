@@ -207,6 +207,7 @@ class THBattleKOFBootstrap(BootstrapAction):
         for i in cycle([0, 1]):
             ch = g.players[i]
             if i >= 6000: break
+            g.round = i // 2 + 1
             if ch.dead:
                 handler = g.dispatcher.find_by_cls(KOFCharacterSwitchHandler)
                 assert handler, 'WTF?!'
