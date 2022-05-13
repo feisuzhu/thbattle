@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Dict, List, TYPE_CHECKING, Type
+from enum import Enum
+from typing import Dict, List, TYPE_CHECKING, Tuple, Type
 
 # -- third party --
 # -- own --
@@ -62,3 +63,6 @@ class THBattle(Game[THBAction, THBEventHandler]):
                 return ch
 
         raise IndexError('Could not find character!')
+
+    def get_role_presence(g) -> List[Tuple[Enum, bool]]:
+        raise Exception('impl this')

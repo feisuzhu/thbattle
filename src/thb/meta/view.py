@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, Optional, TypedDict, cast
+from typing import Any, Dict, List, Optional, Tuple, TypedDict, cast
 
 # -- third party --
 # -- own --
@@ -155,6 +155,8 @@ class GameState(TypedDict):
     deck_remaining: int
     my_pid: int
     my_skills: List[view.SkillView]
+    round: int
+    role_presence: List[dict]
 
 
 def state_of(g: THBattle) -> Optional[GameState]:
@@ -178,10 +180,16 @@ def state_of(g: THBattle) -> Optional[GameState]:
 
     skills = [skill(g, sk) for sk in p.skills] if p else []
 
+    presence = [
+        {'role': r.name, 'gray': dead}
+        for r, dead in g.get_role_presence()
+    ]
+
     return {
         'characters': chs,
         'deck_remaining': len(deck.cards),
         'my_pid': me.pid,
         'my_skills': skills,
         'round': g.round,
+        'role_presence': presence,
     }

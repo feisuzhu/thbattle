@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 from enum import Enum
 from itertools import cycle
-from typing import Any, Dict, List, Set, Type
+from typing import Any, Dict, List, Set, Tuple, Type
 import logging
 import random
 
@@ -302,3 +302,9 @@ class THBattle2v2(THBattle):
                 return ch.dead
         else:
             return False
+
+    def get_role_presence(g) -> List[Tuple[Enum, bool]]:
+        return [
+            (g.roles[ch.player].get(), ch.dead)
+            for ch in g.players
+        ]
