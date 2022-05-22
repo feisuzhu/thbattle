@@ -71,7 +71,7 @@ class Events(object):
 
         # Lobby status
         self.lobby_users = EventHub[Sequence[wire.model.User]]()
-        self.lobby_games = EventHub[Sequence[wire.model.Game]]()
+        self.lobby_status = EventHub[wire.LobbyStatus]()
 
         # Observer request
         self.observe_request = EventHub[int]()

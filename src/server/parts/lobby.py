@@ -50,7 +50,7 @@ class Lobby(object):
             self._user_join(c)
 
         ul = [u for u in self.users.values() if u._[self]['state'] == 'lobby']
-        self._notify_online_users(ul)
+        self._notify_online_count(ul)
 
         return ev
 
@@ -146,11 +146,23 @@ class Lobby(object):
         self.users.pop(pid, 0)
         log.info('User PID:%s left, online user %d', pid, len(self.users))
 
-    @throttle(3)
-    def _notify_online_users(self, ul: Sequence[Client]) -> None:
+    def send_online_users(self, ul: Sequence[Client]) -> None:
         core = self.core
         lst = [core.view.User(u) for u in self.users.values()]
         d = Endpoint.encode_bulk([wire.CurrentUsers(users=lst)])
+
+        @core.runner.spawn
+        def do_send() -> None:
+            for u in ul:
+                u.raw_write(d)
+
+    @throttle(3)
+    def _notify_online_count(self, ul: Sequence[Client]) -> None:
+        core = self.core
+        lst = [u for u in self.users.values()]
+        total = len(lst)
+        gaming = sum(self.state_of(u) == 'game' for u in lst)
+        d = Endpoint.encode_bulk([wire.LobbyStatus(total_users=total, gaming_users=gaming)])
 
         @core.runner.spawn
         def do_send() -> None:

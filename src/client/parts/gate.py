@@ -195,7 +195,7 @@ class Gate(object):
         core.events.server_error         += self.on_server_error
         core.events.server_info          += self.on_server_info
         core.events.lobby_users          += self.on_lobby_users
-        core.events.lobby_games          += self.on_lobby_games
+        core.events.lobby_status         += self.on_lobby_status
         core.events.observe_request      += self.on_observe_request
         core.events.observer_enter       += self.on_observer_enter
         core.events.observer_leave       += self.on_observer_leave
@@ -358,8 +358,8 @@ class Gate(object):
         self.post("lobby_users", v)
         return v
 
-    def on_lobby_games(self, v: Sequence[wire.model.Game]) -> Any:
-        self.post("lobby_games", v)
+    def on_lobby_status(self, v: wire.LobbyStatus) -> Any:
+        self.post("lobby_status", v.encode())
         return v
 
     def on_observe_request(self, v: int) -> int:

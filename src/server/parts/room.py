@@ -99,9 +99,9 @@ class Room(object):
             if g := core.game.current(c):
                 self._notify(g)
 
-        users = core.lobby.all_users()
-        ul = [u for u in users if core.lobby.state_of(u) == 'lobby']
-        self._notify_gamelist(ul)
+        # users = core.lobby.all_users()
+        # ul = [u for u in users if core.lobby.state_of(u) == 'lobby']
+        # self._notify_gamelist(ul)
 
         return ev
 
@@ -492,6 +492,8 @@ class Room(object):
 
     @throttle(3)
     def _notify_gamelist(self, ul: List[Client]) -> None:
+        return  # obsolete
+
         core = self.core
 
         lst = [core.view.Game(g) for g in self.games.values()]

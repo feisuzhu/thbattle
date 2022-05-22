@@ -110,6 +110,13 @@ class CurrentUsers(Message, ServerToClient):
 
 @message
 @dataclass
+class LobbyStatus(Message, ServerToClient):
+    total_users: int
+    gaming_users: int
+
+
+@message
+@dataclass
 class RoomUsers(Message, ServerToClient):
     gid: int
     users: List[model.User]
