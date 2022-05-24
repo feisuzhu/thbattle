@@ -70,6 +70,8 @@ class TestFuzzTHBattle2v2(object):
         wait()
 
         def game_ended(g):
+            import logging
+            logging.critical('Game ended called !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             gevent.kill(me, GameEnded())
             return g
 

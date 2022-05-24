@@ -424,6 +424,7 @@ class MigrateCardsTransaction:
                         tip = f(trans)
                     else:
                         tip = trans.action.__class__.__name__
+                        assert False, "No drop_cards_tip defined for %s" % tip
                 cops += [DUP, GRAY, DUP, DESC(tip), AREA('dropped'), MOVE]
             elif m.to.owner and m.to.type != 'special':
                 cops += [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
@@ -444,6 +445,7 @@ class MigrateCardsTransaction:
                 tip = f(trans, cards)
             else:
                 tip = trans.action.__class__.__name__
+                assert False, "No detach_cards_tip defined for %s" % tip
 
         for c in VirtualCard.unwrap(cards):
             fr = c.resides_in

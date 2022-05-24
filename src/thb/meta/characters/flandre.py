@@ -27,9 +27,7 @@ class CriticalStrike:
     # Skill
     name = '狂咲'
     description = (
-        '摸牌阶段，你可以少摸一张牌，若如此做，你获得以下效果直到回合结束：'
-        '<style=Desc.Li>当你没有干劲时，你可以对本阶段内没有成为过<style=Card.Name>弹幕</style>目标的其他角色使用<style=Card.Name>弹幕</style>。</style>'
-        '<style=Desc.Li>你为伤害来源的<style=Card.Name>弹幕</style>和<style=Card.Name>弹幕战</style>造成的伤害+1。</style>'
+	'<style=B>锁定技</style>，你使用<style=Card.Name>弹幕</style>或<style=Card.Name>弹幕战M</style>造成的伤害+1。你没有干劲时可以对出牌阶段内没有成为过<style=Card.Name>弹幕</style>目标的其他角色使用<style=Card.Name>弹幕</style>。回合结束时，如果你内造成过伤害，须弃置一张牌。'
     )
 
 
@@ -53,6 +51,19 @@ class CriticalStrikeAction:
 
     def sound_effect(self, act):
         return 'thb-cv-flandre_cs'
+
+
+@ui_meta(characters.flandre.CriticalStrikeDropAction)
+class CriticalStrikeDropAction:
+    def effect_string(self, act):
+        return f'{N.char(act.target)} 狂咲弃牌效果'
+
+    # choose_card
+    def choose_card_text(self, act, cards):
+        if act.cond(cards):
+            return (True, '<style=Skill.Name>狂咲</style>：弃置这张牌')
+        else:
+            return (False, '<style=Skill.Name>狂咲</style>：请弃置一张牌')
 
 
 @ui_meta(characters.flandre.Exterminate)

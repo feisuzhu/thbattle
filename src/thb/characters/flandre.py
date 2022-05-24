@@ -4,13 +4,13 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, FinalizeStage, GenericAction
-from thb.actions import PlayerDeath, PlayerTurn, register_eh, ttags
+from thb.actions import ActionStageLaunchCard, Damage, DropCards, FinalizeStage, GenericAction
+from thb.actions import PlayerDeath, PlayerTurn, PrepareStage, UserAction, register_eh, ttags
+from thb.actions import user_choose_cards
 from thb.cards.base import Skill
 from thb.cards.classes import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
 from thb.cards.classes import BaseDuel, DuelCard, ElementalReactorSkill, UserAction, t_None
 from thb.characters.base import Character, register_character_to
-from thb.inputlets import ChooseOptionInputlet
 from thb.mode import THBEventHandler
 
 
@@ -23,9 +23,45 @@ class CriticalStrike(Skill):
 
 class CriticalStrikeAction(GenericAction):
     def apply_action(self):
+        return True
+
+
+class CriticalStrikeDropAction(GenericAction):
+    card_usage = 'drop'
+
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.cards = []
+
+    def apply_action(self):
         tgt = self.target
-        ttags(tgt)['flan_cs'] = True
-        ttags(tgt)['flan_targets'] = []
+        if tgt.dead: return False
+
+        g = self.game
+        cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        if cards:
+            g.process_action(DropCards(tgt, tgt, cards=cards))
+        else:
+            from itertools import chain
+            cards = list(chain(tgt.cards, tgt.showncards, tgt.equips))[-1:]
+            g.players.reveal(cards)
+            g.process_action(DropCards(tgt, tgt, cards=cards))
+
+        self.cards = cards
+        return True
+
+    def cond(self, cards):
+        tgt = self.target
+        if not len(cards) == 1:
+            return False
+
+        if not all(c.resides_in in (tgt.cards, tgt.showncards, tgt.equips) for c in cards):
+            return False
+
+        if any(c.is_card(Skill) for c in cards):
+            return False
+
         return True
 
 
@@ -34,7 +70,7 @@ class CriticalStrikeLimit(ActionLimitExceeded):
 
 
 class CriticalStrikeHandler(THBEventHandler):
-    interested = ['action_apply', 'action_before', 'action_shootdown', 'action_stage_action']
+    interested = ['action_apply', 'action_before', 'action_after', 'action_shootdown', 'action_stage_action']
     execute_after = [
         'AttackCardHandler',
         'FrozenFrogHandler',
@@ -47,25 +83,23 @@ class CriticalStrikeHandler(THBEventHandler):
     ]
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
-            if act.cancelled: return act
-            tgt = act.target
-            if not tgt.has_skill(CriticalStrike): return act
-            g = self.game
-            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
+        if evt_type == 'action_before' and isinstance(act, PrepareStage):
+            ttags(act.target)['flan_targets'] = []
 
-            g.process_action(CriticalStrikeAction(tgt, tgt))
-
-            act.amount = max(0, act.amount - 1)
+        elif evt_type == 'action_before' and isinstance(act, FinalizeStage):
+            if ttags(act.target)['flan_cs']:
+                g = self.game
+                tgt = act.target
+                g.process_action(CriticalStrikeDropAction(tgt, tgt))
 
         elif evt_type == 'action_apply' and isinstance(act, BaseAttack):
-            src = act.source
+            src, tgt = act.source, act.target
             if not self.in_critical_strike(src):
                 return act
 
-            tgt = act.target
             if isinstance(act, BaseAttack):
+                g = self.game
+                g.process_action(CriticalStrikeAction(src, tgt))
                 ttags(src)['flan_targets'].append(tgt)
                 act.damage += 1
 
@@ -80,7 +114,14 @@ class CriticalStrikeHandler(THBEventHandler):
             if not self.in_critical_strike(src):
                 return act
 
+            g.process_action(CriticalStrikeAction(src, tgt))
             act.amount += 1
+
+        elif evt_type == 'action_after' and isinstance(act, Damage):
+            src, tgt = act.source, act.target
+            if not self.in_critical_strike(src):
+                return act
+            ttags(src)['flan_cs'] = True
 
         elif evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
             src = act.source
@@ -120,7 +161,6 @@ class CriticalStrikeHandler(THBEventHandler):
             return False
 
         return (
-            ttags(p)['flan_cs'] and
             current is p and
             p.has_skill(CriticalStrike)
         )
@@ -171,7 +211,7 @@ class ExterminateFadeHandler(THBEventHandler):
     interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, arg):
-        if ((evt_type == 'action_after' and isinstance(arg, FinalizeStage)) or
+        if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
             (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa
 
             g = self.game
