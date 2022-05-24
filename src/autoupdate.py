@@ -204,3 +204,9 @@ class DummyAutoupdate(object):
 
     def is_version_present(self, version):
         return True
+
+
+try:
+    import pygit2
+except ImportError:
+    Autoupdate = DummyAutoupdate

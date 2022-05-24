@@ -25,7 +25,7 @@ def start_client():
     parser.add_argument('--no-update', action='store_true')
     parser.add_argument('--with-gl-errcheck', action='store_true')
     parser.add_argument('--freeplay', action='store_true')
-    parser.add_argument('--fastjoin', type=int, default=None)
+    parser.add_argument('--fastjoin', type=str, default='')
     parser.add_argument('--dump-gameobj', action='store_true')
     parser.add_argument('--log', default='INFO')
     parser.add_argument('--color-log', action='store_true')
