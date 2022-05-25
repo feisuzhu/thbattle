@@ -87,6 +87,7 @@ class LunaStringPlaceCard(GenericAction):
         sk.cost_detached = True
         self.direction = direction  # for ui
         migrate_cards([c], g.deck.cards, unwrap=True, direction=direction)
+        ttags(tgt)['luna_string_used'] = True
         return True
 
 
@@ -120,6 +121,9 @@ class LunaStringLaunchCardHandler(THBEventHandler):
             c = walk(c)
 
             if c:
+                if ttags(act.source)['luna_string_used']:
+                    act.cancelled = True
+                    return act
                 g = self.game
                 assert isinstance(c, LunaString)
                 g.process_action(LunaStringPlaceCard(c.character, c))

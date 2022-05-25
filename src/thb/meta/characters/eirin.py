@@ -31,7 +31,7 @@ class SkySilk:
         if cl:
             return False, '请不要选择牌！'
 
-        return True, '发动「天丝」'
+        return True, '发动<style=Skill.Name>天丝</style>'
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
@@ -54,7 +54,7 @@ class SkySilkAction:
 @ui_meta(characters.eirin.LunaString)
 class LunaString:
     name = '月弦'
-    description = '你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张<style=Card.Name>弹幕</style>。'
+    description = '你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张<style=Card.Name>弹幕</style>。以此法使用牌时，每回合限一次。'
 
     def clickable(self):
         return self.accept_cards([characters.eirin.LunaString(self.me)])
@@ -62,7 +62,7 @@ class LunaString:
     def is_complete(self, sk):
         from thb.cards.base import VirtualCard
 
-        s = N.card(characters.eirin.LunaString)
+        s = N.skill(characters.eirin.LunaString)
 
         acards = sk.associated_cards
         if len(acards) != 1:
@@ -84,7 +84,12 @@ class LunaString:
         isc, t = self.is_complete(sk)
         if not isc:
             return isc, t
+
         c = sk.associated_cards[0]
+        if actions.ttags(self.me)['luna_string_used']:
+            s = N.skill(characters.eirin.LunaString)
+            return False, f'{s}只能每回合使用一次'
+
         return AttackCard().ui_meta.is_action_valid(c, tl)
 
 
