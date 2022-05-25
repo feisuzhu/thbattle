@@ -171,14 +171,14 @@ class DevotedHandler(EventHandler):
             g = Game.getgame()
             g.process_action(DevotedAction(cp, tgt, act))
 
-        elif evt_type == 'action_after' and isinstance(act, DrawCards):
-            tgt = act.target
-            if not tgt.has_skill(Devoted): return act
-            cp = tgt.tags['devoted']['to']
-            if cp.dead: return act
-            g = Game.getgame()
-            if g.current_player is not cp: return act
-            g.process_action(DevotedDrawCards(cp, amount=act.amount))
+        # elif evt_type == 'action_after' and isinstance(act, DrawCards):
+        #     tgt = act.target
+        #     if not tgt.has_skill(Devoted): return act
+        #     cp = tgt.tags['devoted']['to']
+        #     if cp.dead: return act
+        #     g = Game.getgame()
+        #     if g.current_player is not cp: return act
+        #     g.process_action(DevotedDrawCards(cp, amount=act.amount))
 
         elif evt_type == 'action_after' and isinstance(act, Heal):
             tgt = act.target
