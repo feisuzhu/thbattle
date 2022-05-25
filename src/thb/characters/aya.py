@@ -16,7 +16,13 @@ class UltimateSpeed(Skill):
     target = t_None
 
 
-class UltimateSpeedAction(UserAction):
+class UltimateSpeedUnleashAction(UserAction):
+    def apply_action(self):
+        self.target.tags['aya_range_max'] = True
+        return True
+
+
+class UltimateSpeedDrawAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
         return g.process_action(DrawCards(self.target, 1))
@@ -35,7 +41,7 @@ class UltimateSpeedHandler(EventHandler):
             if not is_card(card):
                 return arg
 
-            if src.tags['aya_count'] < 2:
+            if not src.tags['aya_range_max']:
                 return arg
 
             g = Game.getgame()
@@ -66,8 +72,11 @@ class UltimateSpeedHandler(EventHandler):
                 return arg
 
             src.tags['aya_count'] += 1
+            if src.tags['aya_count'] == 1:
+                g.process_action(UltimateSpeedUnleashAction(src, src))
+
             if src.tags['aya_count'] == 2:
-                g.process_action(UltimateSpeedAction(src, src))
+                g.process_action(UltimateSpeedDrawAction(src, src))
 
         return arg
 
