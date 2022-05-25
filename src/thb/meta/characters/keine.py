@@ -90,7 +90,7 @@ class KeineGuard:
     name = '守护'
     description = (
         '<style=B>限定技</style>，出牌阶段开始时，你可以失去一点体力上限，令一名其它已受伤角色回复一点体力。之后，若其体力仍然是全场最低的，则你与其获得技能<style=Skill.Name>决意</style>。'
-        '<style=Desc.Li><style=Skill.Name>决意</style>：当你受到伤害时，若同样拥有<style=Skill.Name>决意</style>的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有<style=Skill.Name>决意</style>的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。</style>'
+        '<style=Desc.Li><style=Skill.Name>决意</style>：当你受到伤害时，若同样拥有<style=Skill.Name>决意</style>的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有<style=Skill.Name>决意</style>的另一名角色于你的回合内回复体力时，你回复相同的体力。</style>'
     )
 
     def is_available(self, ch):
@@ -127,7 +127,7 @@ class Devoted:
     # Skill
     name = u'决意'
     description = (
-        '当你受到伤害时，若同样拥有<style=Skill.Name>决意</style>的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有<style=Skill.Name>决意</style>的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
+        '当你受到伤害时，若同样拥有<style=Skill.Name>决意</style>的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有<style=Skill.Name>决意</style>的另一名角色于你的回合内回复体力时，你回复相同的体力。'
     )
 
 

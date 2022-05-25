@@ -177,15 +177,6 @@ class DevotedHandler(THBEventHandler):
             g = self.game
             g.process_action(DevotedAction(cp, tgt, act))
 
-        elif evt_type == 'action_after' and isinstance(act, DrawCards):
-            tgt = act.target
-            if not tgt.has_skill(Devoted): return act
-            cp = tgt.tags['devoted']['to']
-            if cp.dead: return act
-            g = self.game
-            if PlayerTurn.get_current(g).target is not cp: return act
-            g.process_action(DevotedDrawCards(cp, amount=act.amount))
-
         elif evt_type == 'action_after' and isinstance(act, Heal):
             tgt = act.target
             if not tgt.has_skill(Devoted): return act
@@ -224,7 +215,7 @@ class KeineGuardHandler(THBEventHandler):
 
             candidates = list(p for p in g.players if not p.dead and p is not src and p.life < p.maxlife)
 
-            if not candidates:
+            if not (src.has_skill(KeineGuard) and bool(candidates)):
                 return act
 
             tl = user_choose_players(self, src, candidates)
