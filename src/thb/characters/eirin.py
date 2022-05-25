@@ -86,6 +86,7 @@ class LunaStringPlaceCard(GenericAction):
         sk.cost_detached = True
         self.place = place  # for ui
         migrate_cards([c], g.deck.cards, unwrap=True, front=(place == 'top'))
+        ttags(tgt)['luna_string_used'] = True
         return True
 
 
@@ -119,6 +120,10 @@ class LunaStringLaunchCardHandler(EventHandler):
             c = walk(c)
 
             if c:
+                if ttags(act.source)['luna_string_used']:
+                    act.cancelled = True
+                    return act
+
                 g = Game.getgame()
                 g.process_action(LunaStringPlaceCard(c.player, c))
 

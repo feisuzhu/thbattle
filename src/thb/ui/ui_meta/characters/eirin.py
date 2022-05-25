@@ -55,11 +55,14 @@ class SkySilkAction:
 
 class LunaString:
     name = u'月弦'
-    description = u'你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张|G弹幕|r。'
+    description = u'你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张|G弹幕|r。以此法使用牌时，每回合限一次。'
 
     def clickable(g):
         try:
             act = g.hybrid_stack[-1]
+            if isinstance(act, actions.ActionStage) and act.target is g.me and actions.ttags(g.me)['luna_string_used']:
+                return False
+
             if act.cond and act.cond([characters.eirin.LunaString(g.me)]):
                 return True
 
@@ -90,6 +93,8 @@ class LunaString:
         if not isc:
             return isc, t
         c = sk.associated_cards[0]
+        if actions.ttags(g.me)['luna_string_used']:
+            return False, u'「月弦」只能每回合使用一次'
         return cards.AttackCard.ui_meta.is_action_valid(g, [c], tl)
 
 
