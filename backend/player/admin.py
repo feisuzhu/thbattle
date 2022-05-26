@@ -26,7 +26,7 @@ class UserAdmin(OriginalUserAdmin):
             'fields': ('phone', 'password1', 'password2'),
         }),
     )
-    list_display = ('id', 'phone', 'is_staff', 'is_superuser')
+    list_display = ('phone', 'is_staff', 'is_superuser')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('phone',)
     ordering = ('phone',)
