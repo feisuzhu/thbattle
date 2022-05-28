@@ -46,7 +46,7 @@ class ItemActivity(models.Model):
         Player, models.CASCADE, related_name='+',
         verbose_name='相关用户', help_text='相关用户',
     )
-    reason = models.SlugField('原因', max_length=20, help_text='原因')  # use, buy, get
+    action = models.SlugField('动作', max_length=20, help_text='动作')  # use, buy, get
     sku = models.SlugField('类型', max_length=20, help_text='类型')  # some-item:arg
     count = models.IntegerField('数量', help_text='数量')  # -2, -1, 1, 2
     extra = models.CharField('额外数据', max_length=256, help_text='额外数据')

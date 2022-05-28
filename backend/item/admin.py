@@ -20,8 +20,8 @@ class ItemAdmin(admin.ModelAdmin):
 
 @admin.register(models.ItemActivity)
 class ItemActivityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'player', 'reason', 'sku', 'count', 'extra', 'created_at')
-    list_filter = ('reason',)
+    list_display = ('id', 'player', 'action', 'sku', 'count', 'extra', 'created_at')
+    list_filter = ('action',)
     search_fields = ('player__name', 'item__type')
     ordering = ('player',)
 
