@@ -46,6 +46,6 @@ class TokenAuthMiddleware(object):
         if uid is None:
             return HttpResponse('{"data": null, "errors": []}', content_type='application/json', status=401)
         else:
-            request.api_user = SimpleLazyObject(lambda: User.objects.get(uid))
+            request.api_user = SimpleLazyObject(lambda: User.objects.get(id=uid))
 
         return self.get_response(request)
