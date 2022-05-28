@@ -33,4 +33,12 @@ class GameArchiveAdmin(admin.ModelAdmin):
     search_fields = ()
     ordering = ('-game__id',)
 
+
+@admin.register(models.Ranking)
+class RankingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'player', 'season', 'category', 'changes', 'mu', 'sigma')
+    list_filter = ()
+    search_fields = ()
+    # ordering = ('-season', '', ')
+
 # Register your models here.

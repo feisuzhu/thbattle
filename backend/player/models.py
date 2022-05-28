@@ -71,7 +71,8 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
 
     objects = UserManager()
 
-    phone = models.CharField('手机号', unique=True, max_length=15, validators=[is_phone_number], help_text='手机号', primary_key=True)
+    id = models.AutoField('ID', help_text='ID', primary_key=True)
+    phone = models.CharField('手机号', unique=True, max_length=15, validators=[is_phone_number], help_text='手机号')
     is_staff = models.BooleanField('职员状态', default=False, help_text='是否可以登录后台')
     is_active = models.BooleanField('启用帐号', default=True, help_text='指明用户是否被认为活跃的。以反选代替删除帐号。')
     date_joined = models.DateTimeField('加入日期', default=timezone.now, help_text='加入日期')
@@ -109,10 +110,11 @@ class Player(models.Model):
         verbose_name_plural = '玩家'
 
         permissions = (
-            ("change_credit", "可以修改积分"),
+            ("change_credit", "修改积分"),
         )
 
-    user   = models.OneToOneField(User, models.CASCADE, verbose_name='用户', help_text='关联用户', primary_key=True)
+    id     = models.AutoField(verbose_name='ID', help_text='ID', primary_key=True)
+    user   = models.OneToOneField(User, models.CASCADE, verbose_name='用户', help_text='关联用户', unique=True)
     name   = models.CharField('昵称', unique=True, max_length=15, validators=[is_name], help_text='昵称')
     bio    = models.CharField('签名', blank=True, max_length=150, help_text='签名')
     avatar = models.URLField('头像', blank=True, max_length=150, help_text='头像')
