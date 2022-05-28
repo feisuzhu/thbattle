@@ -14,6 +14,22 @@ from unlock.schema import UnlockOps
 
 
 # -- code --
+class ResolveDebugMiddleware(object):
+    def resolve(self, next, root, info, **args):
+        p = next(root, info, **args)
+        if p.is_rejected:
+            try:
+                __traceback_hide__ = True  # noqa: F841
+                p.get()
+            except Exception:
+                from backend.debug import state
+                rv = state.collect()
+                import logging
+                log = logging.getLogger('autopsy')
+                log.error(f'!!! Exception Autopsy: http://localhost:8000/.debug/console/{rv["id"]}')
+        return p
+
+
 Query = type('Query', (
     UserQuery,
     PlayerQuery,

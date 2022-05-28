@@ -99,18 +99,10 @@ DATABASES = {
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    # { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    # { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    # { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
 
@@ -164,6 +156,14 @@ class LeanCloudCredentials:
     APP_KEY    = ''
     MASTER_KEY = ''
     URL        = ''
+
+
+if DEBUG:
+    GRAPHENE = {
+        'MIDDLEWARE': [
+            'backend.graphql.ResolveDebugMiddleware',
+        ]
+    }
 
 
 try:
