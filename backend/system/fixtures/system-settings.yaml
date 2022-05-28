@@ -1,11 +1,11 @@
 - model: system.setting
   pk: runtime-update-url
   fields:
-    value: http://envolve.thb.io/runtime
+    value: http://envolve.proton.thb.io/runtime
 - model: system.setting
   pk: core-update-url
   fields:
-    value: http://envolve.thb.io/core
+    value: http://envolve.proton.thb.io/core
 - model: system.setting
   pk: enable-kedama
   fields:
@@ -18,3 +18,7 @@
   pk: enable-register
   fields:
     value: "true"
+- model: system.setting
+  pk: ranking-season
+  fields:
+    value: "1"

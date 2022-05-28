@@ -1,46 +1,14 @@
 - model: system.server
   pk: 1
   fields:
-    name: "\u535A\u4E3D\u795E\u793E"
-    description: "\u51B7\u6E05\u7684\u795E\u793E\uFF0C\u4E0D\u8FC7\u5F88\u6B22\u8FCE\
-      \u5927\u5BB6\u53BB\u73A9\u7684\uFF0C\u66F4\u6B22\u8FCE\u968F\u624B\u585E\u4E00\
-      \u70B9\u9999\u706B\u94B1\uFF01\r\n\u51FA\u624B\u5927\u65B9\u7684\u8BDD\uFF0C\
-      \u8BF4\u4E0D\u5B9A\u4F1A\u6B23\u8D4F\u5230\u535A\u4E3D\u795E\u793E\u5386\u4EE3\
-      \u4F20\u4E0B\u6765\u768410\u4E07\u5143COS\u54E6\u3002\r\n\r\n\u6CE8\u610F\uFF1A\
-      \u8FD9\u662F\u6D4B\u8BD5\u670D\u52A1\u5668\uFF0C\u5E76\u4E0D\u4FDD\u8BC1\u7A33\
-      \u5B9A\u3001\u4E0E\u6B63\u5E38\u670D\u52A1\u5668\u7684\u540C\u6B65\uFF01"
-    version: 10000010
-    url: tcp://cngame.thbattle.net:8999
-    branch: origin/testing
+    name: "开发服务器"
+    version: 23333
+    url: tcp://proton.local:9999
+    branch: origin/develop
 - model: system.server
   pk: 2
   fields:
-    name: "\u96FE\u4E4B\u6E56"
-    description: "\u4E00\u4E2A\u8BA9\u4EBA\u5F00\u5FC3\u7684\u5730\u65B9\u3002\u53EA\
-      \u662F\u6E38\u5BA2\u666E\u904D\u53CD\u5E94\uFF0C\u6E38\u73A9\u7ED3\u675F\u540E\
-      \u4F1A\u611F\u5230\u81EA\u5DF1\u7684\u667A\u5546\u88AB\u62C9\u4F4E\u4E86\u4E00\
-      \u4E2A\u6863\u6B21\u3002\r\n\u53E6\u5916\uFF0C\u8BF7\u4E0D\u8981\u628A\u9752\
-      \u86D9\u5E26\u5230\u8FD9\u91CC\u6765\u3002\u8FD9\u4E0D\u662F\u89C4\u5B9A\uFF0C\
-      \u53EA\u662F\u4E00\u4E2A\u5EFA\u8BAE\u3002"
-    version: 10000009
-    url: tcp://cngame.thbattle.net:9999
-    branch: origin/production
-- model: system.server
-  pk: 3
-  fields:
-    name: "\u9B54\u6CD5\u4E4B\u68EE"
-    description: "\u68EE\u6797\u91CC\u597D\u73A9\u7684\u4E1C\u897F\u5F88\u591A\uFF0C\
-      \u6BD4\u5982\u88AB\u6349\u5F04\u4EC0\u4E48\u7684\u3002\r\n\u65C1\u8FB9\u6709\
-      \u4E00\u4E2A\u795E\u5947\u7684\u7269\u54C1\u5E97\uFF0C\u53EA\u662F\u5E97\u4E3B\
-      \u6709\u70B9\u53D8\u6001\u3002"
-    version: 10000009
-    url: tcp://cngame.thbattle.net:9999
-    branch: origin/production
-- model: system.server
-  pk: 4
-  fields:
-    name: Dev
-    description: "\u5F00\u53D1\u670D\u52A1\u5668"
+    name: "同一个服务器"
     version: 23333
     url: tcp://proton.local:9999
-    branch: origin/db
+    branch: origin/develop
