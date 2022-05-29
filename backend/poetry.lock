@@ -126,6 +126,17 @@ Django = ">=1.11"
 six = "*"
 
 [[package]]
+name = "django-debug-permissions"
+version = "1.0.0"
+description = "Get a list of all user permissions available in the Django system"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+Django = "*"
+
+[[package]]
 name = "django-redis-cache"
 version = "2.1.1"
 description = "Redis Cache Backend for Django"
@@ -715,7 +726,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "88f7ed08032fc51463c543fd0c6a9e0783ef8988f7705fe982c9141c427d26fd"
+content-hash = "06ff89624ffb3205237e2ec9970506d7c020145b917ad1289c03a659d596a365"
 
 [metadata.files]
 aniso8601 = [
@@ -764,6 +775,9 @@ django = [
 django-annoying = [
     {file = "django-annoying-0.10.6.tar.gz", hash = "sha256:083b5e26f140f86178fcb47931f69b7ff75181ccd1e318d9c218ae9babc1805e"},
     {file = "django_annoying-0.10.6-py2.py3-none-any.whl", hash = "sha256:e230f28fec0559b4fdb621ff202068a78170ada2ac1ec7a73ba822cc1f737791"},
+]
+django-debug-permissions = [
+    {file = "django-debug-permissions-1.0.0.tar.gz", hash = "sha256:be09bb53a162954560629e87a837bb922afcaaa791656bf2dfa5f870318f5aec"},
 ]
 django-redis-cache = [
     {file = "django-redis-cache-2.1.1.tar.gz", hash = "sha256:06d4e48545243883f88dc9263dda6c8a0012cb7d0cee2d8758d8917eca92cece"},

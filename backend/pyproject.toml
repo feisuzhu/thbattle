@@ -33,6 +33,7 @@ flake8 = "^3.8.4"
 werkzeug = "^1.0.1"
 pprintpp = "^0.4.0"
 ipython = "^8.3.0"
+django-debug-permissions = "^1.0.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

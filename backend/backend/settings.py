@@ -53,6 +53,9 @@ INSTALLED_APPS = [
     'schema_graph',
 ]
 
+if DEBUG:
+    INSTALLED_APPS.append('debug_permissions')
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
