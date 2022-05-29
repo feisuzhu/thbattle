@@ -11,6 +11,7 @@ from item.schema import ItemOps
 from player.schema import PlayerOps, PlayerQuery, UserOps, UserQuery
 from system.schema import SystemOps, SystemQuery
 from unlock.schema import UnlockOps
+from ranking.schema import RankingOps
 
 
 # -- code --
@@ -46,6 +47,7 @@ Mutation = type('Mutation', (
     ItemOps,
     UnlockOps,
     SystemOps,
+    RankingOps,
     gh.ObjectType,
 ), {})
 

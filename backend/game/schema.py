@@ -2,11 +2,10 @@
 
 # -- stdlib --
 import base64
-import itertools
 
 # -- third party --
 from django.core.cache import caches
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from graphene.types import generic as ghg
 from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError
@@ -162,58 +161,3 @@ class GameOps(gh.ObjectType):
         c = caches['default']
         c.get_or_set('next_game_id', lambda: 0)
         return c.incr('next_game_id')
-
-    GmAdjustRanking = gh.Field(
-        gh.List(gh.NonNull(RankingAdjustment), required=True),
-        required=True,
-        category=gh.String(required=True, description='分类'),
-        winners=gh.List(gh.Int, required=True, description='赢家 PID 列表'),
-        losers=gh.List(gh.Int, required=True, description='败者 PID 列表'),
-    )
-
-    @staticmethod
-    def resolve_GmAdjustRanking(root, info, category, winners, losers):
-        ctx = info.context
-
-        require_perm(ctx, 'game.change_ranking')
-        players = {v.id: v for v in models.Player.objects.filter(id__in=winners+losers)}
-        if set(players) != set(winners+losers):
-            raise Exception('有不存在的玩家')
-
-        def get_ranking(p):
-            try:
-                return models.Ranking.objects.get(player=p, category=category, season=season)
-            except models.Ranking.DoesNotExist:
-                return models.Ranking(player=p, category=category, season=season)
-
-        for _ in range(3):
-            try:
-                with transaction.atomic():
-                    import system
-                    season = int(system.models.Setting.objects.get(key='ranking-season').value)
-                    wl = [get_ranking(players[i]) for i in winners]
-                    ll = [get_ranking(players[i]) for i in losers]
-                    wrl = [TS.create_rating(mu=v.mu, sigma=v.sigma) for v in wl]
-                    lrl = [TS.create_rating(mu=v.mu, sigma=v.sigma) for v in ll]
-                    nwrl, nlrl = TS.rate([wrl, lrl], [0, 1])
-
-                    rst = []
-                    for obj, b4, af in itertools.chain(zip(wl, wrl, nwrl), zip(ll, lrl, nlrl)):
-                        obj.mu = af.mu
-                        obj.sigma = af.sigma
-                        obj.changes += 1
-                        obj.save()
-                        rst.append(RankingAdjustment(
-                            player=players[obj.player.id],
-                            score_before=models.Ranking.score_from_tsranking(b4),
-                            score_after=models.Ranking.score_from_tsranking(af),
-                            changes=obj.changes,
-                        ))
-
-                    return rst
-
-            except IntegrityError as e:
-                exc = e
-                continue
-
-        raise exc

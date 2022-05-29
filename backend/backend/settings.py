@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'badge.apps.BadgeConfig',
     'unlock.apps.UnlockConfig',
     'item.apps.ItemConfig',
+    'ranking.apps.RankingConfig',
     # 'guild.apps.GuildConfig',
     'system.apps.SystemConfig',
     'graphene_django',
