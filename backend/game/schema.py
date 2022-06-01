@@ -10,7 +10,6 @@ from graphene.types import generic as ghg
 from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError
 import graphene as gh
-import trueskill
 
 # -- own --
 from . import models
@@ -54,15 +53,6 @@ class GameQuery(gh.ObjectType):
         description='获取游戏',
     )
 
-    '''
-    @staticmethod
-    def resolve_guild(root, info, id=None, name=None):
-        if id is not None:
-            return models.Game.objects.get(id=id)
-        elif name is not None:
-            return models.Game.objects.get(name=name)
-'''
-
 
 class GameInput(gh.InputObjectType):
     game_id    = gh.Int(required=True, description='游戏ID')
@@ -71,24 +61,9 @@ class GameInput(gh.InputObjectType):
     flags      = ghg.GenericScalar(required=True, description='游戏选项')
     players    = gh.List(gh.NonNull(gh.Int), required=True, description='参与玩家UID')
     winners    = gh.List(gh.NonNull(gh.Int), required=True, description='胜利玩家UID')
+    deserters  = gh.List(gh.NonNull(gh.Int), required=True, description='逃跑玩家UID')
     started_at = gh.DateTime(auto_now_add=True, required=True, description='开始时间')
     duration   = gh.Int(required=True, description='持续时间')
-
-
-class GameRewardInput(gh.InputObjectType):
-    player_id  = gh.Int(required=True, description='玩家ID')
-    type       = gh.String(required=True, description='积分类型')
-    amount     = gh.Int(required=True, description='数量')
-
-
-TS = trueskill.TrueSkill(draw_probability=0.0)
-
-
-class RankingAdjustment(gh.ObjectType):
-    player       = gh.Field('player.schema.Player', required=True, description='玩家')
-    score_before = gh.Int(required=True, description='调整前积分')
-    score_after  = gh.Int(required=True, description='调整后积分')
-    changes      = gh.Int(required=True, description='变动次数(10以下视为未定级)')
 
 
 class GameOps(gh.ObjectType):
@@ -118,41 +93,46 @@ class GameOps(gh.ObjectType):
                 name=game.name,
                 type=game.type,
                 flags=game.flags,
-                players=players,
-                winners=[p for p in players if p.id in game.winners],
                 started_at=game.started_at,
                 duration=game.duration,
             )
+            g.save()
+            g.players.set(players)
+            g.winners.set([p for p in players if p.id in game.winners])
+            g.deserters.set([p for p in players if p.id in game.deserters])
             ar = models.GameArchive(game=g, replay=base64.b64decode(archive))
             g.save()
             ar.save()
 
         return g
 
-    GmAddReward = gh.Field(
-        Game,
-        game_id=gh.Int(required=True, description='游戏ID'),
-        rewards=gh.List(gh.NonNull(GameRewardInput), required=True, description='积分列表'),
-        description='增加游戏积分',
+    GmSettleRewards = gh.List(
+        gh.NonNull(GameReward),
+        required=True,
+        game=gh.Argument(GameInput, required=True, description='游戏元数据'),
+        description='结算游戏奖励',
     )
 
     @staticmethod
-    def resolve_GmAddReward(root, info, game_id, rewards):
+    def resolve_GmSettleRewards(root, info, game):
         ctx = info.context
         require_perm(ctx, 'game.add_gamereward')
         with transaction.atomic():
-            g = models.Game.objects.get(id=game_id)
-            for r in rewards:
+            # TODO: impl the stragegy
+            g = models.Game.objects.get(id=game.game_id)
+            rst = []
+            for r in game.players:
                 o = models.GameReward(
                     game=g,
                     player=models.Player.objects.get(id=r.player_id),
-                    type=r.type,
-                    amount=r.amount,
+                    type="jiecao",
+                    amount=1,
                 )
                 o.save()
+                rst.append(o)
 
-                # TODO: add to Player profile
-            return g
+            # TODO: add to Player profile
+            return o
 
     GmAllocGameId = gh.Int(required=True, description="分配游戏ID")
 

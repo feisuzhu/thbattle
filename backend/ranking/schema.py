@@ -12,6 +12,7 @@ import trueskill
 # -- own --
 from . import models
 from utils.graphql import require_perm
+from game.schema import GameInput
 
 
 # -- code --
@@ -38,19 +39,21 @@ class RankingOps(gh.ObjectType):
     RkAdjustRanking = gh.Field(
         gh.List(gh.NonNull(RankingAdjustment), required=True),
         required=True,
-        game_id=gh.Int(required=True, description='游戏 ID'),
-        category=gh.String(required=True, description='分类'),
-        winners=gh.List(gh.Int, required=True, description='赢家 PID 列表'),
-        losers=gh.List(gh.Int, required=True, description='败者 PID 列表'),
+        game=gh.Argument(GameInput, required=True, description='游戏元数据'),
     )
 
     @staticmethod
-    def resolve_RkAdjustRanking(root, info, game_id, category, winners, losers):
+    def resolve_RkAdjustRanking(root, info, game):
         ctx = info.context
 
+        pids = game.players
+        winners = game.winners
+        losers = [i for i in pids if i not in winners]
+        category = game.type
+
         require_perm(ctx, 'game.change_ranking')
-        players = {v.id: v for v in models.Player.objects.filter(id__in=winners+losers)}
-        if set(players) != set(winners+losers):
+        players = {v.id: v for v in models.Player.objects.filter(id__in=pids)}
+        if set(players) != set(pids):
             raise Exception('有不存在的玩家')
 
         def get_ranking(p):
@@ -77,7 +80,7 @@ class RankingOps(gh.ObjectType):
                         obj.changes += 1
                         obj.save()
                         h = models.RankingHistory(
-                            game_id=game_id,
+                            game_id=game.game_id,
                             player=players[obj.player.id],
                             season=season,
                             category=category,

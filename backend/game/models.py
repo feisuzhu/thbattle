@@ -24,6 +24,7 @@ class Game(models.Model):
     flags      = models.JSONField(**_('游戏选项'))
     players    = models.ManyToManyField(Player, **_('参与玩家'), related_name='+')
     winners    = models.ManyToManyField(Player, **_('胜利玩家'), related_name='+')
+    deserters  = models.ManyToManyField(Player, **_('逃跑玩家'), related_name='+')
     started_at = models.DateTimeField(auto_now_add=True, **_('开始时间'))
     duration   = models.PositiveIntegerField(**_('持续时间'))
 
