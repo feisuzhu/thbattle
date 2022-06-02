@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import base64
 import logging
 import re
 
 # -- third party --
 from django.db import models
 from django.utils import timezone
-import django.contrib.auth.models as auth_models
-import itsdangerous
-import msgpack
 
 # -- own --
-import backend.settings
+import authext.models
 
 
 # -- code --
@@ -31,78 +27,6 @@ def is_name(value):
     return bool(re.match(r'^[^\s%*"<>&]{3,15}$', value))
 
 
-class UserManager(auth_models.BaseUserManager):
-    use_in_migrations = True
-
-    def _create_user(self, phone, password, **extra_fields):
-        """
-        Create and save a user with the given phone, and password.
-        """
-        if not phone:
-            raise ValueError('必须填写手机')
-        user = self.model(phone=phone, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, phone, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
-        return self._create_user(phone, password, **extra_fields)
-
-    def create_superuser(self, phone, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
-        return self._create_user(phone, password, **extra_fields)
-
-
-class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
-    class Meta:
-        verbose_name        = '用户'
-        verbose_name_plural = '用户'
-
-    USERNAME_FIELD = 'phone'
-
-    objects = UserManager()
-
-    id = models.AutoField('ID', help_text='ID', primary_key=True)
-    phone = models.CharField('手机号', unique=True, max_length=15, validators=[is_phone_number], help_text='手机号')
-    is_staff = models.BooleanField('职员状态', default=False, help_text='是否可以登录后台')
-    is_active = models.BooleanField('启用帐号', default=True, help_text='指明用户是否被认为活跃的。以反选代替删除帐号。')
-    date_joined = models.DateTimeField('加入日期', default=timezone.now, help_text='加入日期')
-
-    token_signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
-
-    def token(self):
-        data = base64.b64encode(msgpack.dumps({'type': 'user', 'id': self.id}))
-        return self.token_signer.sign(data).decode('utf-8')
-
-    @classmethod
-    def uid_from_token(cls, token, max_age=30 * 86400):
-        try:
-            data = cls.token_signer.unsign(token.encode('utf-8'), max_age=max_age)
-        except Exception as e:
-            log.info("User.from_token unsign failed: %s", e)
-            return None
-
-        data = msgpack.loads(base64.b64decode(data))
-        if data.get('type') != 'user':
-            return None
-
-        return data['id']
-
-    @classmethod
-    def from_token(cls, token, max_age=30 * 86400):
-        uid = cls.uid_from_token(token, max_age) or None
-        return uid and cls.objects.get(id=uid)
-
-
 class Player(models.Model):
 
     class Meta:
@@ -114,7 +38,7 @@ class Player(models.Model):
         )
 
     id     = models.AutoField(verbose_name='ID', help_text='ID', primary_key=True)
-    user   = models.OneToOneField(User, models.CASCADE, verbose_name='用户', help_text='关联用户', unique=True)
+    user   = models.OneToOneField(authext.models.User, models.CASCADE, verbose_name='用户', help_text='关联用户', unique=True)
     name   = models.CharField('昵称', unique=True, max_length=15, validators=[is_name], help_text='昵称')
     bio    = models.CharField('签名', blank=True, max_length=150, help_text='签名')
     avatar = models.URLField('头像', blank=True, max_length=150, help_text='头像')

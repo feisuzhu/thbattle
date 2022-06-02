@@ -19,18 +19,20 @@ Including another URLconf
 
 # -- stdlib --
 # -- third party --
+from django.apps import apps
 from django.contrib import admin
 from django.urls import path
 from graphene_django.views import GraphQLView
+from schema_graph.views import Schema
 
 # -- own --
 from .graphql import schema
-from schema_graph.views import Schema
 from .view import MessagePackGraphQLView
 
 
 # -- code --
 admin.site.site_header = '东方符斗祭后台'
+apps.get_app_config('auth').sort_order = 10
 
 
 urlpatterns = [

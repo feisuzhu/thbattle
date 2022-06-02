@@ -21,7 +21,7 @@ import utils.leancloud
 # -- code --
 class User(DjangoObjectType):
     class Meta:
-        model = models.User
+        model = auth_models.User
         exclude_fields = [
             'password',
         ]
@@ -134,6 +134,29 @@ class Availability(gh.ObjectType):
         return not models.Player.objects.filter(name=name.strip()).exists()
 
 
+class Login(gh.ObjectType):
+    phone = gh.Field(
+        User,
+        phone=gh.String(required=True, description="手机"),
+        code=gh.String(required=True, description="验证码"),
+        description="登录",
+    )
+
+    @staticmethod
+    def resolve_phone(root, info, phone, code):
+        phone = phone and phone.strip()
+        from authext.models import PhoneLogin
+        try:
+            phone = PhoneLogin.objects.get(phone=phone)
+        except PhoneLogin.DoesNotExist:
+            return None
+
+        return phone.user
+
+        # u = auth.authenticate(phone=phone, password=password)
+        # return u
+
+
 class UserQuery(gh.ObjectType):
     user = gh.Field(
         User,
@@ -153,20 +176,10 @@ class UserQuery(gh.ObjectType):
 
         return None
 
-    login = gh.Field(
-        User,
-        phone=gh.String(required=True, description="手机"),
-        code=gh.String(required=True, description="验证码"),
-        description="登录",
-    )
+    login = gh.Field(Login, description="登录")
 
-    @staticmethod
-    def resolve_login(root, info, phone, code):
-        phone = phone and phone.strip()
-        return models.User.objects.get(phone=phone)
-
-        # u = auth.authenticate(phone=phone, password=password)
-        # return u
+    def resolve_login(root, info):
+        return Login()
 
 
 class PlayerQuery(gh.ObjectType):

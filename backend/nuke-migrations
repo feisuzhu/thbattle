@@ -1,3 +1,5 @@
+#!/bin/bash -x
+
 rm db.sqlite3
 
 for i in `ls -d */migrations`; do

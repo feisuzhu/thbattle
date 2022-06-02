@@ -1,73 +1,21 @@
 ---
-- model: player.user
+- model: auth.user
   pk: 1
   fields:
-    password: pbkdf2_sha256$260000$TAge4V7AMnJ5z4tIqthy49$hDqJnvQww8c94Pgs7GzIMongraPky0+vBZm9547FY2U=
-    last_login: '2022-05-28T11:39:37.078Z'
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+    last_login:
     is_superuser: true
-    phone: '18612748499'
+    username: proton
+    first_name: ''
+    last_name: ''
+    email: ''
     is_staff: true
     is_active: true
-    date_joined: '2022-05-28T11:24:49.240Z'
+    date_joined: '2022-06-01T08:02:08.959Z'
     groups: []
     user_permissions: []
-- model: player.user
-  pk: 2
-  fields:
-    password: pbkdf2_sha256$260000$GWrqdUNzlZ4fymNaG0Pz57$S4FqOOoy0GvaYjeSTDFpTKPAfEJUtTDP6wNGnsuVoDA=
-    last_login:
-    is_superuser: false
-    phone: '1'
-    is_staff: false
-    is_active: true
-    date_joined: '2022-05-28T11:39:55.567Z'
-    groups: []
-    user_permissions: []
-- model: player.user
-  pk: 3
-  fields:
-    password: pbkdf2_sha256$260000$qEDXDzZIAJG1kV5cDLb2zJ$1w+S+9DjPumXlr/tYib39LKW7UpDOJbMwrxkdoPdXWY=
-    last_login:
-    is_superuser: false
-    phone: '2'
-    is_staff: false
-    is_active: true
-    date_joined: '2022-05-28T11:40:01.236Z'
-    groups: []
-    user_permissions: []
-- model: player.player
+- model: authext.phonelogin
   pk: 1
   fields:
-    user: 2
-    name: '1'
-    bio: ''
-    avatar: ''
-    prefs: ''
-    point: 0
-    power: 0
-    bomb: 0
-    full: 0
-    up: 0
-    games: 0
-    drops: 0
-    badges: []
-    friends: []
-    blocks: []
-- model: player.player
-  pk: 2
-  fields:
-    user: 3
-    name: '2'
-    bio: ''
-    avatar: ''
-    prefs: ''
-    point: 0
-    power: 0
-    bomb: 0
-    full: 0
-    up: 0
-    games: 0
-    drops: 0
-    badges: []
-    friends: []
-    blocks: []
+    user_id: 1
+    phone: "18612748499"

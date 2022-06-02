@@ -11,8 +11,8 @@ from django.db import models
 class Badge(models.Model):
 
     class Meta:
-        verbose_name        = '勋章'
-        verbose_name_plural = '勋章'
+        verbose_name        = '勋章定义'
+        verbose_name_plural = '勋章定义'
 
     id          = models.AutoField(primary_key=True)
     title       = models.CharField('标题', max_length=50, unique=True, help_text='标题')
