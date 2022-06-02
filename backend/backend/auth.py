@@ -38,7 +38,7 @@ class TokenAuthMiddleware(object):
             else:
                 break
 
-            from player.models import User
+            from authext.models import User
             uid = User.uid_from_token(token)
 
             break

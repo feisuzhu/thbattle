@@ -1,16 +1,24 @@
-# Create a fixture using the graphql_query helper and `client` fixture from `pytest-django`.
+# -*- coding: utf-8 -*-
+
+# -- stdlib --
 import json
-import pytest
-import factory
+
+# -- third party --
 from graphene_django.utils.testing import graphql_query
+from django.contrib import auth
+import factory
+import pytest
+
+# -- own --
 import player
 
 
+# -- code --
 class UserFactory(factory.Factory):
     class Meta:
-        model = player.models.User
+        model = auth.models.User
 
-    phone = factory.Faker('phone_number')
+    username = factory.Faker('user_name')
     is_superuser = True
     is_staff = True
 
