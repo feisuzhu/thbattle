@@ -38,6 +38,10 @@ class GameReward(models.Model):
         verbose_name        = '游戏积分'
         verbose_name_plural = '游戏积分'
 
+        constraints = [
+            models.UniqueConstraint(fields=['game', 'player', 'type'], name='rewards_do_not_dup')
+        ]
+
     id     = models.AutoField(primary_key=True)
     game   = models.ForeignKey(Game, **_('游戏'), related_name='rewards', on_delete=models.CASCADE, db_constraint=False)
     player = models.ForeignKey(Player,  **_('玩家'), related_name='rewards', on_delete=models.CASCADE)

@@ -4,55 +4,34 @@
 import json
 
 # -- third party --
-from graphene_django.utils.testing import graphql_query
-from django.contrib import auth
-import factory
 import pytest
+import factory
 
 # -- own --
-import player
+from . import models
 
 
 # -- code --
-class UserFactory(factory.Factory):
+class GameArchiveFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = auth.models.User
+        model = models.GameArchive
 
-    username = factory.Faker('user_name')
-    is_superuser = True
-    is_staff = True
+    replay = b'AAA'
 
 
-class PlayerFactory(factory.Factory):
+class GameFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = player.models.Player
+        model = models.Game
 
-    user = factory.SubFactory(UserFactory)
-    name = factory.Faker('name')
-
-
-@pytest.fixture
-def auth_header():
-    import itsdangerous
-    import backend
-    import msgpack
-    import base64
-    signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
-    data = base64.b64encode(msgpack.dumps({'type': 'user', 'id': 1}))
-    tok = signer.sign(data).decode('utf-8')
-    return {'HTTP_AUTHORIZATION': f'Bearer {tok}'}
+    id         = factory.Sequence(lambda v: v + 1)
+    name       = 'name'
+    type       = 'THBattle2v2'
+    flags      = '{}'
+    started_at = factory.Faker('date_time')
+    duration   = 233
+    archive    = factory.RelatedFactory(GameArchiveFactory)
 
 
-@pytest.fixture
-def Q(client):
-
-    def func(*args, **kwargs):
-        return graphql_query(*args, **kwargs, client=client, graphql_url='/graphql')
-
-    return func
-
-
-# Test you query using the Q fixture
 def test_GmAllocGameId(Q):
     response = Q('''
         mutation {
@@ -68,13 +47,9 @@ def test_GmAllocGameId(Q):
 
 @pytest.mark.django_db
 def test_GmArchive(Q, auth_header):
-    p = PlayerFactory.create()
-    p.user.save()
-    p.save()
-
-    p = PlayerFactory.create()
-    p.user.save()
-    p.save()
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+    PlayerFactory.create()
 
     import random
     gid = random.randint(100, 10000000)
@@ -101,3 +76,40 @@ def test_GmArchive(Q, auth_header):
     content = json.loads(response.content)
     assert 'errors' not in content
     assert content['data']['GmArchive']['id'] == gid
+    models.Game.objects.get(id=gid)
+    models.GameArchive.objects.get(game_id=gid)
+
+
+@pytest.mark.django_db
+def test_GmSettleRewards(Q, auth_header):
+    from player.tests import PlayerFactory
+
+    PlayerFactory.create()
+    PlayerFactory.create()
+    g = GameFactory.create()
+
+    game = {
+        'gameId': g.id,
+        'name': 'foo!',
+        'type': 'THBattle2v2',
+        'flags': {},
+        'players': [1, 2],
+        'winners': [1],
+        'deserters': [2],
+        'startedAt': '2020-12-02T15:43:05Z',
+        'duration': 333,
+    }
+
+    response = Q('''
+        mutation TestGmSettleRewards($game: GameInput!) {
+            GmSettleRewards(game: $game) {
+                id
+            }
+        }
+    ''', variables={'game': game}, headers=auth_header)
+
+    content = json.loads(response.content)
+    assert 'errors' not in content
+    rid = content['data']['GmSettleRewards'][0]['id']
+    assert rid
+    models.GameReward.objects.get(id=rid)

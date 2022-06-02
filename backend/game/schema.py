@@ -68,7 +68,7 @@ class GameInput(gh.InputObjectType):
 
 class GameOps(gh.ObjectType):
     GmArchive = gh.Field(
-        Game,
+        gh.NonNull(Game),
         game=gh.Argument(GameInput, required=True, description='游戏元数据'),
         archive=gh.String(required=True, description='游戏 Replay 数据（Base64）'),
         description='保存游戏存档',
@@ -124,7 +124,7 @@ class GameOps(gh.ObjectType):
             for r in game.players:
                 o = models.GameReward(
                     game=g,
-                    player=models.Player.objects.get(id=r.player_id),
+                    player=models.Player.objects.get(id=r),
                     type="jiecao",
                     amount=1,
                 )
@@ -132,7 +132,7 @@ class GameOps(gh.ObjectType):
                 rst.append(o)
 
             # TODO: add to Player profile
-            return o
+            return rst
 
     GmAllocGameId = gh.Int(required=True, description="分配游戏ID")
 
