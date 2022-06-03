@@ -47,11 +47,15 @@ class RankingHistory(models.Model):
         verbose_name        = '天梯分数历史'
         verbose_name_plural = '天梯分数历史'
 
+        constraints = [
+            models.UniqueConstraint(fields=['game', 'player', 'category'], name='ranking_history_uniq')
+        ]
+
     id       = models.IntegerField(**_('ID'), primary_key=True)
     game     = models.ForeignKey(Game, **_('游戏'), on_delete=models.CASCADE, db_constraint=False, related_name='+')
     player   = models.ForeignKey(Player, **_('玩家'), on_delete=models.CASCADE, related_name='+')
-    season   = models.IntegerField(**_('赛季'))
     category = models.CharField(**_('分类'), max_length=20)
+    season   = models.IntegerField(**_('赛季'))
     score    = models.IntegerField(**_('分数'))
 
     def __str__(self):

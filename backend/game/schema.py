@@ -88,6 +88,12 @@ class GameOps(gh.ObjectType):
             if len(players) != len(game.players):
                 raise GraphQLError('有不存在的玩家')
 
+            if models.Game.objects.filter(id=game.game_id).exists():
+                raise GraphQLError('游戏重复')
+
+            if models.GameArchive.objects.filter(id=game.game_id).exists():
+                raise GraphQLError('游戏 Archive 重复')
+
             g = models.Game(
                 id=game.game_id,
                 name=game.name,

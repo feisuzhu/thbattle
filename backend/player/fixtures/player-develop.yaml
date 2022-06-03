@@ -3,15 +3,45 @@
   pk: 1
   fields:
     password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
-    last_login:
+    last_login: null
     is_superuser: true
     username: proton
-    first_name: ''
-    last_name: ''
-    email: ''
+    first_name: ""
+    last_name: ""
+    email: ""
     is_staff: true
     is_active: true
-    date_joined: '2022-06-01T08:02:08.959Z'
+    date_joined: "2022-06-01T08:02:08.959Z"
+    groups: []
+    user_permissions: []
+- model: auth.user
+  pk: 2
+  fields:
+    password: pbkdf2_sha256$260000$v6OezbJ5STFpTkgfs9aPfN$iH7dEOSjQ5t9VKakMftBxA5cCqxIVTnvOZcdv46dZL8=
+    last_login: null
+    is_superuser: false
+    username: asdf1
+    first_name: ""
+    last_name: ""
+    email: ""
+    is_staff: false
+    is_active: true
+    date_joined: "2022-06-03T14:30:32.220Z"
+    groups: []
+    user_permissions: []
+- model: auth.user
+  pk: 3
+  fields:
+    password: pbkdf2_sha256$260000$pjCFElwPSMbKYqCZuyt3Js$2R9MxtsRRAjz9D+KDswR4vvwLWreRK5gAI0vdx3Vtdo=
+    last_login: null
+    is_superuser: false
+    username: asdf2
+    first_name: ""
+    last_name: ""
+    email: ""
+    is_staff: false
+    is_active: true
+    date_joined: "2022-06-03T14:30:38.155Z"
     groups: []
     user_permissions: []
 - model: authext.phonelogin
@@ -19,3 +49,39 @@
   fields:
     user_id: 1
     phone: "18612748499"
+- model: player.player
+  pk: 1
+  fields:
+    user: 2
+    name: asdf
+    bio: ""
+    avatar: ""
+    prefs: ""
+    point: 0
+    power: 0
+    bomb: 0
+    full: 0
+    up: 0
+    games: 0
+    drops: 0
+    badges: []
+    friends: []
+    blocks: []
+- model: player.player
+  pk: 2
+  fields:
+    user: 3
+    name: asdfasdf
+    bio: ""
+    avatar: ""
+    prefs: ""
+    point: 0
+    power: 0
+    bomb: 0
+    full: 0
+    up: 0
+    games: 0
+    drops: 0
+    badges: []
+    friends: []
+    blocks: []
