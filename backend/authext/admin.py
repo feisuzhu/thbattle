@@ -11,6 +11,6 @@ from . import models
 # -- code --
 @admin.register(models.PhoneLogin)
 class PhoneLoginAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'phone')
+    list_display = ('user', 'phone')
     list_filter = ()
     search_fields = ()
