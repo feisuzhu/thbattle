@@ -28,16 +28,9 @@ class RankingQuery(gh.ObjectType):
     pass
 
 
-class RankingAdjustment(gh.ObjectType):
-    player       = gh.Field('player.schema.Player', required=True, description='玩家')
-    score_before = gh.Int(required=True, description='调整前积分')
-    score_after  = gh.Int(required=True, description='调整后积分')
-    changes      = gh.Int(required=True, description='变动次数(10以下视为未定级)')
-
-
 class RankingOps(gh.ObjectType):
     RkAdjustRanking = gh.Field(
-        gh.List(gh.NonNull(RankingAdjustment), required=True),
+        gh.List(gh.NonNull(RankingHistory), required=True),
         required=True,
         game=gh.Argument(GameInput, required=True, description='游戏元数据'),
     )
@@ -57,10 +50,8 @@ class RankingOps(gh.ObjectType):
             raise Exception('有不存在的玩家')
 
         def get_ranking(p):
-            try:
-                return models.Ranking.objects.get(player=p, category=category, season=season)
-            except models.Ranking.DoesNotExist:
-                return models.Ranking(player=p, category=category, season=season)
+            r = models.Ranking.objects.get_or_create(player=p, category=category, season=season)
+            return r or models.Ranking(player=p, category=category, season=season)
 
         for _ in range(3):
             try:
@@ -74,25 +65,22 @@ class RankingOps(gh.ObjectType):
                     nwrl, nlrl = TS.rate([wrl, lrl], [0, 1])
 
                     rst = []
-                    for obj, b4, af in itertools.chain(zip(wl, wrl, nwrl), zip(ll, lrl, nlrl)):
-                        obj.mu = af.mu
-                        obj.sigma = af.sigma
-                        obj.changes += 1
-                        obj.save()
+                    for r, b4, af in itertools.chain(zip(wl, wrl, nwrl), zip(ll, lrl, nlrl)):
+                        r.mu = af.mu
+                        r.sigma = af.sigma
+                        r.changes += 1
+                        r.save()
                         h = models.RankingHistory(
                             game_id=game.game_id,
-                            player=players[obj.player.id],
+                            player=players[r.player.id],
                             season=season,
                             category=category,
-                            score=models.Ranking.score_from_tsranking(af),
-                        )
-                        h.save()
-                        rst.append(RankingAdjustment(
-                            player=players[obj.player.id],
                             score_before=models.Ranking.score_from_tsranking(b4),
                             score_after=models.Ranking.score_from_tsranking(af),
-                            changes=obj.changes,
-                        ))
+                            changes=r.changes,
+                        )
+                        h.save()
+                        rst.append(h)
 
                     return rst
 

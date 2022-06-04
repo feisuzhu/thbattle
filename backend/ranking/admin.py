@@ -16,8 +16,9 @@ class RankingAdmin(admin.ModelAdmin):
     search_fields = ()
     # ordering = ('-season', '', ')
 
+
 @admin.register(models.RankingHistory)
 class RankingHistoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'game', 'player', 'season', 'category', 'score')
+    list_display = ('id', 'game', 'player', 'season', 'score_before', 'score_after')
     list_filter = ()
     search_fields = ()

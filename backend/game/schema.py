@@ -53,6 +53,10 @@ class GameQuery(gh.ObjectType):
         description='获取游戏',
     )
 
+    @staticmethod
+    def resolve_game(root, info, id):
+        return models.Game.objects.filter(id=id).first()
+
 
 class GameInput(gh.InputObjectType):
     game_id    = gh.Int(required=True, description='游戏ID')
@@ -91,7 +95,7 @@ class GameOps(gh.ObjectType):
             if models.Game.objects.filter(id=game.game_id).exists():
                 raise GraphQLError('游戏重复')
 
-            if models.GameArchive.objects.filter(id=game.game_id).exists():
+            if models.GameArchive.objects.filter(game_id=game.game_id).exists():
                 raise GraphQLError('游戏 Archive 重复')
 
             g = models.Game(

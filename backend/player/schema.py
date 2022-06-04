@@ -146,12 +146,10 @@ class Login(gh.ObjectType):
     def resolve_phone(root, info, phone, code):
         phone = phone and phone.strip()
         from authext.models import PhoneLogin
-        try:
-            phone = PhoneLogin.objects.get(phone=phone)
-        except PhoneLogin.DoesNotExist:
-            return None
+        if phone := PhoneLogin.objects.first(phone=phone):
+            return phone.user
 
-        return phone.user
+        return None
 
         # u = auth.authenticate(phone=phone, password=password)
         # return u
