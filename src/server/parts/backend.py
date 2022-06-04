@@ -146,26 +146,19 @@ class MockBackend(object):
         }
 
     @_reg
-    def add_reward(self, v: Any) -> Any:
-        '''
-        mutation AddReward($gid: Int!, $rewards: [GameRewardInput!]!) {
-          GmAddReward(gameId: $gid, rewards: $rewards) {
-            id
-          }
-        }
-        '''
-        return None
-
-    @_reg
     def archive(self, v: Any) -> Any:
         '''
-        mutation ArchiveGame($meta: GameInput!, $archive: String!) {
-          GmArchive(game: $meta, archive: $archive) {
-            id
-          }
+        mutation ArchiveRewardRank($game: GameInput!, $archive: String!) {
+            GmArchive(game: $game, archive: $archive) { id }
+            GmSettleRewards(game: $game) { player { id } }
+            RkAdjustRanking(game: $game) { player { id } }
         }
         '''
-        return {'game': {'archive': {'id': 0}}}
+        return {
+            'archive': {'id': 0},
+            'rewards': [],
+            'ranking': [],
+        }
 
     @_reg
     def if_have_item(self, v: Any) -> Any:

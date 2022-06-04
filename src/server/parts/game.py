@@ -4,13 +4,19 @@ from __future__ import annotations
 # -- stdlib --
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Type, TypedDict
+import base64
+import dataclasses
+import datetime
+import json
 import logging
 import random
+import time
+import zlib
 
 # -- third party --
 # -- own --
 from endpoint import Endpoint
-from game.base import GameArchive, GameData, Player
+from game.base import GameData, Player
 from server.base import Game as ServerGame, HumanPlayer, NPCPlayer
 from server.endpoint import Client
 from server.utils import command
@@ -108,11 +114,70 @@ class GamePart(object):
 
     def handle_game_ended(self, g: ServerGame) -> ServerGame:
         core = self.core
+
+        meta = self._meta(g)
+        archive = self._archive(g)
+
+        core.backend.query('''
+            mutation ArchiveRewardRank($game: GameInput!, $archive: String!) {
+                GmArchive(game: $game, archive: $archive) {
+                    id
+                }
+                GmSettleRewards(game: $game) {
+                    player { id }
+                }
+                RkAdjustRanking(game: $game) {
+                    player { id }
+                }
+            }
+        ''', meta=meta, archive=archive)
+
         users = core.room.online_users_of(g)
         for u in users:
             u.write(wire.GameEnded(core.room.gid_of(g)))
 
         return g
+
+    def _meta(self, g: ServerGame) -> Dict[str, Any]:
+        core = self.core
+        start = core.room.start_time_of(g)
+
+        flags = dict(dataclasses.asdict(core.room.flags_of(g)))
+        flags['crashed'] = self.is_crashed(g)
+        flags['aborted'] = self.is_aborted(g)
+
+        return {
+            'gameId': core.room.gid_of(g),
+            'name': core.room.name_of(g),
+            'type': g.__class__.__name__,
+            'flags': flags,
+            'players': [core.auth.pid_of(u) for u in core.room.users_of(g)],
+            'winners': [core.auth.pid_of(p.client) for p in self.winners_of(g) if isinstance(p, HumanPlayer)],
+            'deserters': [core.auth.pid_of(u) for u in core.room.users_of(g) if self.is_fled(g, u)],
+            'startedAt': datetime.datetime.now().isoformat(),
+            'duration': int(time.time() - start),
+        }
+
+    def _archive(self, g: ServerGame) -> str:
+        from settings import VERSION
+
+        core = self.core
+        ul = core.room.users_of(g)
+        data = [Ag(self, g)['data'][core.auth.pid_of(u)].archive() for u in ul]
+        data = {
+            'version': VERSION,
+            'gid': core.room.gid_of(g),
+            'class': g.__class__.__name__,
+            'params': self.params_of(g),
+            'items': core.item.item_skus_of(g),
+            'rngseed': self.rngseed_of(g),
+            'players': [core.auth.pid_of(u) for u in core.room.users_of(g)],
+            'data': data,
+        }
+
+        return base64.b64encode(
+            zlib.compress(json.dumps(data).encode('utf-8'))
+        ).decode('utf-8')
 
     def handle_game_joined(self, ev: Tuple[ServerGame, Client]) -> Tuple[ServerGame, Client]:
         g, u = ev
@@ -253,13 +318,6 @@ class GamePart(object):
         core = self.core
         pid = core.auth.pid_of(u)
         return Ag(self, g)['fled'][pid]
-
-    def get_gamedata_archive(self, g: ServerGame) -> List[GameArchive]:
-        core = self.core
-        ul = core.room.users_of(g)
-        return [
-            Ag(self, g)['data'][core.auth.pid_of(u)].archive() for u in ul
-        ]
 
     def write(self, g: ServerGame, u: Client, tag: str, data: object) -> None:
         core = self.core

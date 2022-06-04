@@ -155,9 +155,6 @@ class Core(core.Core):
         if 'item' not in disables:
             self.item = parts.item.Item(self)
 
-        if 'reward' not in disables:
-            self.reward = parts.reward.Reward(self)
-
         if 'contest' not in disables:
             self.contest = parts.contest.Contest(self)
 
@@ -166,9 +163,6 @@ class Core(core.Core):
 
         if 'kedama' not in disables:
             self.kedama = parts.kedama.Kedama(self)
-
-        if 'archive' not in disables:
-            self.archive = parts.archive.Archive(self)
 
         if 'hooks' not in disables:
             self.hooks = parts.hooks.Hooks(self)
