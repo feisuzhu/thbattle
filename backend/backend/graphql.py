@@ -9,9 +9,10 @@ import graphql
 from game.schema import GameOps, GameQuery
 # from guild.schema import GuildOps, GuildQuery
 from item.schema import ItemOps
-from player.schema import PlayerOps, PlayerQuery, UserOps, UserQuery
+from player.schema import PlayerOps, PlayerQuery
 from system.schema import SystemOps, SystemQuery
 from unlock.schema import UnlockOps
+from authext.schema import UserQuery, UserOps
 from ranking.schema import RankingOps
 
 

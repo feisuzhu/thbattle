@@ -106,7 +106,7 @@ class Auth(object):
             ''', token=token)
         except BackendError:
             log.exception("Error getting user by token")
-            u.write(wire.AuthError('not_available'))
+            u.write(wire.AuthError('internal_error'))
             return
 
         if not rst or not rst['user']:
