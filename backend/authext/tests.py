@@ -4,6 +4,7 @@
 # -- third party --
 from django.contrib import auth
 import factory
+from . import models
 
 # -- own --
 
@@ -16,3 +17,11 @@ class UserFactory(factory.django.DjangoModelFactory):
     username = factory.Faker('user_name')
     is_superuser = True
     is_staff = True
+
+
+class PhoneLoginFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.PhoneLogin
+
+    user = factory.SubFactory(UserFactory)
+    phone = factory.Faker("phone_number")

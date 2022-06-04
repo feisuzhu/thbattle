@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import json
+
 # -- third party --
 from graphene_django.utils.testing import graphql_query
 import pytest
@@ -25,6 +27,6 @@ def auth_header():
 def Q(client):
 
     def func(*args, **kwargs):
-        return graphql_query(*args, **kwargs, client=client, graphql_url='/graphql')
+        return json.loads(graphql_query(*args, **kwargs, client=client, graphql_url='/graphql').content)
 
     return func

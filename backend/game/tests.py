@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import json
-
 # -- third party --
-import pytest
 import factory
+import pytest
 
 # -- own --
 from . import models
@@ -33,16 +31,14 @@ class GameFactory(factory.django.DjangoModelFactory):
 
 
 def test_GmAllocGameId(Q):
-    response = Q('''
+    rst = Q('''
         mutation {
             GmAllocGameId
         }
-        '''
-    )
+    ''')
 
-    content = json.loads(response.content)
-    assert content['data']['GmAllocGameId'] > 0
-    assert 'errors' not in content
+    assert rst['data']['GmAllocGameId'] > 0
+    assert 'errors' not in rst
 
 
 @pytest.mark.django_db
@@ -65,7 +61,7 @@ def test_GmArchive(Q, auth_header):
         'duration': 333,
     }
 
-    response = Q('''
+    rst = Q('''
         mutation TestGmArchive($game: GameInput!) {
             GmArchive(game: $game, archive: "AAAA") {
                 id
@@ -73,9 +69,8 @@ def test_GmArchive(Q, auth_header):
         }
     ''', variables={'game': game}, headers=auth_header)
 
-    content = json.loads(response.content)
-    assert 'errors' not in content
-    assert content['data']['GmArchive']['id'] == gid
+    assert 'errors' not in rst
+    assert rst['data']['GmArchive']['id'] == gid
     models.Game.objects.get(id=gid)
     models.GameArchive.objects.get(game_id=gid)
 
@@ -100,7 +95,7 @@ def test_GmSettleRewards(Q, auth_header):
         'duration': 333,
     }
 
-    response = Q('''
+    rst = Q('''
         mutation TestGmSettleRewards($game: GameInput!) {
             GmSettleRewards(game: $game) {
                 id
@@ -108,8 +103,7 @@ def test_GmSettleRewards(Q, auth_header):
         }
     ''', variables={'game': game}, headers=auth_header)
 
-    content = json.loads(response.content)
-    assert 'errors' not in content
-    rid = content['data']['GmSettleRewards'][0]['id']
+    assert 'errors' not in rst
+    rid = rst['data']['GmSettleRewards'][0]['id']
     assert rid
     models.GameReward.objects.get(id=rid)

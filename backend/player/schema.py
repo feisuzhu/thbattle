@@ -146,7 +146,7 @@ class Login(gh.ObjectType):
     def resolve_phone(root, info, phone, code):
         phone = phone and phone.strip()
         from authext.models import PhoneLogin
-        if phone := PhoneLogin.objects.first(phone=phone):
+        if phone := PhoneLogin.objects.filter(phone=phone).first():
             return phone.user
 
         return None
