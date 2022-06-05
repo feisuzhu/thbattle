@@ -1,0 +1,229 @@
+---
+- model: auth.user
+  pk: 1
+  fields:
+    username: proton
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+    is_superuser: true
+    is_staff: true
+    is_active: true
+- model: auth.user
+  pk: 2
+  fields:
+    username: alice
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 3
+  fields:
+    username: bob
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 4
+  fields:
+    username: cirno
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 5
+  fields:
+    username: daiyousei
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 6
+  fields:
+    username: eirin
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 7
+  fields:
+    username: flandre
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 8
+  fields:
+    username: kanako
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 9
+  fields:
+    username: marisa
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 10
+  fields:
+    username: nazrin
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 11
+  fields:
+    username: patchouli
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 12
+  fields:
+    username: reimu
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 13
+  fields:
+    username: sanae
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 14
+  fields:
+    username: tenshi
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: auth.user
+  pk: 15
+  fields:
+    username: youmu
+    password: pbkdf2_sha256$260000$W8orvYcRJUEUgvwEfRxInh$YwLYPt1+I209GFX2Qnx7c2XOAr6J4H72cBmdWEesjCc=
+- model: authext.phonelogin
+  pk: 1
+  fields:
+    user_id: 1
+    phone: "18612748499"
+- model: authext.phonelogin
+  pk: 2
+  fields:
+    user_id: 2
+    phone: "18000000002"
+- model: authext.phonelogin
+  pk: 3
+  fields:
+    user_id: 3
+    phone: "18000000003"
+- model: authext.phonelogin
+  pk: 4
+  fields:
+    user_id: 4
+    phone: "18000000004"
+- model: authext.phonelogin
+  pk: 5
+  fields:
+    user_id: 5
+    phone: "18000000005"
+- model: authext.phonelogin
+  pk: 6
+  fields:
+    user_id: 6
+    phone: "18000000006"
+- model: authext.phonelogin
+  pk: 7
+  fields:
+    user_id: 7
+    phone: "18000000007"
+- model: authext.phonelogin
+  pk: 8
+  fields:
+    user_id: 8
+    phone: "18000000008"
+- model: authext.phonelogin
+  pk: 9
+  fields:
+    user_id: 9
+    phone: "18000000009"
+- model: authext.phonelogin
+  pk: 10
+  fields:
+    user_id: 10
+    phone: "18000000010"
+- model: authext.phonelogin
+  pk: 11
+  fields:
+    user_id: 11
+    phone: "18000000011"
+- model: authext.phonelogin
+  pk: 12
+  fields:
+    user_id: 12
+    phone: "18000000012"
+- model: authext.phonelogin
+  pk: 13
+  fields:
+    user_id: 13
+    phone: "18000000013"
+- model: authext.phonelogin
+  pk: 14
+  fields:
+    user_id: 14
+    phone: "18000000014"
+- model: authext.phonelogin
+  pk: 15
+  fields:
+    user_id: 15
+    phone: "18000000015"
+- model: player.player
+  pk: 1
+  fields:
+    user: 1
+    name: Proton
+- model: player.player
+  pk: 2
+  fields:
+    user: 2
+    name: Alice
+- model: player.player
+  pk: 3
+  fields:
+    user: 3
+    name: Bob
+- model: player.player
+  pk: 4
+  fields:
+    user: 4
+    name: Cirno
+- model: player.player
+  pk: 5
+  fields:
+    user: 5
+    name: Daiyousei
+- model: player.player
+  pk: 6
+  fields:
+    user: 6
+    name: Eirin
+- model: player.player
+  pk: 7
+  fields:
+    user: 7
+    name: Flandre
+- model: player.player
+  pk: 8
+  fields:
+    user: 8
+    name: Kanako
+- model: player.player
+  pk: 9
+  fields:
+    user: 9
+    name: Marisa
+- model: player.player
+  pk: 10
+  fields:
+    user: 10
+    name: Nazrin
+- model: player.player
+  pk: 11
+  fields:
+    user: 11
+    name: Patchouli
+- model: player.player
+  pk: 12
+  fields:
+    user: 12
+    name: Reimu
+- model: player.player
+  pk: 13
+  fields:
+    user: 13
+    name: Sanae
+- model: player.player
+  pk: 14
+  fields:
+    user: 14
+    name: Tenshi
+- model: player.player
+  pk: 15
+  fields:
+    user: 15
+    name: Youmu
