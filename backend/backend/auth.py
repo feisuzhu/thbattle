@@ -4,6 +4,8 @@
 from base64 import b64decode
 
 # -- third party --
+from authext.models import User
+from django.contrib import auth
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
@@ -19,33 +21,34 @@ class TokenAuthMiddleware(object):
 
     def __call__(self, request):
         uid = None
-        bearer = request.META.get('HTTP_AUTHORIZATION')
+        request.api_user = AnonymousUser()
+        header = request.META.get('HTTP_AUTHORIZATION')
 
-        if not bearer:
-            request.api_user = AnonymousUser()
+        if not header:
             return self.get_response(request)
 
-        while True:
-            try:
-                tag, token = bearer.split()
-            except Exception:
-                break
+        try:
+            tag, token = header.split()
+        except Exception:
+            return self.unauthenticated()
 
-            if tag == 'Basic':
-                token = b64decode(token).decode('utf-8')
-            elif tag == 'Bearer':
-                pass
-            else:
-                break
+        if tag == 'Basic':
+            un, pwd = b64decode(token).decode('utf-8').split(':', 2)
+            user = auth.authenticate(username=un, password=pwd)
+            if user and user.is_staff:
+                request.api_user = user
+                return self.get_response(request)
 
-            from authext.models import User
-            uid = User.uid_from_token(token)
+        elif tag == 'Bearer':
+            if uid := User.uid_from_token(token):
+                request.api_user = SimpleLazyObject(lambda: User.objects.get(id=uid))
+                return self.get_response(request)
 
-            break
+        return self.unauthenticated()
 
-        if uid is None:
-            return HttpResponse('{"data": null, "errors": []}', content_type='application/json', status=401)
-        else:
-            request.api_user = SimpleLazyObject(lambda: User.objects.get(id=uid))
-
-        return self.get_response(request)
+    def unauthenticated(self):
+        return HttpResponse(
+            '{"data": null, "errors": [{"message": "Unauthenticated", "locations": []}]}',
+            content_type='application/json',
+            status=401,
+        )

@@ -130,7 +130,7 @@ class GamePart(object):
                     player { id }
                 }
             }
-        ''', meta=meta, archive=archive)
+        ''', game=meta, archive=archive)
 
         users = core.room.online_users_of(g)
         for u in users:
