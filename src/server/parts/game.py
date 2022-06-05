@@ -236,7 +236,7 @@ class GamePart(object):
     def _build_players(self, g: ServerGame, users: List[Client]) -> BatchList[Player]:
         core = self.core
         pl: BatchList[Player] = BatchList([HumanPlayer(g, core.auth.pid_of(u), u) for u in users])
-        pl[:0] = [NPCPlayer(g, core.auth.next_kedama_pid(), i.input_handler) for i in g.npc_players]
+        pl[:0] = [NPCPlayer(g, i.uid, i.input_handler) for i in g.npc_players]
 
         return pl
 

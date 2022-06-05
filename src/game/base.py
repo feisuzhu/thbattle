@@ -3,9 +3,10 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
+from dataclasses import dataclass
 from random import Random
-from typing import Any, ClassVar, Dict, Generic, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple
-from typing import Type, TypeVar, TypedDict, Union
+from typing import Any, Callable, ClassVar, Dict, Generic, List, Optional, Sequence, Set
+from typing import TYPE_CHECKING, Tuple, Type, TypeVar, TypedDict, Union
 import inspect
 import logging
 import random
@@ -133,12 +134,11 @@ class Nobody(Player):
         pass
 
 
-class NPC(object):
-    __slots__ = ('name', 'input_handler')
-
-    def __init__(self, name, input_handler):
-        self.name = name
-        self.input_handler = input_handler
+@dataclass
+class NPC:
+    uid: int
+    name: str
+    input_handler: Callable
 
 
 class GameEnded(GameException):

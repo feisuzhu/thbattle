@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, annotations, division, print_function, unicode_literals
+from __future__ import annotations
 
 # -- stdlib --
 from enum import Enum
 from itertools import chain, combinations, cycle
-from typing import Any, Callable, Dict, List, cast
+from typing import Any, Callable, Dict, List, Tuple, cast
 import logging
 import random
 
@@ -606,8 +606,12 @@ class ScriptedStage(GenericAction):
 class THBattleNewbie(THBattle):
     n_persons   = 1
     game_ehs    = [DeathHandler]
-    npc_players = [NPC('琪露诺', CirnoAI.ai_main)]
+    npc_players = [NPC(-9, '琪露诺', CirnoAI.ai_main)]
     bootstrap   = THBattleNewbieBootstrap
 
     def can_leave(g, p):
         return True
+
+    # TODO: impl this
+    # def get_role_presence(g) -> List[Tuple[Enum, bool]]:
+    #     return []

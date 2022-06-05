@@ -30,8 +30,3 @@ for g in modelst:
     modes[g.__name__] = g
 
 del modelst, g
-
-modes_kedama = {
-    'THBattleNewbie',
-    'THBattleKOF',
-}

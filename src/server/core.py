@@ -161,9 +161,6 @@ class Core(core.Core):
         if 'admin' not in disables:
             self.admin = parts.admin.Admin(self)
 
-        if 'kedama' not in disables:
-            self.kedama = parts.kedama.Kedama(self)
-
         if 'hooks' not in disables:
             self.hooks = parts.hooks.Hooks(self)
 

@@ -7,10 +7,6 @@
   fields:
     value: http://envolve.proton.thb.io/core
 - model: system.setting
-  pk: enable-kedama
-  fields:
-    value: "true"
-- model: system.setting
   pk: enable-aya-news
   fields:
     value: "true"
