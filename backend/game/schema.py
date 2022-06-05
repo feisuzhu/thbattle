@@ -32,7 +32,7 @@ class GameReward(DjangoObjectType):
 class GameArchive(DjangoObjectType):
     class Meta:
         model = models.GameArchive
-        exclude_fields = ['replay']
+        exclude = ['replay']
 
     exists = gh.Boolean(description='Replay 数据存在？')
     replay = gh.String(description='Replay 数据（Base64）')

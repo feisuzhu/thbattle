@@ -17,7 +17,7 @@ from utils.graphql import require_perm
 class User(DjangoObjectType):
     class Meta:
         model = auth_models.User
-        exclude_fields = [
+        exclude = [
             'password',
         ]
 

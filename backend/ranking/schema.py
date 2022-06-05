@@ -50,7 +50,7 @@ class RankingOps(gh.ObjectType):
             raise Exception('有不存在的玩家')
 
         def get_ranking(p):
-            r = models.Ranking.objects.get_or_create(player=p, category=category, season=season)
+            r = models.Ranking.objects.filter(player=p, category=category, season=season).first()
             return r or models.Ranking(player=p, category=category, season=season)
 
         for _ in range(3):

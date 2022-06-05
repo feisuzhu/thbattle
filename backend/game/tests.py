@@ -21,13 +21,13 @@ class GameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Game
 
-    id         = factory.Sequence(lambda v: v + 1)
+    id         = factory.Sequence(lambda v: v)
     name       = 'name'
     type       = 'THBattle2v2'
     flags      = '{}'
     started_at = factory.Faker('date_time')
     duration   = 233
-    archive    = factory.RelatedFactory(GameArchiveFactory)
+    archive    = factory.RelatedFactory(GameArchiveFactory, factory_related_name='game')
 
 
 def test_GmAllocGameId(Q):

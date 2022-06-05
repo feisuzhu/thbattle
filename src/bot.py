@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+import itsdangerous
 
 # -- prioritized --
 from gevent import monkey
@@ -7,6 +8,7 @@ monkey.patch_all()
 
 # -- stdlib --
 import logging
+import base64
 import sys
 
 # -- third party --
@@ -20,6 +22,7 @@ from core import CoreRunner
 from thb.bot import BotUserInputHandler
 from utils.events import EventHub
 import utils
+import msgpack
 import utils.log
 
 
@@ -77,6 +80,14 @@ class EventTap(object):
             gevent.sleep(0.01)
 
 
+SIGNER = itsdangerous.TimestampSigner('ew&(_dc#t346(!qzan_paw2^5f3r)3g80)1l+s_e%7&!a7nr$-')
+
+
+def get_token(n):
+    data = base64.b64encode(msgpack.dumps({'type': 'user', 'id': n + 2}))
+    return SIGNER.sign(data).decode('utf-8')
+
+
 def run_bot(n, server, mode, delay):
     log = logging.getLogger('bot')
     log.info('Bot %s starting', n)
@@ -98,7 +109,7 @@ def run_bot(n, server, mode, delay):
     assert rst == 'success'
 
     log.info('Bot %s auth', n)
-    core.auth.login("")
+    core.auth.login(get_token(n))
     tap.wait(core.events.auth_success)
     core.matching.start([mode])
 

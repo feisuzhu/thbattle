@@ -21,7 +21,7 @@ import utils.leancloud
 class Player(DjangoObjectType):
     class Meta:
         model = models.Player
-        exclude_fields = [
+        exclude = [
             'friended_by',
             'blocked_by',
             'reported_by',

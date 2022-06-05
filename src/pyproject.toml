@@ -22,6 +22,7 @@ flake8 = "*"
 coverage = "*"
 mypy = "*"
 jedi = "^0.17.2"
+itsdangerous = "^2.1.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
