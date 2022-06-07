@@ -69,6 +69,13 @@ class Player(DjangoObjectType):
         from badge.models import PlayerBadge
         return PlayerBadge.objects.filter(player__id=root.id)
 
+    power = gh.Int(description="P")
+
+    @staticmethod
+    def resolve_power(root, info):
+        # TODO
+        return 233
+
 
 class Report(DjangoObjectType):
     class Meta:
@@ -245,7 +252,7 @@ class BindForum(object):
             **dict(parse_qsl(url.query)),
         )
 
-        rst = Q(db, '''
+        _ = Q(db, '''
             -- SQL
             SELECT
                 m.username as name,

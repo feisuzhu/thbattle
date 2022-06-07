@@ -148,6 +148,4 @@ class GameOps(gh.ObjectType):
 
     @staticmethod
     def resolve_GmAllocGameId(root, info):
-        c = caches['default']
-        c.get_or_set('next_game_id', lambda: 0)
-        return c.incr('next_game_id')
+        return caches['default'].incr('next_game_id')

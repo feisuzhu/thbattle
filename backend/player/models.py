@@ -27,6 +27,9 @@ def is_name(value):
     return bool(re.match(r'^[^\s%*"<>&]{3,15}$', value))
 
 
+_ = lambda s: {'help_text': s, 'verbose_name': s}
+
+
 class Player(models.Model):
 
     class Meta:
@@ -37,18 +40,20 @@ class Player(models.Model):
             ("change_credit", "修改积分"),
         )
 
-    id     = models.AutoField(verbose_name='ID', help_text='ID', primary_key=True)
-    user   = models.OneToOneField(authext.models.User, models.CASCADE, verbose_name='用户', help_text='关联用户', unique=True)
-    name   = models.CharField('昵称', unique=True, max_length=15, validators=[is_name], help_text='昵称')
-    bio    = models.CharField('签名', blank=True, max_length=150, help_text='签名')
-    avatar = models.URLField('头像', blank=True, max_length=150, help_text='头像')
-    prefs  = models.TextField('个人设置', blank=True, help_text='个人设置')
+    id     = models.AutoField(**_('ID'), primary_key=True)
+    user   = models.OneToOneField(authext.models.User, models.CASCADE, **_('用户'), unique=True)
+    name   = models.CharField(**_('昵称'), unique=True, max_length=15, validators=[is_name])
+    bio    = models.CharField(**_('签名'), blank=True, max_length=150)
+    avatar = models.URLField(**_('头像'), blank=True, max_length=150)
+    prefs  = models.TextField(**_('个人设置'), blank=True)
 
-    point = models.IntegerField('点', default=0, help_text='点')
-    power = models.IntegerField('P', default=0, help_text='P')
-    bomb = models.IntegerField('B', default=0, help_text='B')
-    full = models.IntegerField('F', default=0, help_text='F')
-    up = models.IntegerField('+1UP', default=0, help_text='+1UP')
+    # https://github.com/feisuzhu/thbattle/issues/247
+    level = models.IntegerField(**_('等级'), default=0)
+    exp   = models.IntegerField(**_('经验值'), default=0)
+    # power = models.IntegerField(**_('P'), default=0)  # put into redis
+    up    = models.IntegerField(**_('+1UP'), default=0)
+    bomb  = models.IntegerField(**_('B'), default=0)
+    point = models.IntegerField(**_('点'), default=0)
 
     games  = models.IntegerField('游戏数', default=0, help_text='游戏数')
     drops  = models.IntegerField('逃跑数', default=0, help_text='逃跑数')

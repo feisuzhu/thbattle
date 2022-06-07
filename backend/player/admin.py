@@ -14,7 +14,7 @@ from . import models
 
 @admin.register(models.Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'point', 'power', 'bomb', 'full', 'games', 'drops')
+    list_display = ('user', 'name', 'level', 'exp', 'games', 'drops', 'up', 'bomb', 'point')
     list_filter = ()
     search_fields = ('name',)
     filter_horizontal = ('badges', 'friends', 'blocks')
