@@ -1,9 +1,9 @@
 use std::time::Instant;
 
-use actix::{Actor, ActorContext, Addr, AsyncContext, Handler, StreamHandler};
-use actix_derive::Message;
-use actix_web::ws;
-use actix_web::{Error, HttpRequest, HttpResponse};
+use actix::prelude::*;
+use actix_web::{web, Error, HttpRequest, HttpResponse};
+use actix_web_actors::ws;
+use rmp_serde as rmps;
 use serde_json as json;
 
 use super::session::Session;
@@ -17,10 +17,12 @@ const TIMEOUT_DURATION: Duration = Duration::from_secs(30);
 #[derive(Debug)]
 pub struct Connection {
     hb: Instant,
+    binary: bool,
     session: Option<Addr<Session>>,
 }
 
 #[derive(Debug, Message)]
+#[rtype(result = "()")]
 pub struct Close;
 
 impl Actor for Connection {
@@ -38,27 +40,37 @@ impl Actor for Connection {
 
 // TODO keepalive logics
 
-impl StreamHandler<ws::Message, ws::ProtocolError> for Connection {
-    fn handle(&mut self, msg: ws::Message, ctx: &mut Self::Context) {
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Connection {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         self.hb = Instant::now();
         match msg {
-            ws::Message::Text(s) => match json::from_str::<Request>(&s) {
+            Ok(ws::Message::Text(s)) => match json::from_str::<Request>(&s) {
                 Ok(r) => {
+                    self.binary = false;
                     self.session.as_ref().unwrap().do_send(r);
                 }
                 Err(e) => {
                     ctx.text(json::to_string(&Event::Error(e.to_string())).unwrap());
                 }
             },
-            ws::Message::Ping(s) => {
+            Ok(ws::Message::Binary(s)) => match rmps::from_slice::<Request>(s.as_ref()) {
+                Ok(r) => {
+                    self.binary = true;
+                    self.session.as_ref().unwrap().do_send(r);
+                }
+                Err(e) => {
+                    ctx.binary(rmps::to_vec_named(&Event::Error(e.to_string())).unwrap());
+                }
+            },
+            Ok(ws::Message::Ping(s)) => {
                 ctx.pong(&s);
             }
-            ws::Message::Pong(_) => {}
-            ws::Message::Close(_) => {
+            Ok(ws::Message::Pong(_)) => {}
+            Ok(ws::Message::Close(_)) => {
                 // TODO
                 ctx.stop();
             }
-            ws::Message::Binary(_) => {} // TODO: support msgpack
+            _ => ctx.stop(),
         }
     }
 }
@@ -66,7 +78,10 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for Connection {
 impl Handler<Event> for Connection {
     type Result = ();
     fn handle(&mut self, msg: Event, ctx: &mut Self::Context) {
-        ctx.text(json::to_string(&msg).unwrap())
+        match self.binary {
+            true => ctx.binary(rmps::to_vec_named(&msg).unwrap()),
+            false => ctx.text(json::to_string(&msg).unwrap()),
+        }
     }
 }
 
@@ -74,11 +89,12 @@ impl Connection {
     pub fn new() -> Self {
         Connection {
             hb: Instant::now(),
+            binary: true,
             session: None,
         }
     }
 
-    pub fn handle(r: HttpRequest) -> Result<HttpResponse, Error> {
-        ws::start(&r, Connection::new())
+    pub async fn handle(r: HttpRequest, s: web::Payload) -> Result<HttpResponse, Error> {
+        ws::start(Connection::new(), &r, s)
     }
 }

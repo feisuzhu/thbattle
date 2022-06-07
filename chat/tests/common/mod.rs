@@ -1,4 +1,4 @@
-use std::sync::{Once, ONCE_INIT};
+use std::sync::Once;
 use std::time::Duration;
 
 use actix::{Actor, ActorContext, AsyncContext, Context, Handler};
@@ -6,7 +6,7 @@ use actix_derive::Message;
 
 use aya::util::init_log as aya_init_log;
 
-static INIT_LOG: Once = ONCE_INIT;
+static INIT_LOG: Once = Once::new();
 
 pub fn init_log() {
     INIT_LOG.call_once(|| aya_init_log());

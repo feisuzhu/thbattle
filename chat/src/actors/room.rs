@@ -1,24 +1,27 @@
+use std::num::NonZeroU32;
+
 #[allow(unused)]
 use log::{debug, info};
 
-use actix::{Actor, Addr, AsyncContext, Context, Handler};
-use actix_derive::Message;
+use actix::prelude::*;
 
-use crate::api::{Message, User};
+use crate::api::Message;
 use crate::registry::{ROOMS, SESSIONS};
 use crate::util::WeakRegistryDefault;
 
 #[derive(Debug)]
 pub struct Room {
     id: String,
-    users: Vec<User>,
+    users: Vec<NonZeroU32>,
 }
 
 #[derive(Debug, Message)]
-pub struct Join(pub User);
+#[rtype(result = "()")]
+pub struct Join(pub NonZeroU32);
 
 #[derive(Debug, Message)]
-pub struct Leave(pub User);
+#[rtype(result = "()")]
+pub struct Leave(pub NonZeroU32);
 
 impl Actor for Room {
     type Context = Context<Self>;
@@ -42,7 +45,7 @@ impl WeakRegistryDefault<Self> for Room {
 impl Handler<Join> for Room {
     type Result = ();
     fn handle(&mut self, msg: Join, _ctx: &mut Self::Context) {
-        debug!("Room {} handled {} join", self.id, msg.0.id);
+        debug!("Room {} handled {} join", self.id, msg.0);
         self.users.push(msg.0);
     }
 }
@@ -50,8 +53,8 @@ impl Handler<Join> for Room {
 impl Handler<Leave> for Room {
     type Result = ();
     fn handle(&mut self, msg: Leave, _ctx: &mut Self::Context) {
-        debug!("Room {} handled {} leave", self.id, msg.0.id);
-        if let Some(p) = self.users.iter().position(|u| u.id == msg.0.id) {
+        debug!("Room {} handled {} leave", self.id, msg.0);
+        if let Some(p) = self.users.iter().position(|u| *u == msg.0) {
             self.users.remove(p);
         }
     }
@@ -68,7 +71,7 @@ impl Handler<Message> for Room {
             .users
             .iter()
             .enumerate()
-            .map(|(i, u)| (i, SESSIONS.query(&u.id)))
+            .map(|(i, u)| (i, SESSIONS.query(&u)))
             .partition(|(_, a)| a.is_some());
 
         // XXX: sooo many copies!

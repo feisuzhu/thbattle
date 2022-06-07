@@ -1,21 +1,19 @@
-use actix_derive::Message;
+use std::num::NonZeroU32;
+
+use actix::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct User {
-    pub id: String,
-    pub name: String,
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
 pub struct Message {
     pub entity: String,  // "Game:123123" || "Lobby" || "Aya" || "User:123123"
     pub channel: String, // ["player", "observer"] || "" || ["forest", "lake"] || ""
-    pub text: String,
-    pub sender: Option<User>,
+    pub text: Vec<u8>,
+    pub sender: Option<NonZeroU32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
 #[serde(tag = "op", content = "arg")]
 pub enum Request {
     Login { token: String },
@@ -27,6 +25,7 @@ pub enum Request {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
 #[serde(tag = "ev", content = "arg")]
 pub enum Event {
     LoginRequired,
