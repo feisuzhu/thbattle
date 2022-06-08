@@ -72,18 +72,11 @@ class Auth(object):
         try:
             rst = core.backend.query('''
                 query($token: String) {
-                    user(token: $token) {
-                        isActive
-                        userPermissions {
-                            codename
-                        }
-                        groups {
-                            permissions {
-                                codename
-                            }
-                        }
-                        player {
-                            id
+                    login {
+                        token(token: $token) {
+                            userPermissions { codename }
+                            groups { permissions { codename } }
+                            player { id }
                         }
                     }
                 }
@@ -93,26 +86,23 @@ class Auth(object):
             u.write(wire.AuthError('internal_error'))
             return
 
-        if not rst or not rst['user']:
+        if not rst or not rst['login']['token']:
             u.write(wire.AuthError('invalid_credentials'))
             return
 
-        rst = rst['user']
+        rst = rst['login']['token']
 
-        if not rst['isActive']:
-            u.write(wire.AuthError('not_available'))
-        else:
-            pid = int(rst['player']['id'])
-            u.write(wire.AuthSuccess(pid))
-            assoc = {
-                'pid': pid,
-                'permissions': set(
-                    [i['codename'] for i in rst['userPermissions']] +
-                    [i['codename'] for g in rst['groups'] for i in g['permissions']]
-                ),
-            }
-            u._[self] = assoc
-            core.lobby.state_of(u).transit('authed')
+        pid = int(rst['player']['id'])
+        u.write(wire.AuthSuccess(pid))
+        assoc = {
+            'pid': pid,
+            'permissions': set(
+                [i['codename'] for i in rst['userPermissions']] +
+                [i['codename'] for g in rst['groups'] for i in g['permissions']]
+            ),
+        }
+        u._[self] = assoc
+        core.lobby.state_of(u).transit('authed')
 
     # ----- Public Methods -----
     def pid_of(self, u: Client) -> int:

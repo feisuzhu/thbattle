@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 import graphene as gh
-# import django.contrib.auth as auth
+import django.contrib.auth as auth
 import django.contrib.auth.models as auth_models
 from graphene_django import DjangoObjectType
 
@@ -58,25 +58,32 @@ class Login(gh.ObjectType):
 
         return None
 
+    token = gh.Field(
+        User,
+        token=gh.String(required=True, description="令牌"),
+        description="令牌登录",
+    )
+
+    @staticmethod
+    def resolve_token(root, info, token):
+        if user := auth.authenticate(token=token):
+            return user
+
+        return None
+
 
 class UserQuery(gh.ObjectType):
     user = gh.Field(
         User,
-        id=gh.Int(description="用户ID"),
-        token=gh.String(description="登录令牌"),
+        id=gh.Int(required=True, description="用户ID"),
         description="获取用户",
     )
 
     @staticmethod
-    def resolve_user(root, info, id=None, token=None):
+    def resolve_user(root, info, id):
         ctx = info.context
-        if id is not None:
-            require_perm(ctx, 'player.view_user')
-            return models.User.objects.get(id=id)
-        elif token is not None:
-            return models.User.from_token(token)
-
-        return None
+        require_perm(ctx, 'player.view_user')
+        return models.User.objects.filter(id=id).first()
 
     login = gh.Field(Login, description="登录")
 

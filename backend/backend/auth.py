@@ -4,23 +4,35 @@
 from base64 import b64decode
 
 # -- third party --
-from authext.models import User
 from django.contrib import auth
-from django.utils.functional import SimpleLazyObject
+from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 
 # -- own --
+from authext.models import User
 
 
 # -- code --
+class TokenAuthBackend(ModelBackend):
+
+    def authenticate(self, request, token=None, **kwargs):
+        if token is None:
+            return
+
+        if u := User.from_token(token):
+            if self.user_can_authenticate(u):
+                return u
+
+        return None
+
+
 class TokenAuthMiddleware(object):
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        uid = None
         request.api_user = AnonymousUser()
         header = request.META.get('HTTP_AUTHORIZATION')
 
@@ -40,8 +52,8 @@ class TokenAuthMiddleware(object):
                 return self.get_response(request)
 
         elif tag == 'Bearer':
-            if uid := User.uid_from_token(token):
-                request.api_user = SimpleLazyObject(lambda: User.objects.get(id=uid))
+            if user := auth.authenticate(token=token):
+                request.api_user = user
                 return self.get_response(request)
 
         return self.unauthenticated()

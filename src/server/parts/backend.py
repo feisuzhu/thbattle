@@ -113,36 +113,30 @@ class MockBackend(object):
     def login(self, v: Any) -> Any:
         '''
         query($token: String) {
-            user(token: $token) {
-                isActive
-                userPermissions {
-                    codename
-                }
-                groups {
-                    permissions {
-                        codename
-                    }
-                }
-                player {
-                    id
+            login {
+                user(token: $token) {
+                    userPermissions { codename }
+                    groups { permissions { codename } }
+                    player { id }
                 }
             }
         }
         '''
 
         return {
-            'user': {
-                'isActive': True,
-                'userPermissions': [{"codename": "perm1"}],
-                'groups': [{
-                    'permissions': [{"codename": "perm2"}, {"codename": "perm3"}]
-                }, {
-                    'permissions': [{"codename": "perm4"}]
-                }],
-                "player": {
-                    'id': self.pid_of(v['token']),
-                }
-            },
+            'login': {
+                'token': {
+                    'userPermissions': [{"codename": "perm1"}],
+                    'groups': [{
+                        'permissions': [{"codename": "perm2"}, {"codename": "perm3"}]
+                    }, {
+                        'permissions': [{"codename": "perm4"}]
+                    }],
+                    "player": {
+                        'id': self.pid_of(v['token']),
+                    }
+                },
+            }
         }
 
     @_reg
