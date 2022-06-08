@@ -17,6 +17,12 @@ pub struct Session {
 
 impl Actor for Session {
     type Context = Context<Self>;
+
+    fn stopped(&mut self, ctx: &mut Self::Context) {
+        if let Some(uid) = self.me {
+            SESSIONS.remove(&uid);
+        }
+    }
 }
 
 /// I requested to do something
@@ -101,7 +107,7 @@ impl Session {
         //     s.do_send(msg);
         //     return;
         // }
-        if let Some(r) = ROOMS.query(&msg.entity) {
+        if let Some(r) = ROOMS.get(&msg.entity) {
             msg.sender = self.me;
             debug!(
                 "Session {:?} requested to send {:?}, forwarding to corresponding ROOM",
@@ -126,7 +132,7 @@ impl Session {
             }
         };
 
-        SESSIONS.register(uid, &ctx.address());
+        SESSIONS.insert(uid, ctx.address());
         self.conn.do_send(Event::Success);
         debug!("Logged in as {:?}", self.me);
     }
@@ -137,9 +143,15 @@ impl Session {
             return;
         }
 
-        let room = ROOMS.get(&room_id);
+        let room = match ROOMS.get(&room_id) {
+            Some(r) => r,
+            None => {
+                ROOMS.insert(room_id.clone(), Room::spawn(&room_id));
+                ROOMS.get(&room_id).unwrap()
+            }
+        };
         room.do_send(Join(self.me.as_ref().unwrap().clone()));
-        self.rooms.push((room_id.clone(), room));
+        self.rooms.push((room_id.clone(), room.clone()));
         self.conn.do_send(Event::Success);
     }
 

@@ -1,12 +1,7 @@
-mod weakreg;
-
 use std::io::Write;
 use std::thread;
 
 use chrono::prelude::*;
-use env_logger;
-
-pub use self::weakreg::*;
 
 pub fn init_log() {
     env_logger::Builder::from_env("AYA_LOG")

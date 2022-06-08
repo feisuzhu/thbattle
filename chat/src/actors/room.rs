@@ -7,7 +7,6 @@ use actix::prelude::*;
 
 use crate::api::Message;
 use crate::registry::{ROOMS, SESSIONS};
-use crate::util::WeakRegistryDefault;
 
 #[derive(Debug)]
 pub struct Room {
@@ -23,22 +22,22 @@ pub struct Join(pub NonZeroU32);
 #[rtype(result = "()")]
 pub struct Leave(pub NonZeroU32);
 
+impl Room {
+    pub fn spawn(key: impl Into<String>) -> Addr<Self> {
+        Self {
+            id: key.into(),
+            users: vec![],
+        }
+        .start()
+    }
+}
+
 impl Actor for Room {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        ROOMS.register(self.id.clone(), &ctx.address());
+        ROOMS.insert(self.id.clone(), ctx.address());
         debug!("Room {} started and registered", self.id);
-    }
-}
-
-impl WeakRegistryDefault<Self> for Room {
-    fn new(key: &String) -> Addr<Self> {
-        Self {
-            id: key.clone(),
-            users: vec![],
-        }
-        .start()
     }
 }
 
@@ -52,10 +51,14 @@ impl Handler<Join> for Room {
 
 impl Handler<Leave> for Room {
     type Result = ();
-    fn handle(&mut self, msg: Leave, _ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: Leave, ctx: &mut Self::Context) {
         debug!("Room {} handled {} leave", self.id, msg.0);
         if let Some(p) = self.users.iter().position(|u| *u == msg.0) {
             self.users.remove(p);
+        }
+        if self.users.len() == 0 {
+            ROOMS.remove(&self.id);
+            ctx.stop();
         }
     }
 }
@@ -71,19 +74,14 @@ impl Handler<Message> for Room {
             .users
             .iter()
             .enumerate()
-            .map(|(i, u)| (i, SESSIONS.query(&u)))
+            .map(|(i, u)| (i, SESSIONS.get(&u)))
             .partition(|(_, a)| a.is_some());
 
-        // XXX: sooo many copies!
         good.into_iter()
-            .map(|(_i, a)| a.unwrap().do_send(msg.clone()))
-            .count();
+            .fold((), |_, (_, a)| a.unwrap().do_send(msg.clone()));
 
-        bad.into_iter()
-            .rev()
-            .map(|(i, _)| {
-                self.users.remove(i);
-            })
-            .count();
+        bad.into_iter().rfold((), |_, (i, _)| {
+            self.users.remove(i);
+        });
     }
 }
