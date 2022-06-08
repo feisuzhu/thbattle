@@ -15,14 +15,14 @@ def quirk_add_admin_sorting():
                 model['object_name']: getattr(
                     site._registry[apps.get_model(app_name, model['object_name'])],
                     'sort_order',
-                    20
+                    10000
                 ) for model in app['models']
             }
             app['models'].sort(key=lambda x: (model_priority[x['object_name']], x['name'].lower()))
             app_list.append(app)
 
         def app_order(a):
-            return getattr(apps.get_app_config(a['app_label']), 'sort_order', 20)
+            return getattr(apps.get_app_config(a['app_label']), 'sort_order', 10000)
 
         app_list = sorted(app_list, key=lambda x: (app_order(x), x['name'].lower()))
 

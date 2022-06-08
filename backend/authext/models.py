@@ -30,6 +30,8 @@ def is_phone_number(value):
 class User(auth_models.User):
     class Meta:
         proxy = True
+        verbose_name        = '用户'
+        verbose_name_plural = '用户'
 
     token_signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
 
@@ -55,6 +57,13 @@ class User(auth_models.User):
     def from_token(cls, token, max_age=30 * 86400):
         uid = cls.uid_from_token(token, max_age) or None
         return uid and cls.objects.get(id=uid)
+
+
+class Group(auth_models.Group):
+    class Meta:
+        proxy = True
+        verbose_name        = '组'
+        verbose_name_plural = '组'
 
 
 class PhoneLogin(models.Model):
