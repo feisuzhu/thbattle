@@ -48,7 +48,7 @@ class Player(models.Model):
     prefs  = models.TextField(**_('个人设置'), blank=True)
 
     # https://github.com/feisuzhu/thbattle/issues/247
-    level = models.IntegerField(**_('等级'), default=0)
+    level = models.IntegerField(**_('等级'), default=1)
     exp   = models.IntegerField(**_('经验值'), default=0)
     # power = models.IntegerField(**_('P'), default=0)  # put into redis
     up    = models.IntegerField(**_('+1UP'), default=0)

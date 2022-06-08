@@ -12,7 +12,7 @@ from . import models
 # -- code --
 @admin.register(models.Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'version', 'branch', 'url')
+    list_display = ('name', 'version', 'branch', 'url', 'chat')
     list_filter = ()
     search_fields = ()
     ordering = ('id',)

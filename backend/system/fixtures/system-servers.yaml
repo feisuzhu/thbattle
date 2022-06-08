@@ -5,6 +5,7 @@
     version: 23333
     url: tcp://proton.local:9999
     branch: origin/develop
+    chat: http://proton.local:7777
 - model: system.server
   pk: 2
   fields:
@@ -12,3 +13,4 @@
     version: 23333
     url: tcp://proton.local:9999
     branch: origin/develop
+    chat: http://proton.local:7777

@@ -9,6 +9,9 @@ from django.db import models
 
 
 # -- code --
+_ = lambda s: {'help_text': s, 'verbose_name': s}
+
+
 class Server(models.Model):
 
     class Meta:
@@ -16,10 +19,11 @@ class Server(models.Model):
         verbose_name_plural = '服务器'
 
     id      = models.AutoField(primary_key=True)
-    name    = models.CharField('名称', max_length=20, help_text='名称')
-    version = models.IntegerField('兼容客户端版本', help_text='兼容客户端版本')
-    url     = models.CharField('服务器地址', max_length=200, help_text='服务器地址')  # tcp://cngame.thbattle.net:9999
-    branch  = models.CharField('Git 分支', max_length=20, help_text='Git 分支')  # production
+    name    = models.CharField(**_('名称'), max_length=20)
+    version = models.IntegerField(**_('兼容客户端版本'))
+    url     = models.CharField(**_('服务器地址'), max_length=200)  # tcp://cngame.thbattle.net:9999
+    branch  = models.CharField(**_('Git 分支'), max_length=20)  # production
+    chat    = models.CharField(**_('聊天服务'), max_length=200)
 
     def __str__(self):
         return str(self.id)
