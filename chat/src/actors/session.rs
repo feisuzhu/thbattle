@@ -1,103 +1,120 @@
 use std::num::NonZeroU32;
+use std::sync::Arc;
 
-use actix::{Actor, Addr, AsyncContext, Context, Handler, Recipient};
+use actix::{Actor, Addr, AsyncContext, Context, Handler, Message, Recipient};
+use anyhow::{anyhow, bail};
 use log::debug;
+use rmp_serde as rmps;
+use serde_derive::Serialize;
 
-use super::connection::Close;
-use super::room::{Join, Leave, Room};
-use crate::api::{Event, Message, Request};
-use crate::registry::{ROOMS, SESSIONS};
+use crate::actors::connection;
+use crate::actors::room;
+use crate::api;
+use crate::core::ChatServerCore;
 
 #[derive(Debug)]
 pub struct Session {
-    conn: Recipient<Event>,
+    core: Arc<ChatServerCore>,
+    conn: Recipient<api::Event>,
     me: Option<NonZeroU32>,
-    rooms: Vec<(String, Addr<Room>)>,
+    rooms: Vec<(String, Addr<room::Room>)>,
 }
 
 impl Actor for Session {
     type Context = Context<Self>;
 
-    fn stopped(&mut self, ctx: &mut Self::Context) {
+    fn stopped(&mut self, _ctx: &mut Self::Context) {
         if let Some(uid) = self.me {
-            SESSIONS.remove(&uid);
+            self.core.sessions.remove(&uid);
         }
     }
 }
 
+macro_rules! login_required {
+    ($self:ident) => {
+        if $self.me.is_none() {
+            $self.conn.do_send(api::Event::LoginRequired);
+            return;
+        };
+    };
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct Sending(api::Message);
+
 /// I requested to do something
 /// Sent from Connection
-impl Handler<Request> for Session {
+impl Handler<api::Request> for Session {
     type Result = ();
 
-    fn handle(&mut self, req: Request, ctx: &mut Self::Context) {
-        self.dispatch(req, ctx)
+    fn handle(&mut self, req: api::Request, ctx: &mut Self::Context) {
+        match req {
+            api::Request::Login(v) => ctx.notify(v),
+            api::Request::Join(v) => ctx.notify(v),
+            api::Request::Leave(v) => ctx.notify(v),
+            api::Request::Message(v) => ctx.notify(Sending(v)),
+            api::Request::Kick(_v) => (),
+        }
     }
 }
 
-/// I received a message
-impl Handler<Message> for Session {
+impl Handler<connection::Close> for Session {
     type Result = ();
 
-    fn handle(&mut self, msg: Message, _ctx: &mut Self::Context) {
-        debug!(
-            "Session {:?} received a message {:?}, forwarding to conn",
-            self.me, msg
-        );
-        self.conn.do_send(Event::Message(msg));
-    }
-}
-
-impl Handler<Close> for Session {
-    type Result = ();
-
-    fn handle(&mut self, _msg: Close, _ctx: &mut Self::Context) {
+    fn handle(&mut self, _msg: connection::Close, _ctx: &mut Self::Context) {
         if let Some(u) = self.me {
             self.rooms.drain(..).fold((), |_, (_, addr)| {
-                addr.do_send(Leave(u));
+                addr.do_send(room::Leave(u));
             });
         }
     }
 }
 
-impl Session {
-    pub fn new(conn: Recipient<Event>) -> Self {
-        Session {
-            conn,
-            me: None,
-            rooms: vec![],
-        }
-    }
+impl Handler<api::Login> for Session {
+    type Result = ();
 
-    #[allow(dead_code)]
-    pub fn new_logged_in(conn: Recipient<Event>, uid: u32) -> Self {
-        // For tests
-        Session {
-            conn,
-            me: NonZeroU32::new(uid),
-            rooms: vec![],
+    fn handle(&mut self, msg: api::Login, ctx: &mut Self::Context) {
+        if let Some(uid) = self.me {
+            self.core.sessions.insert(uid, ctx.address());
+            self.conn.do_send(api::Event::Success);
+            return;
         }
-    }
 
-    fn dispatch(&mut self, req: Request, ctx: &mut <Self as Actor>::Context) {
-        match req {
-            Request::Login { token: t } => self.handle_login(t, ctx),
-            req => {
-                if self.me.is_none() {
-                    self.conn.do_send(Event::LoginRequired);
-                    return;
-                };
-                match req {
-                    Request::Message(m) => self.handle_message(m, ctx),
-                    Request::Join { room } => self.handle_join(room, ctx),
-                    Request::Leave { room } => self.handle_leave(room, ctx),
-                    _ => unimplemented!(),
-                }
+        match self.login(msg.token) {
+            Ok(uid) => {
+                self.me = Some(uid);
+                self.conn.do_send(api::Event::Success);
+                debug!("Logged in as {:?}", self.me);
+            }
+            Err(e) => {
+                debug!("Login failed: {:?}", e);
+                self.conn.do_send(api::Event::Error(e.to_string()));
             }
         }
     }
+}
 
-    fn handle_message(&self, mut msg: Message, _ctx: &mut <Self as Actor>::Context) {
+impl Handler<api::Message> for Session {
+    type Result = ();
+
+    fn handle(&mut self, msg: api::Message, _ctx: &mut Self::Context) {
+        debug!(
+            "Session {:?} received a message {:?}, forwarding to conn",
+            self.me, msg
+        );
+        self.conn.do_send(api::Event::Message(msg));
+    }
+}
+
+impl Handler<Sending> for Session {
+    type Result = ();
+
+    fn handle(&mut self, sending: Sending, _ctx: &mut Self::Context) {
+        login_required!(self);
+
+        let mut msg = sending.0;
+
         // if let Some(s) = SESSIONS.query(&msg.entity) {
         //     msg.sender = self.me.clone();
         //     debug!(
@@ -107,7 +124,7 @@ impl Session {
         //     s.do_send(msg);
         //     return;
         // }
-        if let Some(r) = ROOMS.get(&msg.entity) {
+        if let Some(r) = self.core.rooms.get(&msg.entity) {
             msg.sender = self.me;
             debug!(
                 "Session {:?} requested to send {:?}, forwarding to corresponding ROOM",
@@ -117,45 +134,46 @@ impl Session {
             return;
         }
         debug!("Undelivered message: {:?}", msg);
-        self.conn.do_send(Event::Undelivered(msg));
+        self.conn.do_send(api::Event::Undelivered(msg));
     }
+}
 
-    fn handle_login(&mut self, token: String, ctx: &mut <Self as Actor>::Context) {
-        // TODO: impl properly
-        // let id = format!("User:{}", token);
+impl Handler<api::Join> for Session {
+    type Result = ();
 
-        let uid = match self.me {
-            Some(v) => v,
-            None => {
-                self.me = NonZeroU32::new(233);
-                self.me.unwrap()
-            }
-        };
+    fn handle(&mut self, msg: api::Join, _ctx: &mut Self::Context) {
+        login_required!(self);
 
-        SESSIONS.insert(uid, ctx.address());
-        self.conn.do_send(Event::Success);
-        debug!("Logged in as {:?}", self.me);
-    }
-
-    fn handle_join(&mut self, room_id: String, _ctx: &mut <Self as Actor>::Context) {
+        let room_id = msg.room;
         debug!("Requested to join {:?}", room_id);
         if self.rooms.iter().any(|(id, _)| *id == room_id) {
             return;
         }
 
-        let room = match ROOMS.get(&room_id) {
+        let room = match self.core.rooms.get(&room_id) {
             Some(r) => r,
             None => {
-                ROOMS.insert(room_id.clone(), Room::spawn(&room_id));
-                ROOMS.get(&room_id).unwrap()
+                self.core.rooms.insert(
+                    room_id.clone(),
+                    room::Room::spawn(self.core.clone(), &room_id),
+                );
+                self.core.rooms.get(&room_id).unwrap()
             }
         };
-        room.do_send(Join(self.me.as_ref().unwrap().clone()));
+        room.do_send(room::Join(self.me.as_ref().unwrap().clone()));
         self.rooms.push((room_id.clone(), room.clone()));
-        self.conn.do_send(Event::Success);
+        self.conn.do_send(api::Event::Success);
     }
+}
 
-    fn handle_leave(&mut self, room_id: String, _ctx: &mut <Self as Actor>::Context) {
+impl Handler<api::Leave> for Session {
+    type Result = ();
+
+    fn handle(&mut self, msg: api::Leave, _ctx: &mut Self::Context) {
+        login_required!(self);
+
+        let room_id = msg.room;
+
         debug!("Requested to leave {:?}", room_id);
 
         if let Some((i, (_, addr))) = self
@@ -164,9 +182,73 @@ impl Session {
             .enumerate()
             .find(|(_, (id, _))| **id == room_id)
         {
-            addr.do_send(Leave(self.me.as_ref().unwrap().clone()));
+            addr.do_send(room::Leave(self.me.as_ref().unwrap().clone()));
             self.rooms.remove(i);
-            self.conn.do_send(Event::Success);
+            self.conn.do_send(api::Event::Success);
+        }
+    }
+}
+
+impl Session {
+    pub fn new(core: Arc<ChatServerCore>, conn: Recipient<api::Event>) -> Self {
+        Session {
+            core,
+            conn,
+            me: None,
+            rooms: vec![],
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn new_logged_in(core: Arc<ChatServerCore>, conn: Recipient<api::Event>, uid: u32) -> Self {
+        // For tests
+        Session {
+            core,
+            conn,
+            me: NonZeroU32::new(uid),
+            rooms: vec![],
+        }
+    }
+
+    fn login(&self, token: String) -> anyhow::Result<NonZeroU32> {
+        #[derive(Serialize)]
+        struct LoginVariables {
+            pub token: String,
+        }
+
+        let payload = rmps::to_vec_named(&api::GraphQLRequest {
+            query: r#"
+                    query Login($token: String!) {
+                        login { token(token: $token) { id } }
+                    }
+                "#
+            .to_owned(),
+            variables: LoginVariables { token },
+            strip: "login.token.id".to_owned(),
+        })?;
+
+        let resp = match ureq::post(&self.core.backend)
+            .set("Content-Type", "application/msgpack")
+            .send_bytes(&payload)
+        {
+            Ok(r) => r,
+            Err(ureq::Error::Status(_code, r)) => r,
+            Err(e) => bail!(e),
+        };
+
+        let mut outer: api::GraphQLResponse = rmps::from_read(resp.into_reader())?;
+
+        if let Some(errors) = outer.errors.take() {
+            if errors.len() > 0 {
+                bail!("Backend GraphQL Error: {}", errors[0].message);
+            }
+        }
+
+        let uid: Option<NonZeroU32> = rmps::from_slice(&outer.data)?;
+
+        match uid {
+            Some(uid) => Ok(uid),
+            None => Err(anyhow!("Login failed")),
         }
     }
 }

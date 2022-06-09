@@ -8,11 +8,12 @@ use actix::{Actor, Context, Handler};
 // use actix_rt::test;
 
 use aya::actors::Session;
-use aya::api::{Event, Message, Request};
+use aya::api;
+use aya::core::ChatServerCore;
 
 mod common;
 
-type Sink = Arc<Mutex<Vec<Event>>>;
+type Sink = Arc<Mutex<Vec<api::Event>>>;
 
 struct EventSink {
     sink: Sink,
@@ -22,9 +23,9 @@ impl Actor for EventSink {
     type Context = Context<Self>;
 }
 
-impl Handler<Event> for EventSink {
+impl Handler<api::Event> for EventSink {
     type Result = ();
-    fn handle(&mut self, ev: Event, _ctx: &mut Self::Context) {
+    fn handle(&mut self, ev: api::Event, _ctx: &mut Self::Context) {
         self.sink.lock().unwrap().push(ev);
         debug!("EventSink received something, put it in sink");
     }
@@ -44,24 +45,35 @@ async fn test_pm() {
 
     let sink: Sink = Arc::new(Mutex::new(vec![]));
 
-    let s1 = Session::new(EventSink::new(sink.clone()).start().recipient()).start();
-    let s2 = Session::new(EventSink::new(sink.clone()).start().recipient()).start();
+    let core = Arc::new(ChatServerCore::default());
 
-    s1.do_send(Request::Login {
+    let s1 = Session::new(
+        core.clone(),
+        EventSink::new(sink.clone()).start().recipient(),
+    )
+    .start();
+
+    let s2 = Session::new(
+        core.clone(),
+        EventSink::new(sink.clone()).start().recipient(),
+    )
+    .start();
+
+    s1.do_send(api::Request::Login(api::Login {
         token: "test_pm:s1".to_owned(),
-    });
-    s2.do_send(Request::Login {
+    }));
+    s2.do_send(api::Request::Login(api::Login {
         token: "test_pm:s2".to_owned(),
-    });
+    }));
 
     sleep(Duration::from_millis(1)).await;
 
     assert_eq!(
-        vec![Event::Success, Event::Success],
+        vec![api::Event::Success, api::Event::Success],
         sink.lock().unwrap().drain(..).collect::<Vec<_>>(),
     );
 
-    s1.do_send(Request::Message(Message {
+    s1.do_send(api::Request::Message(api::Message {
         entity: "User:test_pm:s2".to_owned(),
         channel: "test_pm".to_owned(),
         text: "text".to_owned().into_bytes(),
@@ -76,7 +88,7 @@ async fn test_pm() {
         assert_eq!(s.len(), 1);
         let ev = s.pop().unwrap();
         match ev {
-            Event::Message(m) => {
+            api::Event::Message(m) => {
                 let tp = (&m.entity[..], &m.channel[..], &m.text[..]);
                 assert_eq!(
                     tp,
@@ -103,43 +115,53 @@ async fn test_room() {
     let sink1: Sink = Arc::new(Mutex::new(vec![]));
     let sink2: Sink = Arc::new(Mutex::new(vec![]));
 
-    let s1 =
-        Session::new_logged_in(EventSink::new(sink1.clone()).start().recipient(), 10001).start();
-    let s2 =
-        Session::new_logged_in(EventSink::new(sink2.clone()).start().recipient(), 10002).start();
+    let core = Arc::new(ChatServerCore::default());
 
-    s1.do_send(Request::Login {
-        token: "whatever".to_owned(),
-    });
-    s2.do_send(Request::Login {
-        token: "whatever".to_owned(),
-    });
+    let s1 = Session::new_logged_in(
+        core.clone(),
+        EventSink::new(sink1.clone()).start().recipient(),
+        10001,
+    )
+    .start();
+    let s2 = Session::new_logged_in(
+        core.clone(),
+        EventSink::new(sink2.clone()).start().recipient(),
+        10002,
+    )
+    .start();
 
-    s1.do_send(Request::Join {
+    s1.do_send(api::Request::Login(api::Login {
+        token: "whatever".to_owned(),
+    }));
+    s2.do_send(api::Request::Login(api::Login {
+        token: "whatever".to_owned(),
+    }));
+
+    s1.do_send(api::Request::Join(api::Join {
         room: "test_room:foo".to_owned(),
-    });
-    s2.do_send(Request::Join {
+    }));
+    s2.do_send(api::Request::Join(api::Join {
         room: "test_room:foo".to_owned(),
-    });
+    }));
 
     sleep(Duration::from_millis(1)).await;
 
     assert_eq!(
-        vec![Event::Success, Event::Success],
+        vec![api::Event::Success, api::Event::Success],
         sink1.lock().unwrap().drain(..).collect::<Vec<_>>(),
     );
     assert_eq!(
-        vec![Event::Success, Event::Success],
+        vec![api::Event::Success, api::Event::Success],
         sink2.lock().unwrap().drain(..).collect::<Vec<_>>(),
     );
 
-    s1.do_send(Request::Message(Message {
+    s1.do_send(api::Request::Message(api::Message {
         entity: "test_room:foo".to_owned(),
         channel: "test_room".to_owned(),
         text: "text".to_owned().into_bytes(),
         sender: None,
     }));
-    s2.do_send(Request::Message(Message {
+    s2.do_send(api::Request::Message(api::Message {
         entity: "test_room:foo".to_owned(),
         channel: "test_room".to_owned(),
         text: "text".to_owned().into_bytes(),
@@ -153,7 +175,7 @@ async fn test_room() {
             .unwrap()
             .drain(..)
             .map(|ev| match ev {
-                Event::Message(m) => m,
+                api::Event::Message(m) => m,
                 _ => panic!("Something is not a Event::Message"),
             })
             .collect()
@@ -161,10 +183,9 @@ async fn test_room() {
 
     let v1 = squash(&sink1);
 
-    assert_eq!(v1.len(), 2);
     assert_eq!(
         v1[0],
-        Message {
+        api::Message {
             entity: "test_room:foo".to_owned(),
             channel: "test_room".to_owned(),
             text: "text".to_owned().into_bytes(),
@@ -173,20 +194,21 @@ async fn test_room() {
     );
     assert_eq!(
         v1[1],
-        Message {
+        api::Message {
             entity: "test_room:foo".to_owned(),
             channel: "test_room".to_owned(),
             text: "text".to_owned().into_bytes(),
             sender: NonZeroU32::new(10002),
         }
     );
+    assert_eq!(v1.len(), 2);
 
     let v2 = squash(&sink2);
 
     assert_eq!(v2.len(), 2);
     assert_eq!(
         v2[0],
-        Message {
+        api::Message {
             entity: "test_room:foo".to_owned(),
             channel: "test_room".to_owned(),
             text: "text".to_owned().into_bytes(),
@@ -195,7 +217,7 @@ async fn test_room() {
     );
     assert_eq!(
         v2[1],
-        Message {
+        api::Message {
             entity: "test_room:foo".to_owned(),
             channel: "test_room".to_owned(),
             text: "text".to_owned().into_bytes(),

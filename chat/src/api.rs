@@ -14,14 +14,38 @@ pub struct Message {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
 #[rtype(result = "()")]
+pub struct Login {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
+pub struct Join {
+    pub room: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
+pub struct Leave {
+    pub room: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
+pub struct Kick {
+    pub uid: NonZeroU32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
 #[serde(tag = "op", content = "arg")]
 pub enum Request {
-    Login { token: String },
-    Join { room: String },
-    Leave { room: String },
+    Login(Login),
+    Join(Join),
+    Leave(Leave),
     Message(Message),
     // ----- ADMIN OPS -----
-    Kick { user_id: String },
+    Kick(Kick),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
@@ -34,4 +58,25 @@ pub enum Event {
     Undelivered(Message),
     Kicked,
     Error(String),
+}
+
+// -------------------------
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct GraphQLRequest<T> {
+    pub query: String,
+    pub variables: T,
+    pub strip: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GraphQLError {
+    pub message: String,
+    pub path: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GraphQLResponse {
+    #[serde(with = "serde_bytes")]
+    pub data: Vec<u8>,
+    pub errors: Option<Vec<GraphQLError>>,
 }

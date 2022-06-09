@@ -1,15 +1,16 @@
 use std::num::NonZeroU32;
+use std::sync::Arc;
 
 #[allow(unused)]
 use log::{debug, info};
 
 use actix::prelude::*;
 
-use crate::api::Message;
-use crate::registry::{ROOMS, SESSIONS};
+use crate::{api::Message, core::ChatServerCore};
 
 #[derive(Debug)]
 pub struct Room {
+    core: Arc<ChatServerCore>,
     id: String,
     users: Vec<NonZeroU32>,
 }
@@ -23,8 +24,9 @@ pub struct Join(pub NonZeroU32);
 pub struct Leave(pub NonZeroU32);
 
 impl Room {
-    pub fn spawn(key: impl Into<String>) -> Addr<Self> {
+    pub fn spawn(core: Arc<ChatServerCore>, key: impl Into<String>) -> Addr<Self> {
         Self {
+            core,
             id: key.into(),
             users: vec![],
         }
@@ -36,7 +38,7 @@ impl Actor for Room {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        ROOMS.insert(self.id.clone(), ctx.address());
+        self.core.rooms.insert(self.id.clone(), ctx.address());
         debug!("Room {} started and registered", self.id);
     }
 }
@@ -57,7 +59,7 @@ impl Handler<Leave> for Room {
             self.users.remove(p);
         }
         if self.users.len() == 0 {
-            ROOMS.remove(&self.id);
+            self.core.rooms.remove(&self.id);
             ctx.stop();
         }
     }
@@ -74,7 +76,7 @@ impl Handler<Message> for Room {
             .users
             .iter()
             .enumerate()
-            .map(|(i, u)| (i, SESSIONS.get(&u)))
+            .map(|(i, u)| (i, self.core.sessions.get(&u)))
             .partition(|(_, a)| a.is_some());
 
         good.into_iter()

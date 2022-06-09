@@ -1,13 +1,14 @@
+use std::sync::Arc;
 use std::time::Instant;
 
 use actix::prelude::*;
-use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use rmp_serde as rmps;
 use serde_json as json;
 
 use super::session::Session;
 use crate::api::{Event, Request};
+use crate::core::ChatServerCore;
 
 /*
 const HEARTBEAT_DURATION: Duration = Duration::from_secs(10);
@@ -16,6 +17,7 @@ const TIMEOUT_DURATION: Duration = Duration::from_secs(30);
 
 #[derive(Debug)]
 pub struct Connection {
+    core: Arc<ChatServerCore>,
     hb: Instant,
     binary: bool,
     session: Option<Addr<Session>>,
@@ -29,7 +31,7 @@ impl Actor for Connection {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        self.session = Some(Session::new(ctx.address().recipient()).start())
+        self.session = Some(Session::new(self.core.clone(), ctx.address().recipient()).start())
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -86,15 +88,12 @@ impl Handler<Event> for Connection {
 }
 
 impl Connection {
-    pub fn new() -> Self {
+    pub fn new(core: Arc<ChatServerCore>) -> Self {
         Connection {
+            core: core,
             hb: Instant::now(),
             binary: true,
             session: None,
         }
-    }
-
-    pub async fn handle(r: HttpRequest, s: web::Payload) -> Result<HttpResponse, Error> {
-        ws::start(Connection::new(), &r, s)
     }
 }
