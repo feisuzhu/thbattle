@@ -8,6 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 pub struct Message {
     pub entity: String,  // "Game:123123" || "Lobby" || "Aya" || "User:123123"
     pub channel: String, // ["player", "observer"] || "" || ["forest", "lake"] || ""
+    #[serde(with = "serde_bytes")]
     pub text: Vec<u8>,
     pub sender: Option<NonZeroU32>,
 }
@@ -75,8 +76,7 @@ pub struct GraphQLError {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GraphQLResponse {
-    #[serde(with = "serde_bytes")]
-    pub data: Vec<u8>,
+pub struct GraphQLResponse<T> {
+    pub data: T,
     pub errors: Option<Vec<GraphQLError>>,
 }

@@ -79,10 +79,13 @@ impl Handler<Message> for Room {
             .map(|(i, u)| (i, self.core.sessions.get(&u)))
             .partition(|(_, a)| a.is_some());
 
-        good.into_iter()
-            .fold((), |_, (_, a)| a.unwrap().do_send(msg.clone()));
+        good.into_iter().fold((), |_, (_, a)| {
+            debug!("Forward to {:?}", &a);
+            a.unwrap().do_send(msg.clone())
+        });
 
-        bad.into_iter().rfold((), |_, (i, _)| {
+        bad.into_iter().rfold((), |_, (i, a)| {
+            debug!("Removing {:?}", &a);
             self.users.remove(i);
         });
     }

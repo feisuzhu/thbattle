@@ -67,7 +67,8 @@ class MessagePackGraphQLView(View):
 
                         data = data.get(f)
 
-                response["data"] = msgpack.packb(data)
+                # response["data"] = msgpack.packb(data)
+                response["data"] = data
 
             result = msgpack.packb(response)
         else:

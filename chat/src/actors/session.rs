@@ -85,7 +85,8 @@ impl Handler<api::Login> for Session {
             Ok(uid) => {
                 self.me = Some(uid);
                 self.conn.do_send(api::Event::Success);
-                debug!("Logged in as {:?}", self.me);
+                self.core.sessions.insert(uid, ctx.address());
+                debug!("Logged in as {:?}", uid);
             }
             Err(e) => {
                 debug!("Login failed: {:?}", e);
@@ -236,15 +237,16 @@ impl Session {
             Err(e) => bail!(e),
         };
 
-        let mut outer: api::GraphQLResponse = rmps::from_read(resp.into_reader())?;
+        let mut rst: api::GraphQLResponse<Option<NonZeroU32>> =
+            rmps::from_read(resp.into_reader())?;
 
-        if let Some(errors) = outer.errors.take() {
+        if let Some(errors) = rst.errors.take() {
             if errors.len() > 0 {
                 bail!("Backend GraphQL Error: {}", errors[0].message);
             }
         }
 
-        let uid: Option<NonZeroU32> = rmps::from_slice(&outer.data)?;
+        let uid: Option<NonZeroU32> = rst.data;
 
         match uid {
             Some(uid) => Ok(uid),
