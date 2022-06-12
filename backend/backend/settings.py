@@ -15,7 +15,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-DEBUG = True
+DEBUG = os.path.exists('/etc/tags/backend.debug')
 
 
 ALLOWED_HOSTS = [
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'item.apps.ItemConfig',
     'ranking.apps.RankingConfig',
     # 'guild.apps.GuildConfig',
+    'chat.apps.ChatConfig',
     'system.apps.SystemConfig',
     'graphene_django',
     'django.contrib.admin',

@@ -14,6 +14,7 @@ from system.schema import SystemOps, SystemQuery
 from unlock.schema import UnlockOps
 from authext.schema import UserQuery, UserOps
 from ranking.schema import RankingOps
+from chat.schema import ChatQuery, ChatOps
 
 
 # -- code --
@@ -57,6 +58,7 @@ Query = type('Query', (
     PlayerQuery,
     GameQuery,
     SystemQuery,
+    ChatQuery,
     gh.ObjectType
 ), {})
 
@@ -69,6 +71,7 @@ Mutation = type('Mutation', (
     UnlockOps,
     SystemOps,
     RankingOps,
+    ChatOps,
     gh.ObjectType,
 ), {})
 
