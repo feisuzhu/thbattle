@@ -3,14 +3,14 @@
   fields:
     name: "开发服务器"
     version: 23333
-    url: tcp://proton.local:9999
+    url: tcp://game.proton.thb.io:9999
     branch: origin/develop
-    chat: http://proton.local:7777
+    chat: ws://chat.proton.thb.io:7777
 - model: system.server
   pk: 2
   fields:
     name: "同一个服务器"
     version: 23333
-    url: tcp://proton.local:9999
+    url: tcp://game.proton.thb.io:9999
     branch: origin/develop
-    chat: http://proton.local:7777
+    chat: ws://chat.proton.thb.io:7777
