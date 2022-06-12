@@ -1,6 +1,7 @@
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
+use actix::ActorContext;
 use actix::{Actor, Addr, AsyncContext, Context, Handler, Message, Recipient};
 use anyhow::{anyhow, bail};
 use log::debug;
@@ -25,6 +26,7 @@ impl Actor for Session {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         if let Some(uid) = self.me {
+            debug!("Session {} stopped, unregister", uid);
             self.core.sessions.remove(&uid);
         }
     }
@@ -62,7 +64,8 @@ impl Handler<api::Request> for Session {
 impl Handler<connection::Close> for Session {
     type Result = ();
 
-    fn handle(&mut self, _msg: connection::Close, _ctx: &mut Self::Context) {
+    fn handle(&mut self, _msg: connection::Close, ctx: &mut Self::Context) {
+        ctx.stop();
         if let Some(u) = self.me {
             self.rooms.drain(..).fold((), |_, (_, addr)| {
                 addr.do_send(room::Leave(u));
@@ -147,9 +150,6 @@ impl Handler<api::Join> for Session {
 
         let room_id = msg.room;
         debug!("Requested to join {:?}", room_id);
-        if self.rooms.iter().any(|(id, _)| *id == room_id) {
-            return;
-        }
 
         let room = match self.core.rooms.get(&room_id) {
             Some(r) => r,

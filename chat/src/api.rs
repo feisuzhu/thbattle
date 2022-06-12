@@ -10,6 +10,7 @@ pub struct Message {
     pub channel: String, // ["player", "observer"] || "" || ["forest", "lake"] || ""
     #[serde(with = "serde_bytes")]
     pub text: Vec<u8>,
+    #[serde(skip_deserializing)]
     pub sender: Option<NonZeroU32>,
 }
 

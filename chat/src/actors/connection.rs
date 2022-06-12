@@ -1,3 +1,4 @@
+use log::debug;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -49,18 +50,22 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Connection {
             Ok(ws::Message::Text(s)) => match json::from_str::<Request>(&s) {
                 Ok(r) => {
                     self.binary = false;
+                    debug!("Received request(json): {:?}", &r);
                     self.session.as_ref().unwrap().do_send(r);
                 }
                 Err(e) => {
+                    debug!("Request error(json): {:?}", &e);
                     ctx.text(json::to_string(&Event::Error(e.to_string())).unwrap());
                 }
             },
             Ok(ws::Message::Binary(s)) => match rmps::from_slice::<Request>(s.as_ref()) {
                 Ok(r) => {
                     self.binary = true;
+                    debug!("Received request: {:?}", &r);
                     self.session.as_ref().unwrap().do_send(r);
                 }
                 Err(e) => {
+                    debug!("Request error: {:?}", &e);
                     ctx.binary(rmps::to_vec_named(&Event::Error(e.to_string())).unwrap());
                 }
             },
@@ -80,6 +85,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Connection {
 impl Handler<Event> for Connection {
     type Result = ();
     fn handle(&mut self, msg: Event, ctx: &mut Self::Context) {
+        debug!("Sending event: {:?}", &msg);
         match self.binary {
             true => ctx.binary(rmps::to_vec_named(&msg).unwrap()),
             false => ctx.text(json::to_string(&msg).unwrap()),
