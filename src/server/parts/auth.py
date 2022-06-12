@@ -71,7 +71,7 @@ class Auth(object):
 
         try:
             rst = core.backend.query('''
-                query($token: String) {
+                query($token: String!) {
                     login {
                         token(token: $token) {
                             userPermissions { codename }

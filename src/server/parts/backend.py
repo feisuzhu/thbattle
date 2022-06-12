@@ -112,7 +112,7 @@ class MockBackend(object):
     @_reg
     def login(self, v: Any) -> Any:
         '''
-        query($token: String) {
+        query($token: String!) {
             login {
                 user(token: $token) {
                     userPermissions { codename }
