@@ -1,0 +1,56 @@
+- model: chat.fixedtext
+  pk: 1
+  fields:
+    text: 你不可以这样啊！不可以的啊！
+- model: chat.sharedfixedtext
+  pk: 1
+  fields:
+    ref: 1
+- model: chat.fixedtext
+  pk: 2
+  fields:
+    text: 大笨钟下邮快递，上面摆下面寄
+- model: chat.sharedfixedtext
+  pk: 2
+  fields:
+    ref: 2
+- model: chat.fixedtext
+  pk: 3
+  fields:
+    text: 哎呀，手抖啦
+- model: chat.sharedfixedtext
+  pk: 3
+  fields:
+    ref: 3
+- model: chat.fixedtext
+  pk: 4
+  fields:
+    text: 啊这。。。
+- model: chat.sharedfixedtext
+  pk: 4
+  fields:
+    ref: 4
+- model: chat.fixedtext
+  pk: 5
+  fields:
+    text: 我看不懂，但我大为震撼
+- model: chat.sharedfixedtext
+  pk: 5
+  fields:
+    ref: 5
+- model: chat.fixedtext
+  pk: 6
+  fields:
+    text: 沙包大的拳头见过没有啊你？
+- model: chat.sharedfixedtext
+  pk: 6
+  fields:
+    ref: 6
+- model: chat.fixedtext
+  pk: 7
+  fields:
+    text: 我好像卡了
+- model: chat.sharedfixedtext
+  pk: 7
+  fields:
+    ref: 7

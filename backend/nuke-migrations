@@ -10,4 +10,4 @@ done
 ./manage.py makemigrations
 ./manage.py migrate
 # ./manage.py createsuperuser --phone 18612748499
-./manage.py loaddata system-servers system-settings develop
+./manage.py loaddata system-servers system-settings develop initial-fixed-texts
