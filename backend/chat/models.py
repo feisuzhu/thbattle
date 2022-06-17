@@ -56,7 +56,7 @@ class EmojiPack(models.Model):
     avail_to = models.ManyToManyField(Player, **_('可使用玩家'), blank=True, related_name='emoji_sets')
 
     def __str__(self):
-        return f'{self.player.name}[{self.type}:{self.amount}]'
+        return f'[#{self.id}] {self.name}'
 
 
 class SharedEmojiPack(models.Model):

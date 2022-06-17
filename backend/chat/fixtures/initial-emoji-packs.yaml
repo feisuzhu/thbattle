@@ -1,0 +1,14 @@
+- model: chat.emojipack
+  pk: 1
+  fields:
+    name: 开发表情包
+- model: chat.sharedemojipack
+  pk: 1
+  fields:
+    ref: 1
+- model: chat.emoji
+  pk: 1
+  fields:
+    pack: 1
+    name: 哇
+    url: http://img.thbattle.cn/emoji/dev/wow.png
