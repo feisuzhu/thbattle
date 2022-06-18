@@ -13,6 +13,7 @@ from . import models
 class FixedText(DjangoObjectType):
     class Meta:
         model = models.FixedText
+        exclude = ['avail_to']
 
     can_use = gh.Field(
         gh.NonNull(gh.Boolean),
@@ -28,6 +29,7 @@ class FixedText(DjangoObjectType):
 class EmojiPack(DjangoObjectType):
     class Meta:
         model = models.EmojiPack
+        exclude = ['avail_to']
 
     can_use = gh.Field(
         gh.NonNull(gh.Boolean),

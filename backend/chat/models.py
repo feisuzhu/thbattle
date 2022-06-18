@@ -78,7 +78,7 @@ class Emoji(models.Model):
         verbose_name_plural = '大表情'
 
     id   = models.AutoField(**_('ID'), primary_key=True)
-    pack = models.ForeignKey(EmojiPack, **_('隶属表情包'), on_delete=models.CASCADE, related_name='items')
+    pack = models.ForeignKey(EmojiPack, **_('表情包'), on_delete=models.CASCADE, related_name='items')
     name = models.CharField(**_('名称'), max_length=100)
     url  = models.URLField(**_('URL'))
 
