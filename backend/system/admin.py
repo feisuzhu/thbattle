@@ -32,3 +32,9 @@ class NewsAdmin(admin.ModelAdmin):
     list_filter = ()
     search_fields = ('text',)
     ordering = ('id',)
+
+
+@admin.register(models.SMSVerification)
+class SMSVerificationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'phone', 'key', 'used')
+    ordering = ('-id',)

@@ -35,15 +35,19 @@ struct CallbackPayload {
 }
 
 fn handle_sms(sms: SMSDeliver) -> Result<(), Box<dyn std::error::Error>> {
+    info!("Received: {:?}", &sms);
     let payload = CallbackPayload {
         time: sms.time.to_rfc3339(),
         sender: sms.sender,
         receiver: TE_NUMBER.get().unwrap().to_string(),
         text: sms.text,
     };
-    ureq::post(CALLBACK.get().unwrap().as_ref())
+    let resp = ureq::post(CALLBACK.get().unwrap().as_ref())
         .set("Content-Type", "application/json")
         .send_string(serde_json::to_string(&payload).unwrap().as_ref())?;
+
+    let ret = resp.into_string()?;
+    debug!("Server response: {}", ret);
     Ok(())
 }
 

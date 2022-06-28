@@ -18,3 +18,7 @@
   pk: ranking-season
   fields:
     value: "1"
+- model: system.setting
+  pk: sms-verification-receiver
+  fields:
+    value: "13263323935"

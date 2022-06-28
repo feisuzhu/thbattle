@@ -24,6 +24,7 @@ from django.contrib import admin
 from django.urls import path
 from graphene_django.views import GraphQLView
 from schema_graph.views import Schema
+from system.views import sms_verification
 
 # -- own --
 from .graphql import schema
@@ -40,6 +41,8 @@ urlpatterns = [
     path('graphql', GraphQLView.as_view(schema=schema, graphiql=True)),
     path('graphql-msgpack', MessagePackGraphQLView.as_view(schema=schema)),
     path(".dev/schema/", Schema.as_view()),
+
+    path(".callbacks/sms-verification", sms_verification),
 ]
 
 import os

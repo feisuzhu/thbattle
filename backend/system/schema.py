@@ -4,12 +4,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # -- stdlib --
 # -- third party --
 from graphene_django.types import DjangoObjectType
+import random
 import graphene as gh
 
 # -- own --
 from . import models
-from utils.graphql import rate_limit
-import utils.leancloud
 
 
 # -- code --
@@ -32,6 +31,17 @@ class News(DjangoObjectType):
 class Setting(DjangoObjectType):
     class Meta:
         model = models.Setting
+
+
+class SMSVerification(DjangoObjectType):
+    class Meta:
+        model = models.SMSVerification
+
+    is_valid = gh.Boolean(required=True, description="有效")
+
+    @staticmethod
+    def resolve_is_valid(root, info):
+        return root.is_valid()
 
 
 # ------------------------
@@ -63,16 +73,29 @@ class SystemQuery(gh.ObjectType):
         r = models.News.objects.order_by('-id').first()
         return r.text if r else ''
 
-
-class SystemOps(gh.ObjectType):
-    SyRequestSmsCode = gh.Boolean(
-        phone=gh.String(required=True, description="手机号"),
-        description="请求验证码",
+    sms_verification = gh.Field(
+        SMSVerification,
+        key=gh.String(required=True),
+        description="获取短信验证码",
     )
 
     @staticmethod
-    def resolve_SyRequestSmsCode(root, info, phone):
-        rate_limit(f"sms-code:ip:{info.context.META['REMOTE_ADDR']}", 60)
-        rate_limit(f"sms-code:phone:{phone}", 60)
-        utils.leancloud.send_smscode(phone)
-        return True
+    def resolve_sms_verification(root, info, key):
+        return models.SMSVerification.objects.filter(key=key).first()
+
+
+class RequestSMSVerification(gh.Mutation):
+    key = gh.String(required=True)
+    send_to = gh.String(required=True)
+
+    @staticmethod
+    def mutate(root, info):
+        key = hex(random.getrandbits(64))[2:]
+        send_to = models.Setting.objects.get(key='sms-verification-receiver').value
+        r = models.SMSVerification.objects.create(key=key)
+        r.save()
+        return RequestSMSVerification(key=key, send_to=send_to)
+
+
+class SystemOps(gh.ObjectType):
+    SyRequestSmsVerification = RequestSMSVerification.Field(required=True, description="请求短信验证码")

@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
+import datetime
+
 # -- third party --
-from django.db import models
+import pytz
 
 # -- own --
+# -- errord --
+from django.db import models
 
 
 # -- code --
@@ -27,6 +30,26 @@ class Server(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class SMSVerification(models.Model):
+
+    class Meta:
+        verbose_name        = '短信验证'
+        verbose_name_plural = '短信验证'
+
+    id       = models.AutoField(primary_key=True)
+    key      = models.CharField(**_('验证 Key'), max_length=200, unique=True)
+    time     = models.DateTimeField(**_('创建时间'), auto_now_add=True)
+    phone    = models.CharField(**_('手机号'), max_length=20, null=True, blank=True)
+    used     = models.BooleanField(**_('已使用'), default=False)
+
+    def is_valid(self):
+        return self.phone and not self.used and \
+            datetime.datetime.now(pytz.utc) - self.time < datetime.timedelta(hours=1)
+
+    def __str__(self):
+        return f'[#{self.id}] {self.phone} {self.used}'
 
 
 class Setting(models.Model):

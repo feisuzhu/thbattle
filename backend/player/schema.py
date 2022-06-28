@@ -14,7 +14,6 @@ import graphene as gh
 from . import models
 from authext.schema import User
 from utils.graphql import require_login, require_perm
-import utils.leancloud
 
 
 # -- code --
@@ -149,15 +148,17 @@ class Register(gh.Mutation):
         name     = gh.String(required=True, description="昵称")
         phone    = gh.String(required=True, description="手机")
         password = gh.String(required=True, description="密码")
-        smscode  = gh.Int(required=True, description="短信验证码")
+
+        sms_verification_key = gh.Int(required=True, description="短信验证 Key")
 
     token  = gh.String(required=True, description="登录令牌")
     user   = gh.Field(User, required=True, description="用户")
     player = gh.Field(Player, required=True, description="玩家")
 
     @staticmethod
-    def mutate(root, info, name, phone, password, smscode):
+    def mutate(root, info, name, phone, password, sms_verification_key):
         name, phone = map(str.strip, [name, phone])
+        import system.models
 
         if not models.is_phone_number(phone):
             raise GraphQLError('手机号不合法')
@@ -169,8 +170,15 @@ class Register(gh.Mutation):
             raise GraphQLError('手机已经注册')
         elif models.Player.objects.filter(name=name).exists():
             raise GraphQLError('昵称已经注册')
-        elif not utils.leancloud.verify_smscode(phone, smscode):
-            raise GraphQLError('验证码不正确')
+
+        if r := system.models.SMSVerification.objects.filter(phone=phone, key=sms_verification_key).first():
+            if not r.is_valid():
+                raise GraphQLError('短信验证未通过')
+        else:
+            raise GraphQLError('短信验证未通过')
+
+        r.used = True
+        r.save()
 
         with transaction.atomic():
             u = models.User.objects.create_user(phone=phone, password=password)
