@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
+import base64
+import random
+import io
+
 # -- third party --
 from graphene_django.types import DjangoObjectType
-import random
 import graphene as gh
+import qrcode
 
 # -- own --
 from . import models
@@ -36,12 +39,6 @@ class Setting(DjangoObjectType):
 class SMSVerification(DjangoObjectType):
     class Meta:
         model = models.SMSVerification
-
-    is_valid = gh.Boolean(required=True, description="有效")
-
-    @staticmethod
-    def resolve_is_valid(root, info):
-        return root.is_valid()
 
 
 # ------------------------
@@ -87,6 +84,7 @@ class SystemQuery(gh.ObjectType):
 class RequestSMSVerification(gh.Mutation):
     key = gh.String(required=True)
     send_to = gh.String(required=True)
+    qr_code = gh.String(required=True, description="二维码")
 
     @staticmethod
     def mutate(root, info):
@@ -94,7 +92,18 @@ class RequestSMSVerification(gh.Mutation):
         send_to = models.Setting.objects.get(key='sms-verification-receiver').value
         r = models.SMSVerification.objects.create(key=key)
         r.save()
-        return RequestSMSVerification(key=key, send_to=send_to)
+
+        url = f'http://file.thbattle.cn/pages/send-sms.html?s={key}&n={send_to}'
+        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr.add_data(url)
+        qr.make(fit=True)
+
+        buf = io.BytesIO()
+        qr.make_image().save(buf, format='PNG')
+        b = buf.getvalue()
+
+        qr_code = base64.b64encode(b).decode('utf-8')
+        return RequestSMSVerification(key=key, send_to=send_to, qr_code=qr_code)
 
 
 class SystemOps(gh.ObjectType):

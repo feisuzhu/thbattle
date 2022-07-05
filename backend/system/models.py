@@ -38,15 +38,20 @@ class SMSVerification(models.Model):
         verbose_name        = '短信验证'
         verbose_name_plural = '短信验证'
 
-    id       = models.AutoField(primary_key=True)
-    key      = models.CharField(**_('验证 Key'), max_length=200, unique=True)
-    time     = models.DateTimeField(**_('创建时间'), auto_now_add=True)
-    phone    = models.CharField(**_('手机号'), max_length=20, null=True, blank=True)
-    used     = models.BooleanField(**_('已使用'), default=False)
+    id    = models.AutoField(primary_key=True)
+    key   = models.CharField(**_('验证 Key'), max_length=200, unique=True)
+    time  = models.DateTimeField(**_('创建时间'), auto_now_add=True)
+    phone = models.CharField(**_('手机号'), max_length=20, null=True, blank=True)
+    used  = models.BooleanField(**_('已使用'), default=False)
 
-    def is_valid(self):
-        return self.phone and not self.used and \
-            datetime.datetime.now(pytz.utc) - self.time < datetime.timedelta(hours=1)
+    def is_verified(self):
+        return bool(self.phone)
+
+    def expired(self):
+        return datetime.datetime.now(pytz.utc) - self.time > datetime.timedelta(hours=1)
+
+    def can_use(self):
+        return self.is_verified() and not self.used and not self.expired()
 
     def __str__(self):
         return f'[#{self.id}] {self.phone} {self.used}'

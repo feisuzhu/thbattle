@@ -3,10 +3,11 @@ from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
-import graphene as gh
+from graphene_django import DjangoObjectType
+from graphql import GraphQLError
 import django.contrib.auth as auth
 import django.contrib.auth.models as auth_models
-from graphene_django import DjangoObjectType
+import graphene as gh
 
 # -- own --
 from . import models
@@ -44,19 +45,24 @@ class Permission(DjangoObjectType):
 class Login(gh.ObjectType):
     phone = gh.Field(
         User,
-        phone=gh.String(required=True, description="手机"),
-        code=gh.String(required=True, description="验证码"),
-        description="登录",
+        sms_verification_key=gh.String(required=True, description="验证码"),
+        description="手机登录",
     )
 
     @staticmethod
-    def resolve_phone(root, info, phone, code):
-        phone = phone and phone.strip()
-        from authext.models import PhoneLogin
-        if phone := PhoneLogin.objects.filter(phone=phone).first():
-            return phone.user
+    def resolve_phone(root, info, sms_verification_key):
+        from system.models import SMSVerification
 
-        return None
+        verify = SMSVerification.objects.filter(key=sms_verification_key).first()
+        if verify.can_use():
+            phone = models.PhoneLogin.objects.filter(phone=verify.phone).first()
+            if not phone:
+                return None
+            verify.used = True
+            verify.save()
+            return phone.user
+        else:
+            raise GraphQLError("验证码无效")
 
     token = gh.Field(
         User,
@@ -68,6 +74,22 @@ class Login(gh.ObjectType):
     def resolve_token(root, info, token):
         if user := auth.authenticate(token=token):
             return user
+
+        return None
+
+    account = gh.Field(
+        User,
+        account=gh.String(required=True, description="账号"),
+        password=gh.String(required=True, description="密码"),
+        description="帐号密码登录",
+    )
+
+    @staticmethod
+    def resolve_account(root, account, password):
+        if user := auth.authenticate(username=account, password=password):
+            return user
+        else:
+            raise GraphQLError("帐号或密码错误")
 
         return None
 

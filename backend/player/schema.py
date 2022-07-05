@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from urllib.parse import unquote
+import random
 
 # -- third party --
 from django.db import transaction
@@ -102,7 +103,8 @@ class Availability(gh.ObjectType):
         if not models.is_phone_number(phone):
             raise GraphQLError('手机号不合法')
 
-        return not models.User.objects.filter(phone=phone.strip()).exists()
+        from authext.models import PhoneLogin
+        return not PhoneLogin.objects.filter(phone=phone.strip()).exists()
 
     @staticmethod
     def resolve_name(root, info, name):
@@ -145,46 +147,34 @@ class PlayerQuery(gh.ObjectType):
 
 class Register(gh.Mutation):
     class Arguments:
-        name     = gh.String(required=True, description="昵称")
-        phone    = gh.String(required=True, description="手机")
-        password = gh.String(required=True, description="密码")
-
-        sms_verification_key = gh.Int(required=True, description="短信验证 Key")
+        sms_verification_key = gh.String(required=True, description="短信验证 Key")
 
     token  = gh.String(required=True, description="登录令牌")
     user   = gh.Field(User, required=True, description="用户")
     player = gh.Field(Player, required=True, description="玩家")
 
     @staticmethod
-    def mutate(root, info, name, phone, password, sms_verification_key):
-        name, phone = map(str.strip, [name, phone])
-        import system.models
-
-        if not models.is_phone_number(phone):
-            raise GraphQLError('手机号不合法')
-
-        if not models.is_name(name):
-            raise GraphQLError('昵称不合法')
-
-        if models.User.objects.filter(phone=phone).exists():
-            raise GraphQLError('手机已经注册')
-        elif models.Player.objects.filter(name=name).exists():
-            raise GraphQLError('昵称已经注册')
-
-        if r := system.models.SMSVerification.objects.filter(phone=phone, key=sms_verification_key).first():
-            if not r.is_valid():
-                raise GraphQLError('短信验证未通过')
-        else:
+    def mutate(root, info, sms_verification_key):
+        from system.models import SMSVerification
+        r = SMSVerification.objects.filter(key=sms_verification_key).first()
+        if not (r and r.can_use()):
             raise GraphQLError('短信验证未通过')
 
-        r.used = True
-        r.save()
+        from authext.models import PhoneLogin, User
+        if PhoneLogin.objects.filter(phone=r.phone).exists():
+            raise GraphQLError('手机已经注册')
 
         with transaction.atomic():
-            u = models.User.objects.create_user(phone=phone, password=password)
+            r.used = True
+            r.save()
+            u = User.objects.create_user(username=f'm{r.phone}', password=hex(random.getrandbits(128))[2:])
             u.save()
-            p = models.Player.objects.create(user=u, name=name)
-            p.save()
+            PhoneLogin.objects.create(user=u, phone=r.phone).save()
+            models.Player.objects.create(
+                user=u,
+                name=f'萌新{random.randrange(100000000, 999999999)}',
+                avatar='http://img.thbattle.cn/avatars/kedama.png',
+            ).save()
 
         return Register(
             user=u, player=u.player,
