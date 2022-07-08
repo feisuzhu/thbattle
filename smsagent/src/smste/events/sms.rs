@@ -1,13 +1,13 @@
 use nom::branch::alt;
 use nom::bytes::streaming::{is_a, is_not, tag};
-use nom::character::streaming::{char as ch};
+use nom::character::streaming::char as ch;
 use nom::combinator::{map_opt, map_res};
 use nom::sequence::{delimited, preceded, tuple};
 use nom::IResult;
 
-use crate::common::integer;
-use crate::events::Event;
-use crate::pdu::{parse_pdu, PDU};
+use crate::smste::common::integer;
+use crate::smste::events::Event;
+use crate::smste::pdu::{parse_pdu, PDU};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum StorageType {
@@ -61,7 +61,7 @@ pub(crate) fn parse_cmgr(s: &[u8]) -> IResult<&[u8], Event> {
         is_a("\r\n"),
         map_opt(parse_pdu, |pdu| match pdu {
             PDU::SMSDeliver(v) => Some(v),
-            _ => None,
+            // _ => None,
         }),
     ))(s)?;
     Ok((s, Event::SMS(pdu)))

@@ -434,26 +434,19 @@ name = "smsagent"
 version = "0.1.0"
 dependencies = [
  "argparse",
+ "bitflags",
+ "chrono",
  "env_logger",
  "log",
+ "nom",
+ "num-derive",
+ "num-traits",
  "once_cell",
  "serde",
  "serde_derive",
  "serde_json",
  "serial",
- "smste",
  "ureq",
-]
-
-[[package]]
-name = "smste"
-version = "0.1.0"
-dependencies = [
- "bitflags",
- "chrono",
- "nom",
- "num-derive",
- "num-traits",
 ]
 
 [[package]]

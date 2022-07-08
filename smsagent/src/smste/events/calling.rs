@@ -8,8 +8,8 @@ use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
 use nom::IResult;
 use num_derive::{FromPrimitive, ToPrimitive};
 
-use crate::common::{int_enum, integer};
-use crate::events::Event;
+use super::Event;
+use crate::smste::common::{int_enum, integer};
 
 #[derive(FromPrimitive, ToPrimitive, Debug, PartialEq, Eq)]
 pub enum CallDirection {

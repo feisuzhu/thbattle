@@ -26,9 +26,8 @@ pub struct SMSDeliver {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum PDU {
-    SMSSubmit,
+    // SMSSubmit,
     SMSDeliver(SMSDeliver),
-    Unrecognized,
 }
 
 bitflags! {

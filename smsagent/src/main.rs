@@ -7,6 +7,9 @@ use once_cell::sync::OnceCell;
 use serde_derive::{Deserialize, Serialize};
 use serial::unix::TTYPort;
 use serial::SerialPort;
+
+mod smste;
+
 use smste::commands::{
     CNMIMessageType, CNMIMode, GetSubscriberNumber, HangUp, SelectMessageFormat,
     SetNewMessageIndication, TakeMessage,

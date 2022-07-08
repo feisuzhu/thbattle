@@ -13,7 +13,7 @@ use nom::combinator::{map, opt, recognize};
 use nom::sequence::{delimited, terminated, tuple};
 use nom::IResult;
 
-use crate::pdu::SMSDeliver;
+use super::pdu::SMSDeliver;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Event {
