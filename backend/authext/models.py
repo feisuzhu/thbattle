@@ -6,14 +6,13 @@ import logging
 import re
 
 # -- third party --
+from django.conf import settings
 from django.db import models
 import django.contrib.auth.models as auth_models
 import itsdangerous
 import msgpack
 
 # -- own --
-import backend.settings
-
 
 # -- code --
 log = logging.getLogger("authext.model")
@@ -33,7 +32,7 @@ class User(auth_models.User):
         verbose_name        = '用户'
         verbose_name_plural = '用户'
 
-    token_signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
+    token_signer = itsdangerous.TimestampSigner(settings.SECRET_KEY)
 
     def token(self):
         data = base64.b64encode(msgpack.dumps({'type': 'user', 'id': self.id}))

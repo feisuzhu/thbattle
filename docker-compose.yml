@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14
+    volumes:
+    - /var/lib/thbattle/db:/var/lib/postgresql/data
+    environment:
+    - POSTGRES_DB=postgres
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+    networks: [thb]
+    restart: always
+
+  backend:
+    build:
+      context: .
+      target: backend
+    volumes:
+    - /var/lib/thbattle/backend:/outside
+    environment:
+      PYTHONPATH: /outside
+      DJANGO_SETTINGS_MODULE: prod_settings
+    depends_on: [db]
+    networks: [thb]
+    restart: always
+
+  forest:
+    build:
+      context: .
+      target: game
+    ports:
+    - "9999:9999"
+    volumes:
+    - /var/lib/thbattle/forest:/data/thb
+    environment:
+      INSTANCE: forest
+      BACKEND_URL: 'http://user:password@backend:8000/graphql'
+      INTERCONNECT_URL: 'ws://uid:pass@localhost:12333/interconnect'  # not yet used
+      INTERCONNECT_URL: ''  # not yet used
+    depends_on: [backend]
+    networks: [thb]
+    restart: always
+
+  chat:
+    build:
+      context: .
+      target: chat
+    ports:
+    - "7777:7777"
+    environment:
+      BACKEND_URL: 'http://user:password@backend:8000/graphql'
+    depends_on: [backend]
+    networks: [thb]
+    restart: always
+
+networks:
+  thb: {}

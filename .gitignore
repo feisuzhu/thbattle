@@ -240,3 +240,4 @@ FakesAssemblies/
 
 .vim
 target
+docker-compose.override.yml

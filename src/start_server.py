@@ -48,7 +48,7 @@ def start_server():
     parser.add_argument('--log', default='file:///dev/shm/thb.log?level=INFO')
     parser.add_argument('--archive-path', default='file:///dev/shm/thb-archive')
     parser.add_argument('--backend', default='http://token@localhost/graphql')
-    parser.add_argument('--interconnect', default='ws://uid:pass@localhost:12333/interconnect')
+    parser.add_argument('--interconnect', default='')
     options = parser.parse_args()
 
     import settings

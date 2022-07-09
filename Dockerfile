@@ -37,32 +37,33 @@ ENV LC_ALL zh_CN.UTF-8
 # -----
 FROM base AS backend
 
-ADD backend /app
 WORKDIR /app
+COPY backend/pyproject.toml ./
+COPY backend/poetry.lock ./
 RUN poetry install --no-dev
-ENV DJANGO_SETTINGS_MODULE=prod_settings
-ENV PYTHONPATH=/settings
-CMD ["tini", "poetry", "--", "run", "gunicorn", "-w", "4", "--reuse-port", "backend.wsgi"]
+ADD backend /app
+CMD ["tini", "/bin/bash", "--", "-c", "exec poetry run gunicorn -w 4 --reuse-port backend.wsgi"]
 
 
 # -----
 FROM base AS game
 
-ADD src /app
 WORKDIR /app
+COPY src/pyproject.toml ./
+COPY src/poetry.lock ./
 RUN poetry install --no-dev
-ENV PYTHONPATH=/settings
-CMD ["tini", "poetry", "--", "run", "python", "start_server.py", "proton", "--log='file:///data/log/server.log?level=INFO'", "--backend", "http://server:server@localhost:8000/graphql"]
+ADD src /app
+CMD ["tini", "/bin/bash", "--", "-c", "exec poetry run python3 start_server.py $INSTANCE --log='file:///data/thb/server.log?level=INFO' --backend $BACKEND_URL --archive-path /data/thb/archive --interconnect \"$INTERCONNECT_URL\""]
 
-# -----
-FROM base AS smsagent
-WORKDIR /app
-COPY --from=smsagent-build /build/smsagent/target/release/smsagent /app/smsagent
-CMD ["tini", "/app/smsagent"]
+# # -----
+# FROM base AS smsagent
+# WORKDIR /app
+# COPY --from=smsagent-build /build/smsagent/target/release/smsagent /app/smsagent
+# CMD ["tini", "/app/smsagent"]
 
 
 # -----
 FROM base AS chat
 WORKDIR /app
 COPY --from=chat-build /build/chat/target/release/chat /app/chat
-CMD ["tini", "/app/chat"]
+CMD ["tini", "/bin/bash", "--", "-c", "exec /app/chat --backend $BACKEND_URL"]
