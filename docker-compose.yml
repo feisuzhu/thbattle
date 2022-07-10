@@ -17,9 +17,9 @@ services:
       context: .
       target: backend
     volumes:
-    - /var/lib/thbattle/backend:/outside
+    - /var/lib/thbattle/backend:/settings
     environment:
-      PYTHONPATH: /outside
+      PYTHONPATH: /settings
       DJANGO_SETTINGS_MODULE: prod_settings
     depends_on: [db]
     networks: [thb]
@@ -35,8 +35,23 @@ services:
     - /var/lib/thbattle/forest:/data/thb
     environment:
       INSTANCE: forest
-      BACKEND_URL: 'http://user:password@backend:8000/graphql'
-      INTERCONNECT_URL: 'ws://uid:pass@localhost:12333/interconnect'  # not yet used
+      BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
+      INTERCONNECT_URL: ''  # not yet used
+    depends_on: [backend]
+    networks: [thb]
+    restart: always
+
+  lake:
+    build:
+      context: .
+      target: game
+    ports:
+    - "9998:9999"
+    volumes:
+    - /var/lib/thbattle/lake:/data/thb
+    environment:
+      INSTANCE: lake
+      BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
       INTERCONNECT_URL: ''  # not yet used
     depends_on: [backend]
     networks: [thb]
@@ -49,8 +64,22 @@ services:
     ports:
     - "7777:7777"
     environment:
-      BACKEND_URL: 'http://user:password@backend:8000/graphql'
+      AYA_LOG: info
+      BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
     depends_on: [backend]
+    networks: [thb]
+    restart: always
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - /var/lib/thbattle/nginx:/etc/nginx
+    - /var/lib/thbattle/nginx-logs:/var/log/nginx
     networks: [thb]
     restart: always
 

@@ -67,3 +67,8 @@ FROM base AS chat
 WORKDIR /app
 COPY --from=chat-build /build/chat/target/release/chat /app/chat
 CMD ["tini", "/bin/bash", "--", "-c", "exec /app/chat --backend $BACKEND_URL"]
+
+# -----
+#
+FROM openresty/openresty:1.21.4.1-jammy AS nginx
+RUN luarocks install lua-resty-auto-ssl
