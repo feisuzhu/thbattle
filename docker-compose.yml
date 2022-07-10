@@ -78,10 +78,16 @@ services:
     - "80:80"
     - "443:443"
     volumes:
-    - /var/lib/thbattle/nginx:/etc/nginx
-    - /var/lib/thbattle/nginx-logs:/var/log/nginx
+    - /var/lib/thbattle/nginx:/usr/local/openresty/nginx/conf
+    - /var/log/nginx:/var/log/nginx
+    - nginx-certs:/var/lib/nginx-certs
+    depends_on: [backend]
     networks: [thb]
     restart: always
 
 networks:
   thb: {}
+ 
+
+volumes:
+  nginx-certs:

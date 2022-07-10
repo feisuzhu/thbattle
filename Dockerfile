@@ -42,8 +42,12 @@ COPY backend/pyproject.toml ./
 COPY backend/poetry.lock ./
 RUN poetry install --no-dev
 ADD backend /app
-CMD ["tini", "/bin/bash", "--", "-c", "exec poetry run gunicorn -w 4 --reuse-port backend.wsgi"]
+CMD ["tini", "/bin/bash", "--", "-c", "exec poetry run gunicorn -b 0.0.0.0:8000 -w 4 --reuse-port backend.wsgi"]
 
+# -----
+FROM backend AS backend-static
+ENV SECRET_KEY=dummy
+RUN poetry run python3 manage.py collectstatic --no-input
 
 # -----
 FROM base AS game
@@ -72,3 +76,4 @@ CMD ["tini", "/bin/bash", "--", "-c", "exec /app/chat --backend $BACKEND_URL"]
 #
 FROM openresty/openresty:1.21.4.1-jammy AS nginx
 RUN luarocks install lua-resty-auto-ssl
+COPY --from=backend-static /app/static-root /var/www/backend-static

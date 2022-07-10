@@ -14,17 +14,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 DEBUG = os.path.exists('/etc/tags/backend.debug')
-
-
-ALLOWED_HOSTS = [
-    "0.0.0.0",
-    "proton.local",
-    "192.168.233.11",
-    "localhost",
-]
-
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'authext.apps.AuthExtConfig',
@@ -50,6 +41,8 @@ INSTALLED_APPS = [
 if DEBUG:
     INSTALLED_APPS.append('debug_permissions')
     SECRET_KEY = 'ew&(_dc#t346(!qzan_paw2^5f3r)3g80)1l+s_e%7&!a7nr$-'
+else:
+    SECRET_KEY = os.environ.get('SECRET_KEY', '')
 
 
 MIDDLEWARE = [
@@ -155,12 +148,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend'),
 ]
 
-
-class LeanCloudCredentials:
-    APP_ID     = ''
-    APP_KEY    = ''
-    MASTER_KEY = ''
-    URL        = ''
+STATIC_ROOT = 'static-root'
 
 
 if DEBUG:
@@ -169,9 +157,3 @@ if DEBUG:
             'backend.graphql.ResolveDebugMiddleware',
         ]
     }
-
-
-try:
-    from local_settings import *  # noqa
-except ImportError:
-    pass
