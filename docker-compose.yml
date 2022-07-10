@@ -134,6 +134,5 @@ networks:
         ip_range: 100.64.0.0/24
         gateway: 100.64.0.254
 
-
 volumes:
   nginx-certs:
