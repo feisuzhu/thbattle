@@ -73,7 +73,11 @@ COPY --from=chat-build /build/chat/target/release/chat /app/chat
 CMD ["tini", "/bin/bash", "--", "-c", "exec /app/chat --backend $BACKEND_URL"]
 
 # -----
-#
 FROM openresty/openresty:1.21.4.1-jammy AS nginx
 RUN luarocks install lua-resty-auto-ssl
 COPY --from=backend-static /app/static-root /var/www/backend-static
+
+# -----
+FROM postgres:14 AS db
+RUN localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8
+ENV LANG zh_CN.utf8

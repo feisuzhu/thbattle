@@ -1,15 +1,34 @@
 version: "3.9"
 
 services:
+  nginx:
+    build:
+      context: .
+      target: nginx
+    volumes:
+    - /var/lib/thbattle/nginx:/usr/local/openresty/nginx/conf
+    - /var/log/nginx:/var/log/nginx
+    - nginx-certs:/var/lib/nginx-certs
+    depends_on: [backend]
+    expose: [80, 443]
+    networks:
+      thb:
+        ipv4_address: 100.64.0.1
+    restart: always
+
   db:
-    image: postgres:14
+    build:
+      context: .
+      target: db
     volumes:
     - /var/lib/thbattle/db:/var/lib/postgresql/data
     environment:
     - POSTGRES_DB=postgres
     - POSTGRES_USER=postgres
     - POSTGRES_PASSWORD=postgres
-    networks: [thb]
+    networks:
+      thb:
+        ipv4_address: 100.64.0.2
     restart: always
 
   backend:
@@ -22,15 +41,30 @@ services:
       PYTHONPATH: /settings
       DJANGO_SETTINGS_MODULE: prod_settings
     depends_on: [db]
-    networks: [thb]
+    expose: [8000]
+    networks:
+      thb:
+        ipv4_address: 100.64.0.3
+    restart: always
+
+  chat:
+    build:
+      context: .
+      target: chat
+    environment:
+      AYA_LOG: info
+      BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
+    depends_on: [backend]
+    expose: [7777]
+    networks:
+      thb:
+        ipv4_address: 100.64.0.4
     restart: always
 
   forest:
     build:
       context: .
       target: game
-    ports:
-    - "9999:9999"
     volumes:
     - /var/lib/thbattle/forest:/data/thb
     environment:
@@ -38,15 +72,16 @@ services:
       BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
       INTERCONNECT_URL: ''  # not yet used
     depends_on: [backend]
-    networks: [thb]
+    expose: [9999]
+    networks:
+      thb:
+        ipv4_address: 100.64.0.11
     restart: always
 
   lake:
     build:
       context: .
       target: game
-    ports:
-    - "9998:9999"
     volumes:
     - /var/lib/thbattle/lake:/data/thb
     environment:
@@ -54,40 +89,21 @@ services:
       BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
       INTERCONNECT_URL: ''  # not yet used
     depends_on: [backend]
-    networks: [thb]
-    restart: always
-
-  chat:
-    build:
-      context: .
-      target: chat
-    ports:
-    - "7777:7777"
-    environment:
-      AYA_LOG: info
-      BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
-    depends_on: [backend]
-    networks: [thb]
-    restart: always
-
-  nginx:
-    build:
-      context: .
-      target: nginx
-    ports:
-    - "80:80"
-    - "443:443"
-    volumes:
-    - /var/lib/thbattle/nginx:/usr/local/openresty/nginx/conf
-    - /var/log/nginx:/var/log/nginx
-    - nginx-certs:/var/lib/nginx-certs
-    depends_on: [backend]
-    networks: [thb]
+    expose: [9999]
+    networks:
+      thb:
+        ipv4_address: 100.64.0.12
     restart: always
 
 networks:
-  thb: {}
- 
+  thb:
+    ipam:
+      driver: default
+      config:
+      - subnet: 100.64.0.0/24
+        ip_range: 100.64.0.0/24
+        gateway: 100.64.0.254
+
 
 volumes:
   nginx-certs:
