@@ -1,18 +1,20 @@
 # -----
 FROM rust:1.62 AS smsagent-build
 WORKDIR /build/smsagent
+COPY deploy/cargo-config .cargo/config
 COPY smsagent/Cargo.lock .
 COPY smsagent/Cargo.toml .
-RUN mkdir .cargo && cargo vendor > .cargo/config
+RUN cargo vendor > .cargo/config.vendor && mv .cargo/config.vendor .cargo/config
 COPY smsagent /build/smsagent
 RUN cargo build --release
 
 # -----
 FROM rust:1.62 AS chat-build
 WORKDIR /build/chat
+COPY deploy/cargo-config .cargo/config
 COPY chat/Cargo.lock .
 COPY chat/Cargo.toml .
-RUN mkdir .cargo && cargo vendor > .cargo/config
+RUN cargo vendor > .cargo/config.vendor && mv .cargo/config.vendor .cargo/config
 COPY chat /build/chat
 RUN cargo build --release
 
@@ -81,3 +83,9 @@ COPY --from=backend-static /app/static-root /var/www/backend-static
 FROM postgres:14 AS db
 RUN localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8
 ENV LANG zh_CN.utf8
+
+# -----
+FROM base AS lvs
+RUN apt-get -y install ipvsadm
+ADD deploy/container-lvs.sh /container-lvs.sh
+CMD ["/container-lvs.sh"]
