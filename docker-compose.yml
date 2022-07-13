@@ -61,6 +61,25 @@ services:
         ipv4_address: 100.64.0.4
     restart: always
 
+  redis:
+    image: redis:7
+    command:
+    - redis-server
+    - --dbfilename
+    - redis.rdb
+    - --dir
+    - /var/lib/redis
+    - --save
+    - '15'
+    - '1'
+    volumes:
+    - /var/lib/thbattle/redis:/var/lib/redis
+    networks:
+      thb:
+        ipv4_address: 100.64.0.5
+    restart: always
+
+
   forest:
     build:
       context: .

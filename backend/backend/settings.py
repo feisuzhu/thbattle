@@ -126,7 +126,7 @@ STATIC_URL = '/static/'
 
 SESSION_ENGINE = 'redis_sessions.session'
 SESSION_REDIS = {
-    'host': 'localhost',
+    'host': 'redis',
     'port': 6379,
     'db': 1,
     'prefix': 'session',
@@ -137,7 +137,7 @@ SESSION_REDIS = {
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': 'localhost:6379',
+        'LOCATION': 'redis:6379',
         'OPTIONS': {
             'PICKLE_VERSION': 4,
         }
