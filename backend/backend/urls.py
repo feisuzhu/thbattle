@@ -36,11 +36,16 @@ admin.site.site_header = '东方符斗祭后台'
 apps.get_app_config('auth').sort_order = 10
 
 
+def trigger_error(request):
+    1 / 0
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql', GraphQLView.as_view(schema=schema, graphiql=True)),
     path('graphql-msgpack', MessagePackGraphQLView.as_view(schema=schema)),
     path(".dev/schema/", Schema.as_view()),
+    path(".dev/trigger-error", trigger_error),
 
     path(".callbacks/sms-verification", sms_verification),
 ]
