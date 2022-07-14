@@ -26,10 +26,5 @@ add-rules
 
 trap clear-rules SIGINT SIGTERM SIGQUIT
 
-cat <<EOF > pause.c
-#include <unistd.h>
-void main() { pause(); }
-EOF
-gcc pause.c -o pause
-./pause &
+sleep infinity &
 wait

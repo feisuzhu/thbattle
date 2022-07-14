@@ -62,16 +62,9 @@ services:
     restart: always
 
   redis:
-    image: redis:7
-    command:
-    - redis-server
-    - --dbfilename
-    - redis.rdb
-    - --dir
-    - /var/lib/redis
-    - --save
-    - '15'
-    - '1'
+    build:
+      context: .
+      target: redis
     volumes:
     - /var/lib/thbattle/redis:/var/lib/redis
     networks:

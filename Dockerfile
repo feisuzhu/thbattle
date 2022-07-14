@@ -4,7 +4,7 @@ WORKDIR /build/smsagent
 COPY deploy/cargo-config .cargo/config
 COPY smsagent/Cargo.lock .
 COPY smsagent/Cargo.toml .
-RUN cargo vendor > .cargo/config.vendor && mv .cargo/config.vendor .cargo/config
+RUN cargo vendor --respect-source-config > .cargo/config.vendor && mv .cargo/config.vendor .cargo/config
 COPY smsagent /build/smsagent
 RUN cargo build --release
 
@@ -14,7 +14,7 @@ WORKDIR /build/chat
 COPY deploy/cargo-config .cargo/config
 COPY chat/Cargo.lock .
 COPY chat/Cargo.toml .
-RUN cargo vendor > .cargo/config.vendor && mv .cargo/config.vendor .cargo/config
+RUN cargo vendor --respect-source-config > .cargo/config.vendor && mv .cargo/config.vendor .cargo/config
 COPY chat /build/chat
 RUN cargo build --release
 
@@ -22,12 +22,14 @@ RUN cargo build --release
 FROM ubuntu:22.04 AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV POETRY_HOME=/usr/local
 RUN sed -i 's/archive.ubuntu.com/mirrors.tencent.com/g' /etc/apt/sources.list && \
     sed -i 's/security.ubuntu.com/mirrors.tencent.com/g' /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y python3-pip python3-venv locales dnsutils iproute2 netcat tini runit && \
+    apt-get install -y python3 python3-venv locales dnsutils iproute2 netcat tini runit vim curl && \
     locale-gen zh_CN.UTF-8 && \
-    pip3 install -U pip poetry gunicorn && \
+    curl https://bootstrap.pypa.io/get-pip.py | python3 - && \
+    curl https://install.python-poetry.org/ | python3 - && \
     poetry config virtualenvs.create false && \
     true
 
@@ -89,3 +91,8 @@ FROM base AS lvs
 RUN apt-get -y install ipvsadm
 ADD deploy/container-lvs.sh /container-lvs.sh
 CMD ["/container-lvs.sh"]
+
+# -----
+FROM base AS redis
+RUN apt-get -y install redis-server
+CMD ["tini", "redis-server", "--", "--dbfilename", "redis.rdb", "--dir", "/var/lib/redis", "--save", "15", "1"]
