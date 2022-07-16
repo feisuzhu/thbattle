@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -f /run/fcgiwrap.socket
+exec /usr/sbin/fcgiwrap -c 4 -s unix:/run/fcgiwrap.socket

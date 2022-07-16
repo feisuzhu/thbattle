@@ -7,6 +7,7 @@ services:
       target: nginx
     volumes:
     - /var/lib/thbattle/nginx:/usr/local/openresty/nginx/conf
+    - /var/lib/thbattle/envolve:/var/lib/thbattle/envolve
     - /var/log/nginx:/var/log/nginx
     - nginx-certs:/var/lib/nginx-certs
     depends_on: [backend]
@@ -40,6 +41,7 @@ services:
     environment:
       PYTHONPATH: /settings
       DJANGO_SETTINGS_MODULE: prod_settings
+      SENTRY_DSN: '${BACKEND_SENTRY_DSN}'
     depends_on: [db]
     expose: [8000]
     networks:
@@ -112,7 +114,7 @@ services:
       context: .
       target: lvs
     environment:
-      NODE_IP: 10.206.0.14
+      NODE_IP: '${NODE_IP}'
     privileged: true
     network_mode: host
     restart: 'no'

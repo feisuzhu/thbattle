@@ -26,7 +26,7 @@ ENV POETRY_HOME=/usr/local
 RUN sed -i 's/archive.ubuntu.com/mirrors.tencent.com/g' /etc/apt/sources.list && \
     sed -i 's/security.ubuntu.com/mirrors.tencent.com/g' /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y python3 python3-venv locales dnsutils iproute2 netcat tini runit vim curl && \
+    apt-get install -y python3 python3-venv locales dnsutils iproute2 netcat tini runit vim git fcgiwrap curl build-essential unzip lz4 zstd && \
     locale-gen zh_CN.UTF-8 && \
     curl https://bootstrap.pypa.io/get-pip.py | python3 - && \
     curl https://install.python-poetry.org/ | python3 - && \
@@ -77,9 +77,14 @@ COPY --from=chat-build /build/chat/target/release/chat /app/chat
 CMD ["tini", "/bin/bash", "--", "-c", "exec /app/chat --backend $BACKEND_URL"]
 
 # -----
-FROM openresty/openresty:1.21.4.1-jammy AS nginx
+FROM base AS nginx
+ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
+COPY --from=openresty/openresty:1.21.4.1-jammy /usr/local/openresty /usr/local/openresty
 RUN luarocks install lua-resty-auto-ssl
+COPY deploy/nginx-services /etc/service
 COPY --from=backend-static /app/static-root /var/www/backend-static
+STOPSIGNAL SIGHUP
+CMD ["tini", "runsvdir", "--", "-P", "/etc/service"]
 
 # -----
 FROM postgres:14 AS db
