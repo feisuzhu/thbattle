@@ -220,12 +220,12 @@ impl Session {
         let payload = rmps::to_vec_named(&api::GraphQLRequest {
             query: r#"
                     query Login($token: String!) {
-                        login { token(token: $token) { id } }
+                        login { token(token: $token) { player { id } } }
                     }
                 "#
             .to_owned(),
             variables: LoginVariables { token },
-            strip: "login.token.id".to_owned(),
+            strip: "login.token.player.id".to_owned(),
         })?;
 
         let resp = match ureq::post(&self.core.backend)
