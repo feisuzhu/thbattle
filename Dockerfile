@@ -95,4 +95,4 @@ CMD ["/container-lvs.sh"]
 # -----
 FROM base AS redis
 RUN apt-get -y install redis-server
-CMD ["tini", "redis-server", "--", "--dbfilename", "redis.rdb", "--dir", "/var/lib/redis", "--save", "15", "1"]
+CMD ["tini", "redis-server", "--", "--bind", "0.0.0.0", "--dbfilename", "redis.rdb", "--dir", "/var/lib/redis", "--save", "15", "1"]
