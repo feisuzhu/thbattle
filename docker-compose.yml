@@ -55,7 +55,7 @@ services:
       target: chat
     environment:
       AYA_LOG: info
-      BACKEND_URL: 'http://${BACKEND_AUTH:-user:pass}@backend:8000/graphql'
+      BACKEND_URL: 'http://backend:8000/graphql-msgpack'
     depends_on: [backend]
     expose: [7777]
     networks:
