@@ -10,4 +10,5 @@ git checkout -- bundle.json
 find -name __pycache__ | xargs rm -rf
 git add -A .
 git commit -a -m "Updated at $(date -R)"
-git push gitee
+git push gitcode
+git push self-hosted
