@@ -4,6 +4,7 @@
 # -- third party --
 from django.contrib import auth
 import factory
+from system.tests import SMSVerificationFactory
 import pytest
 
 # -- own --
@@ -31,13 +32,15 @@ class PhoneLoginFactory(factory.django.DjangoModelFactory):
 @pytest.mark.django_db
 def test_login(Q):
     from authext.tests import PhoneLoginFactory
-    PhoneLoginFactory.create(phone="123123")
+    phone = PhoneLoginFactory.create(phone="123123")
+    SMSVerificationFactory.create(phone=phone.phone, key="456456")
 
     rst = Q('''
         query {
             login {
-                phone(phone: "123123", code:"123123") {
+                phone(smsVerificationKey:"456456") {
                     token
+                    id
                 }
             }
         }
@@ -45,4 +48,4 @@ def test_login(Q):
     )
 
     assert 'errors' not in rst
-    assert rst['data']['login']['phone']
+    assert rst['data']['login']['phone']['id'] == phone.id
