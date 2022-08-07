@@ -145,18 +145,6 @@ python-versions = "*"
 Django = "*"
 
 [[package]]
-name = "django-redis-cache"
-version = "2.1.1"
-description = "Redis Cache Backend for Django"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-redis = "<4.0"
-six = "*"
-
-[[package]]
 name = "django-redis-sessions"
 version = "0.6.2"
 description = "Redis Session Backend For Django"
@@ -910,7 +898,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4d0a55061030fdf0b4bf2ce2ae3c0b3c88ceef4e9f3b6e9ad4aa322df5a75a0d"
+content-hash = "fd864b39d35ff4e72489e97a833829d3ee26e5b6f0df2a471fdb2c93fced9e7a"
 
 [metadata.files]
 aniso8601 = [
@@ -952,10 +940,6 @@ django-annoying = [
 ]
 django-debug-permissions = [
     {file = "django-debug-permissions-1.0.0.tar.gz", hash = "sha256:be09bb53a162954560629e87a837bb922afcaaa791656bf2dfa5f870318f5aec"},
-]
-django-redis-cache = [
-    {file = "django-redis-cache-2.1.1.tar.gz", hash = "sha256:06d4e48545243883f88dc9263dda6c8a0012cb7d0cee2d8758d8917eca92cece"},
-    {file = "django_redis_cache-2.1.1-py3-none-any.whl", hash = "sha256:b19ee6654cc2f2c89078c99255e07e19dc2dba8792351d76ba7ea899d465fbb0"},
 ]
 django-redis-sessions = [
     {file = "django-redis-sessions-0.6.2.tar.gz", hash = "sha256:ba33ecca198f28ddc32d9f03742dc8dfc34c1857b789c75ea8425d6d7d7376be"},

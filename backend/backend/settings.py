@@ -134,15 +134,7 @@ SESSION_REDIS = {
     'retry_on_timeout': False
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': 'redis:6379',
-        'OPTIONS': {
-            'PICKLE_VERSION': 4,
-        }
-    }
-}
+REDIS_URL = 'redis://localhost:6379/0'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend'),

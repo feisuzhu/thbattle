@@ -4,7 +4,6 @@
 import base64
 
 # -- third party --
-from django.core.cache import caches
 from django.db import transaction
 from graphene.types import generic as ghg
 from graphene_django.types import DjangoObjectType
@@ -13,6 +12,7 @@ import graphene as gh
 
 # -- own --
 from . import models
+from backend.cache import rdb
 from utils.graphql import Paging, require_perm
 
 
@@ -148,4 +148,4 @@ class GameOps(gh.ObjectType):
 
     @staticmethod
     def resolve_GmAllocGameId(root, info):
-        return caches['default'].incr('next_game_id')
+        return rdb.incr('next_game_id')

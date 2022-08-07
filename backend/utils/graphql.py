@@ -7,7 +7,7 @@ import graphene as gh
 
 # -- own --
 from graphql import GraphQLError
-from django.core.cache import caches
+from backend.cache import rdb
 
 
 # -- code --
@@ -28,12 +28,10 @@ def require_perm(ctx, perm):
 
 
 def rate_limit(token: str, duration: float) -> None:
-    c = caches['default']
-
-    if c.get(token):
+    if rdb.get(token):
         raise GraphQLError('请求过于频繁')
 
-    c.set(token, 'rate_limit', duration)
+    rdb.set(token, 'rate_limit', duration)
 
     return True
 
