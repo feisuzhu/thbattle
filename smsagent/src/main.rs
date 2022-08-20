@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use std::str;
 use std::time::Duration;
 
 use argparse::{ArgumentParser, Store};
@@ -11,8 +12,8 @@ use serial::SerialPort;
 mod smste;
 
 use smste::commands::{
-    CNMIMessageType, CNMIMode, GetSubscriberNumber, HangUp, SelectMessageFormat,
-    SetNewMessageIndication, TakeMessage,
+    CNMIMessageType, CNMIMode, DeleteMessage, GetSubscriberNumber, HangUp, ReadMessage,
+    SelectMessageFormat, SetNewMessageIndication,
 };
 use smste::events::{parse_event, Event};
 use smste::pdu::SMSDeliver;
@@ -22,7 +23,7 @@ static TE_NUMBER: OnceCell<String> = OnceCell::new();
 
 fn send(port: &mut TTYPort, command: impl Into<String>) -> Result<(), Box<dyn std::error::Error>> {
     let command = command.into();
-    debug!("Sending: {}", &command);
+    info!("Sending: {}", &command);
     port.write_all(command.as_bytes())?;
     port.write_all(b"\r\n")?;
     port.flush()?;
@@ -55,10 +56,13 @@ fn handle_sms(sms: SMSDeliver) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn handle(port: &mut TTYPort, ev: Event) -> Result<(), Box<dyn std::error::Error>> {
-    debug!("Got {:?}", &ev);
+    info!("Got {:?}", &ev);
     match ev {
         Event::SMSArrived(v) => {
-            send(port, TakeMessage(v.index))?;
+            // SIM800C does not support AT+CMGRD
+            // send(port, TakeMessage(v.index))?;
+            send(port, ReadMessage(v.index))?;
+            send(port, DeleteMessage(v.index))?;
         }
         Event::SubscriberNumber(v) => {
             TE_NUMBER.set(v)?;
@@ -133,6 +137,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if tail == 0 {
             continue;
         }
+        debug!(
+            "Recv: {:?}",
+            str::from_utf8(&buf[(tail - v)..tail]).unwrap_or("[NOT VALID UTF8]")
+        );
         if tail == buf.len() {
             if tail > 16384 {
                 panic!("Buffer overflow");
