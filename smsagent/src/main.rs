@@ -79,7 +79,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let mut dev: String = "/dev/ttyUSB2".to_owned();
-    let mut callback: String = "http://localhost:8000/sms-callback".to_owned();
+    let mut callback: String = "http://localhost:8000/.callbacks/sms-verification".to_owned();
+
+    let mut subscriber: String = "".to_owned();
 
     {
         let mut parser = ArgumentParser::new();
@@ -87,6 +89,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         parser
             .refer(&mut callback)
             .add_option(&["--callback"], Store, "");
+        parser
+            .refer(&mut subscriber)
+            .add_option(&["--subscriber"], Store, "");
         parser.parse_args_or_exit();
     }
 
@@ -96,7 +101,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     port.set_timeout(Duration::from_secs(10)).unwrap();
     info!("Serial port {} opened", dev);
 
-    send(&mut port, GetSubscriberNumber)?;
+    if subscriber.is_empty() {
+        send(&mut port, GetSubscriberNumber)?;
+    } else {
+        TE_NUMBER.set(subscriber)?;
+    }
+
     send(&mut port, SelectMessageFormat::PDU)?;
     send(
         &mut port,
