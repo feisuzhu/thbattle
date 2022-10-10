@@ -134,6 +134,15 @@ class LaunchCard:
     def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
         return ''
 
+@ui_meta(actions.UseCard)
+class UseCard:
+
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        return ''
+
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        return f'{N.char(trans.action.source)}打出'
+
 
 @ui_meta(actions.AskForCard)
 class AskForCard:
@@ -227,6 +236,12 @@ class Pindian:
     def effect_string(self, act):
         winner = act.source if act.succeeded else act.target
         return f'{N.char(winner)}是人生赢家！'
+
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        return f'{N.char(cards[0].resides_in.owner)}拼点'
+
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        return ''
 
 
 @ui_meta(actions.ShowCards)

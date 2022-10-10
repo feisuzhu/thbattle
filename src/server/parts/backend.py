@@ -114,7 +114,7 @@ class MockBackend(object):
         '''
         query($token: String!) {
             login {
-                user(token: $token) {
+                token(token: $token) {
                     userPermissions { codename }
                     groups { permissions { codename } }
                     player { id }

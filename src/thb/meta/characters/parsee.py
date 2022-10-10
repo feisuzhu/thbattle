@@ -73,3 +73,6 @@ class EnvyHandler:
 class EnvyRecycleAction:
     def effect_string(self, act):
         return f'{N.char(act.source)}：“喂喂这么好的牌扔掉不觉得可惜么？不要嫉妒我。”'
+
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        return ''

@@ -47,6 +47,9 @@ class SkySilkAction:
     choose_option_buttons = (('回复', 'heal'), ('摸牌', 'draw'))
     choose_option_prompt = '选择你要发动的效果'
 
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        return '<style=Skill.Name>天丝</style>弃牌'
+
 
 @ui_meta(characters.eirin.LunaString)
 class LunaString:

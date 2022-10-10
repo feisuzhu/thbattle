@@ -347,6 +347,9 @@ class Harvest:
     def detach_cards_tip(self, trans, cards) -> str:
         return ''
 
+    def drop_cards_tip(self, trans) -> str:
+        return '<style=Skill.Name>五谷丰登</style>剩余'
+
 
 @ui_meta(spellcard.HarvestEffect)
 class HarvestEffect:

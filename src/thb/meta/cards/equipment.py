@@ -2,16 +2,16 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Optional
+from typing import List, Optional
 import random
 
 # -- third party --
 # -- own --
 from thb import actions
 from thb.actions import ttags
-from thb.cards import basic, definition, equipment, definition as D
+from thb.cards import basic, definition, definition as D, equipment
 from thb.cards.base import Card
-from thb.meta.common import ui_meta, N
+from thb.meta.common import N, ui_meta
 from utils.misc import BatchList
 
 
@@ -773,6 +773,12 @@ class YinYangOrbHandler:
 class YinYangOrb:
     def effect_string(self, act):
         return f'{N.char(act.target)}用{N.card(act.card)}替换了她的判定牌。'
+
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        return f'{N.char(trans.action.source)}替换判定牌'
+
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        return ''
 
 
 @ui_meta(definition.SuwakoHatCard)
