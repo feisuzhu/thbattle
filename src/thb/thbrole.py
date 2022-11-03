@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 # -- stdlib --
-from collections import defaultdict
+from collections import defaultdict, Counter
 from copy import copy
 from enum import Enum
 from itertools import cycle
-from typing import Any, ClassVar, Dict, List, Type
+from typing import Any, ClassVar, Dict, List, Type, Tuple
 import logging
 import random
 
@@ -556,3 +556,21 @@ class THBattleRole(THBattle):
             return ch.dead
         except IndexError:
             return False
+
+    def get_role_presence(g) -> List[Tuple[Enum, bool]]:
+        cfg = Counter(g.roles_config)
+        dead = Counter([r.get() for r in g.roles.values()])
+        dead.pop(THBRoleRole.HIDDEN, None)
+        roles = [
+            THBRoleRole.BOSS,
+            THBRoleRole.ATTACKER,
+            THBRoleRole.ACCOMPLICE,
+            THBRoleRole.CURTAIN,
+        ]
+
+        lst = []
+        for r in roles:
+            lst.extend([(r, False)] * (cfg[r] - dead[r]))
+            lst.extend([(r, True)] * dead[r])
+
+        return lst
