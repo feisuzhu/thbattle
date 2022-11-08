@@ -169,3 +169,8 @@ class N:
             return conj.join([N.char(i) for i in ch])
         m = ch.ui_meta
         return f'<style=Char.Name>{m.name}</style>'
+
+    @staticmethod
+    def skill(sk):
+        m = sk.ui_meta
+        return f'<style=Skill.Name>{m.name}</style>'

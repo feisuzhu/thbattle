@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import Game, EventHandler, user_input
-from thb.actions import ActionStage, DrawCards, DropCardStage, LaunchCard, PrepareStage, UserAction, migrate_cards, random_choose_card, user_choose_players
-from thb.cards import DummyCard, Skill, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.actions import ActionStage, DrawCards, DropCardStage, LaunchCard, PrepareStage, UserAction
+from thb.actions import migrate_cards, random_choose_card, user_choose_players
+from thb.cards.base import DummyCard, Skill, VirtualCard, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -20,12 +21,12 @@ class DivineFetchAction(UserAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
 
         if src.tags['divine_picker']:
             return False
 
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
+        c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
         c = c or random_choose_card(g, [tgt.cards, tgt.showncards])
         if not c: return False
 
@@ -37,19 +38,19 @@ class DivineFetchAction(UserAction):
         return True
 
 
-class DivineFetchHandler(EventHandler):
-    interested = ('action_apply',)
+class DivineFetchHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PrepareStage):
             tgt = act.target
             if not tgt.has_skill(Divine) or act.cancelled: return act
-
-            pl = [p for p in Game.getgame().players if not p.dead and p is not tgt]
-            pl = [p for p in pl if LaunchCard.calc_distance(tgt, DivineFetch()).get(p, 2) <= 0]
+            g = self.game
+            pl = [p for p in g.players if not p.dead and p is not tgt]
+            pl = [p for p in pl if LaunchCard.calc_distance(g, tgt, DivineFetch()).get(p, 2) <= 0]
             pl = [p for p in pl if any(p.cards or p.showncards)]
             pl = pl and user_choose_players(self, tgt, pl)
-            pl and len(pl) == 1 and Game.getgame().process_action(DivineFetchAction(tgt, pl[0]))
+            pl and len(pl) == 1 and g.process_action(DivineFetchAction(tgt, pl[0]))
 
         return act
 
@@ -67,6 +68,7 @@ class DivinePickAction(UserAction):
         self.cards = cards
 
     def apply_action(self):
+        g = self.game
         src = self.source
 
         cards_avail = list(self.cards)
@@ -74,10 +76,10 @@ class DivinePickAction(UserAction):
 
         assert not any(c.is_card(VirtualCard) for c in cards_avail)
 
-        card = user_input(
+        card = g.user_input(
             [src],
             ChooseIndividualCardInputlet(self, cards_avail)
-        ) or random_choose_card([cards_avail])
+        ) or random_choose_card(g, [cards_avail])
 
         migrate_cards([card], src.cards)
 
@@ -86,55 +88,63 @@ class DivinePickAction(UserAction):
         return True
 
 
-class DivinePickHandler(EventHandler):
-    interested = ('action_after',)
+class DivinePickHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DropCardStage):
-            dropper, g = act.target, Game.getgame()
-            if dropper.has_skill(Divine):
-                pl = [p for p in g.players if not p.dead and p is not dropper and p is dropper.tags['divine_picker']]
-                assert len(pl) <= 1
+            dropper = act.target
+            g = self.game
+            if not dropper.has_skill(Divine):
+                return act
 
-                dropper.tags['divine_picker'] = None
+            pl = [p for p in g.players if not p.dead and p is not dropper and p is dropper.tags['divine_picker']]
+            assert len(pl) <= 1, 'Multiple divine picker!'
 
-                if pl:
-                    picker = pl[0]
-                    dropn = getattr(act, 'dropn', 0)
-                    dropped = getattr(act, 'cards', [])
-                    dropn and dropped and len(dropped) == dropn and g.process_action(DivinePickAction(picker, dropper, dropped))
+            dropper.tags['divine_picker'] = None
+
+            if not pl:
+                return act
+
+            picker = pl[0]
+            dropn = getattr(act, 'dropn', 0)
+            dropped = getattr(act, 'cards', [])
+
+            if dropn and dropped and len(dropped) == dropn:
+                g.process_action(DivinePickAction(picker, dropper, dropped))
 
         return act
 
 
 class Divine(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
-    target = t_None
+    skill_category = ['character', 'passive']
+    target = t_None()
 
 
 class SpringSignDrawCards(DrawCards):
     pass
 
 
-class SpringSignHandler(EventHandler):
-    interested = ('action_after',)
+class SpringSignHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, ActionStage):
             if act.target and act.target.has_skill(SpringSign):
-                Game.getgame().process_action(SpringSignDrawCards(act.target, 2))
+                g = self.game
+                g.process_action(SpringSignDrawCards(act.target, 2))
         return act
 
 
 class SpringSign(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
-    target = t_None
+    skill_category = ['character', 'passive', 'compulsory']
+    target = t_None()
 
 
 @register_character_to('common')
 class Suwako(Character):
     skills = [Divine, SpringSign]
-    eventhandlers_required = [DivineFetchHandler, DivinePickHandler, SpringSignHandler]
+    eventhandlers = [DivineFetchHandler, DivinePickHandler, SpringSignHandler]
     maxlife = 3

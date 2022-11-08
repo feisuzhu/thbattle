@@ -1,88 +1,80 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
-from thb.ui.ui_meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
-__metaclass__ = gen_metafunc(characters.suwako)
 
 
+# -- code --
+@ui_meta(characters.suwako.Divine)
 class Divine:
     # Skill
     # 做一点微小的工作
-    name = u'神御'
-    description = u'准备阶段开始时，你可以获得一名与你距离2以内角色的一张手牌；若如此做，你的弃牌阶段结束后，该角色从你的弃牌中获得一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
+    name = '神御'
+    description = '准备阶段开始时，你可以获得一名与你距离2以内角色的一张手牌；若如此做，你的弃牌阶段结束后，该角色从你的弃牌中获得一张牌。'
 
 
+@ui_meta(characters.suwako.DivineFetchHandler)
 class DivineFetchHandler:
-    def target(pl):
+    def target(self, pl):
         if not pl:
-            return (False, u'神御：请选择1名玩家（可取消）')
+            return (False, '<style=Skill.Name>神御</style>：请选择1名玩家（可取消）')
 
-        return (True, u'神御：获得该角色的1张手牌')
+        return (True, '<style=Skill.Name>神御</style>：获得该角色的1张手牌')
 
 
+@ui_meta(characters.suwako.DivineFetchAction)
 class DivineFetchAction:
-    def effect_string(act):
-        return u'|G【%s】|r对|G【%s】|r发动了|G神御|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+    def effect_string(self, act):
+        return f'{N.char(act.source)}对{N.char(act.target)}发动了<style=Skill.Name>神御</style>。'
 
-    def sound_effect(act):
+    def sound_effect(self, act):
         return ''
 
 
+@ui_meta(characters.suwako.DivinePickAction)
 class DivinePickAction:
     # string to modify: it can work and it shall include name of target (possessing Divine)
-    def effect_string(act):
+    def effect_string(self, act):
         c = getattr(act, 'card', None)
         src = act.source
-        if c:
-            return u'（神御效果补偿）|G【%s】|r获得了|G%s|r。' % (
-            src.ui_meta.name,
-            card_desc(c),
-        )
+        return c or f'{N.char(src)}获得了{N.card(c)}。'
 
-    def sound_effect(act):
+    def sound_effect(self, act):
         return ''
 
 
+@ui_meta(characters.suwako.SpringSign)
 class SpringSign:
     # Skill
     # 闷声发大财
-    name = u'丰源'
-    description = u'|B锁定技|r，​你的出牌阶段结束时，你摸两张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
+    name = '丰源'
+    description = '<style=B>锁定技</style>，你的出牌阶段结束时，你摸两张牌。'
 
 
+@ui_meta(characters.suwako.SpringSignDrawCards)
 class SpringSignDrawCards:
-    def effect_string(act):
+    def effect_string(self, act):
         # needed > _ <
-        return u'（丰源效果台词）'
+        return '（丰源效果台词）'
 
-    def sound_effect(act):
+    def sound_effect(self, act):
         return ''
 
 
+@ui_meta(characters.suwako.Suwako)
 class Suwako:
     # Character
-    name        = u'洩矢诹访子'
-    title       = u'小小青蛙不输风雨'
-    illustrator = u'暂缺'
-    cv          = u'暂缺'
+    name        = '洩矢诹访子'
+    title       = '小小青蛙不输风雨'
+    illustrator = '六仔OwO'
+    cv          = '暂缺'
 
-    port_image        = u'thb-portrait-suwako'
-    figure_image      = u''
     # 这都是历史的进程啊
-    miss_sound_effect = u''
+    miss_sound_effect = ''
