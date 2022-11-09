@@ -40,13 +40,12 @@ apply = lambda f, args: f(*args)
 
 class GameObjectMeta(type):
     def __new__(mcls, clsname, bases, kw):
-        from utils.codeobj import adjust
         for k, v in kw.items():
             if isinstance(v, (list, set)):
                 kw[k] = tuple(v)  # mutable obj not allowed
             elif isinstance(v, types.FunctionType):
                 v.__name__ = f'{clsname}.{v.__name__}'
-                v.__code__ = adjust(v.__code__, name=v.__name__)
+                v.__code__ = v.__code__.replace(co_name=v.__name__)
 
         cls = super().__new__(mcls, clsname, bases, kw)
         all_gameobjects.add(cls)
