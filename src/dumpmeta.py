@@ -76,7 +76,8 @@ card_cls = [
         issubclass(c, thb.cards.base.TreatAs)
     )
     and is_leaf(c)
-    and c not in (thb.cards.base.DummyCard, thb.characters.parsee.EnvyRecycle)
+    and not issubclass(c, thb.cards.base.DummyCard)
+    and c not in (thb.characters.parsee.EnvyRecycle,)
 ]
 
 
