@@ -9,14 +9,14 @@
 
 游戏截屏
 ----------
-![登录界面](https://github.com/feisuzhu/thbattle/raw/master/screenshots/0.png)
-![游戏大厅](https://github.com/feisuzhu/thbattle/raw/master/screenshots/1.png)
-![游戏房间](https://github.com/feisuzhu/thbattle/raw/master/screenshots/2.png)
-![游戏开局](https://github.com/feisuzhu/thbattle/raw/master/screenshots/3.png)
-![游戏中](https://github.com/feisuzhu/thbattle/raw/master/screenshots/4.png)
-![游戏中](https://github.com/feisuzhu/thbattle/raw/master/screenshots/5.png)
-![游戏中](https://github.com/feisuzhu/thbattle/raw/master/screenshots/6.png)
-![游戏结束](https://github.com/feisuzhu/thbattle/raw/master/screenshots/7.png)
+![登录界面](screenshots/0.png)
+![游戏大厅](screenshots/1.png)
+![游戏房间](screenshots/2.png)
+![游戏开局](screenshots/3.png)
+![游戏中](screenshots/4.png)
+![游戏中](screenshots/5.png)
+![游戏中](screenshots/6.png)
+![游戏结束](screenshots/7.png)
 
 游戏开发状况
 ----------
