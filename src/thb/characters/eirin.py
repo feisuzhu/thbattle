@@ -24,6 +24,8 @@ class SkySilkAction(UserAction):
         src, tgt = self.source, self.target
         g = self.game
 
+        ttags(src)['sky_silk'] = True
+
         c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ['cards', 'showncards', 'equips']))
         c = c or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
         g.players.reveal(c)
@@ -52,7 +54,6 @@ class SkySilkAction(UserAction):
             if drop:
                 migrate_cards(drop, g.deck.droppedcards)
 
-        ttags(src)['sky_silk'] = True
         return True
 
     def is_valid(self):
