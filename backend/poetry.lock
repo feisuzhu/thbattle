@@ -335,7 +335,7 @@ reference = "tencent"
 
 [[package]]
 name = "graphene"
-version = "3.2.1"
+version = "3.2.2"
 description = "GraphQL Framework for Python"
 category = "main"
 optional = false
@@ -1301,7 +1301,7 @@ reference = "tencent"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "97fcd43f43eb6f823835dac8c3f3bde1ee3d7e0d6d8ba9a91478bbbd917e215b"
+content-hash = "1be9569a6633741080f573f14d5942221ef7f7d58fa0591e75093a1d350af848"
 
 [metadata.files]
 aniso8601 = [
@@ -1461,8 +1461,8 @@ flake8 = [
     {file = "flake8-6.0.0.tar.gz", hash = "sha256:c61007e76655af75e6785a931f452915b371dc48f56efd765247c8fe68f2b181"},
 ]
 graphene = [
-    {file = "graphene-3.2.1-py2.py3-none-any.whl", hash = "sha256:2ef689f514ba9e65e88961798cf4c637ca580e541168f9aee2ffbe21fd46f388"},
-    {file = "graphene-3.2.1.tar.gz", hash = "sha256:722243a9da2caeab703b1af9ec0deec602589c97035f86c486106a52d0c67082"},
+    {file = "graphene-3.2.2-py2.py3-none-any.whl", hash = "sha256:753de13948cbf42e32cc87fb533167c88907066eb984251fdbb006c0aab8da00"},
+    {file = "graphene-3.2.2.tar.gz", hash = "sha256:5b03e72770dc901f40be55784058d6bb1d952a49eb819a4a085962d5e1cf5fcf"},
 ]
 graphene-django = [
     {file = "graphene-django-3.0.0.tar.gz", hash = "sha256:018a8dc4736d99b5bb4a15d7fd0b46c98010e9201cb52a290f6d1f16ae6fefda"},

@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import json
+
 # -- third party --
 from django.http import HttpResponse
 from django.http.response import HttpResponseBadRequest
 from django.views.generic import View
-from graphql import get_default_backend
-from graphql.error import GraphQLError, format_error as format_graphql_error
+from graphql import parse, validate
+from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
 import msgpack
 
@@ -14,34 +16,42 @@ import msgpack
 
 
 # -- code --
-class MessagePackGraphQLView(View):
+class HttpError(Exception):
+    def __init__(self, response, *args, **kwargs):
+        self.response = response
+        self.message = message = json.dumps(msgpack.unpackb(response.content))
+        super(HttpError, self).__init__(message, *args, **kwargs)
 
+
+class MessagePackGraphQLView(View):
     schema = None
 
     def __init__(self, schema):
         self.schema = self.schema or schema
-        self.backend = get_default_backend()
 
-    def make_400_message(self, msg):
-        return HttpResponseBadRequest(
+    def raise400(self, msg):
+        raise HttpError(HttpResponseBadRequest(
             content=msgpack.packb({'errors': [{"message": msg}]}),
             content_type='application/msgpack',
-        )
+        ))
 
     def post(self, request):
-        content_type = self.get_content_type(request)
-        if content_type != 'application/msgpack':
-            return self.make_400_message('Invalid Content-Type')
+        try:
+            data = self.parse_body(request)
+            result, status_code = self.get_response(request, data)
+            return HttpResponse(
+                status=status_code, content=result, content_type="application/msgpack"
+            )
 
-        r = msgpack.unpackb(request.body)
-        query = r.get('query')
-        if not query:
-            return self.make_400_message('query is missing')
+        except HttpError as e:
+            return e.response
 
-        variables = r.get('variables')
-        strip = r.get('strip')
+    def get_response(self, request, data):
+        query = data.get("query")
+        variables = data.get("variables")
+        strip = data.get('strip')
 
-        execution_result = self.execute_graphql_request(request, query, variables)
+        execution_result = self.execute_graphql_request(request, data, query, variables)
 
         status_code = 200
         if execution_result:
@@ -52,7 +62,9 @@ class MessagePackGraphQLView(View):
                     self.format_error(e) for e in execution_result.errors
                 ]
 
-            if execution_result.invalid:
+            if execution_result.errors and any(
+                not getattr(e, "path", None) for e in execution_result.errors
+            ):
                 status_code = 400
             else:
                 data = execution_result.data
@@ -73,28 +85,45 @@ class MessagePackGraphQLView(View):
         else:
             result = None
 
-        return HttpResponse(
-            status=status_code, content=result, content_type="application/msgpack"
-        )
+        return result, status_code
 
-    def execute_graphql_request(self, context, query, variables):
-        try:
-            document = self.backend.document_from_string(self.schema, query)
-        except Exception as e:
-            return ExecutionResult(errors=[e], invalid=True)
+    def parse_body(self, request):
+        content_type = self.get_content_type(request)
+
+        if content_type != "application/msgpack":
+            self.raise400('Invalid Content-Type')
+
+        return msgpack.unpackb(request.body)
+
+    def execute_graphql_request(self, request, data, query, variables):
+        query or self.raise400("Must provide query string.")
 
         try:
-            return document.execute(
-                variable_values=variables,
-                context_value=context,
-            )
+            document = parse(query)
         except Exception as e:
-            return ExecutionResult(errors=[e], invalid=True)
+            return ExecutionResult(errors=[e])
+
+        validation_errors = validate(self.schema.graphql_schema, document)
+        if validation_errors:
+            return ExecutionResult(data=None, errors=validation_errors)
+
+        try:
+            options = {
+                "source": query,
+                "root_value": None,
+                "variable_values": variables,
+                "operation_name": None,
+                "context_value": request,
+                "middleware": None,
+            }
+            return self.schema.execute(**options)
+        except Exception as e:
+            return ExecutionResult(errors=[e])
 
     @staticmethod
     def format_error(error):
         if isinstance(error, GraphQLError):
-            return format_graphql_error(error)
+            return error.formatted
 
         return {"message": str(error)}
 

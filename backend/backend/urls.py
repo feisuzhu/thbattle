@@ -52,10 +52,12 @@ urlpatterns = [
 
 import os
 if os.uname()[:2] == ('Linux', 'Proton'):
-    from . import debug
-    urlpatterns += [
-        path('.debug/console/<tb>', debug.debug_page),
-        path('.debug/static/<path:filename>', debug.static_files),
-        path('.debug/traceback/<tb>', debug.traceback),
-        path('.debug/frame/<frame>/exec', debug.frame_exec),
-    ]
+    # FIXME: broken due to package update, fix later
+    # from . import debug
+    # urlpatterns += [
+    #     path('.debug/console/<tb>', debug.debug_page),
+    #     path('.debug/static/<path:filename>', debug.static_files),
+    #     path('.debug/traceback/<tb>', debug.traceback),
+    #     path('.debug/frame/<frame>/exec', debug.frame_exec),
+    # ]
+    pass

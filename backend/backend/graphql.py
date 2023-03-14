@@ -37,6 +37,9 @@ from chat.schema import ChatQuery, ChatOps
 class ResolveDebugMiddleware(object):
     def resolve(self, next, root, info, **args):
         p = next(root, info, **args)
+        # FIXME: not working, disabling for now
+        return p
+
         if not p.is_rejected:
             return p
 
