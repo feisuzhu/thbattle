@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, cast
 
 # -- third party --
 # -- own --
-from thb.actions import PrepareStage,Damage, DropCards, FatetellAction, LaunchCard, random_choose_card, UserAction, migrate_cards,ttags,ActionStage,PlayerTurn
+from thb.actions import PrepareStage,Damage, DropCards, FatetellAction, LaunchCard, random_choose_card, UserAction, migrate_cards,ttags,ActionStage,PlayerTurn,DrawCards
 from thb.cards.base import Card, Skill, VirtualCard
-from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, TreatAs, t_None
-from thb.cards.equipment import RepentanceStick
+from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, TreatAs, t_None,RepentanceStick,Attack
+from thb.cards.definition import RepentanceStickCard
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from thb.mode import THBEventHandler, THBAction
@@ -163,6 +163,9 @@ class SplashProofRetrieveAction(UserAction):
         ttags(tar)['splash_proof'] = True
 
         g = self.game
+
+        assert c.detached
+        
         shadow = SplashProof(tar)
         for a in g.action_stack:
             if isinstance(a, LaunchCard) and a.card is c:
@@ -179,8 +182,7 @@ class SplashProofRetrieveAction(UserAction):
 
 
 class SplashProofHandler(THBEventHandler):
-    interested = ['action_before','action_after']
-    execute_after=['RepentanceStickHandler']
+    interested = ['action_done','action_after']
 
     def handle(self, evt_type, act):
         g = self.game
@@ -192,15 +194,21 @@ class SplashProofHandler(THBEventHandler):
             if not card: return act
 
 
-        elif evt_type=='action_before' and isinstance(act,Damage):
+        elif evt_type=='action_done' and isinstance(act,Damage):
             if not act.cancelled: return act
 
             pact = g.action_stack[-1]
-            if not isinstance(pact,BaseAttack): return act
+            if not isinstance(pact,Attack): return act
             card = getattr(pact, 'associated_card', None)
             if not card: return act
 
         else:
+            return act
+        
+        if not card.detached or card.unwrapped:
+            return act
+
+        if not VirtualCard.unwrap([card]):
             return act
         
         src = act.source
@@ -222,7 +230,7 @@ class SplashProofHandler(THBEventHandler):
         
         if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
             return act
-        
+        g.deck.inject(RepentanceStickCard, Card.HEART, 2)
         g.process_action(SplashProofRetrieveAction(src, src, card))
             
         return act
