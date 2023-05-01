@@ -19,6 +19,21 @@ impl From<DeleteMessage> for String {
     }
 }
 
+/* not working
+pub enum BatchDeleteMessage {
+    Read = 1,
+    ReadAndSent = 2,
+    ReadAndUnsent = 3,
+    All = 4,
+}
+impl From<BatchDeleteMessage> for String {
+    fn from(v: BatchDeleteMessage) -> String {
+        format!("AT+CMGD=1,{}", v as i32)
+    }
+}
+
+*/
+
 pub enum SelectMessageFormat {
     PDU = 0,
     Text = 1,
