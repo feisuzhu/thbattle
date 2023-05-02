@@ -132,6 +132,7 @@ class Lobby(object):
         if old is not None:
             old.pivot_to(u)
             self.users[pid] = u
+            u._[self]['state'].transit(old._[self]['state'].state)
             core.events.client_pivot.emit(u)
         else:
             self.users[pid] = u
