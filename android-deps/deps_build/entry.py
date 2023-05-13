@@ -13,7 +13,7 @@ from . import misc
 from .android import setup_android_ndk
 from .misc import banner
 from .python import setup_python
-from .tinysh import Command, chdir, git, make, environ
+from .tinysh import Command, chdir, git, make, environ, sh
 
 
 # -- code --
@@ -23,32 +23,45 @@ cmake = Command("cmake")
 
 
 class ProjectPaths:
+    ROOT = misc.get_cache_home()
+    INSTALLS = ROOT / "installs"
+    BUILDS = ROOT / "builds"
+    REPOS = ROOT / "repos"
+
     def __init__(self, project, arch):
-        self.root = misc.get_cache_home()
         self.project = project
         self.arch = arch
 
     @property
     @lru_cache(1)
     def repo(self):
-        base = self.root / "repos"
-        base.mkdir(parents=True, exist_ok=True)
-        return base / self.project
+        self.REPOS.mkdir(parents=True, exist_ok=True)
+        return self.REPOS / self.project
 
     @property
     @lru_cache(1)
     def build(self):
-        return self.root / "builds" / self.arch / self.project
+        return self.BUILDS / self.arch / self.project
 
     @property
     @lru_cache(1)
     def install(self):
-        return self.root / "installs" / self.arch / self.project
+        return self.INSTALLS / self.arch / self.project
+
+    @property
+    @lru_cache(1)
+    def lib(self):
+        return self.install / "lib"
+
+    @property
+    @lru_cache(1)
+    def include(self):
+        return self.install / "include"
 
     @property
     @lru_cache(1)
     def pkgconfig(self):
-        return self.install / "lib" / "pkgconfig"
+        return self.lib / "pkgconfig"
 
     def is_installed(self):
         return (self.install / '.installed').exists()
@@ -68,9 +81,24 @@ class ProjectPaths:
         self.install.mkdir(parents=True, exist_ok=True)
 
 
+class PkgConfig:
+    def __init__(self):
+        self.paths = []
+
+    def add(self, proj: ProjectPaths):
+        p = proj.pkgconfig
+        if p not in self.paths:
+            self.paths.append(p)
+            os.environ['PKG_CONFIG_PATH'] = ':'.join(map(str, reversed(self.paths)))
+
+
+pkgconfig = PkgConfig()
+
+
 @banner("Build libgit2 {arch}")
 def build_libgit2(version: str, arch: str = 'linux-x86_64'):
     libgit2 = ProjectPaths('libgit2', arch)
+    pkgconfig.add(libgit2)
     if libgit2.is_installed():
         return
 
@@ -106,9 +134,35 @@ def build_libgit2(version: str, arch: str = 'linux-x86_64'):
 @banner("Build pygit2 {arch}")
 def build_pygit2(python: Command, pip: Command, arch: str = 'linux-x86_64'):
     libgit2 = ProjectPaths('libgit2', arch)
-    libffi = ProjectPaths('libffi', arch)
-    with environ({'LIBGIT2': str(libgit2.install), 'PKG_CONFIG_PATH': str(libffi.pkgconfig)}):
+    with environ({'LIBGIT2': str(libgit2.install)}):
         pip.install('pygit2')
+
+
+@banner("Build trivial python packages {arch}")
+def build_trivial_packages(python: Command, pip: Command, arch: str = 'linux-x86_64'):
+    pip.install('msgpack')
+
+
+@banner("Build gevent {arch}")
+def build_gevent(python: Command, pip: Command, version: str, arch: str = 'linux-x86_64'):
+    gevent = ProjectPaths('gevent', arch)
+
+    libev = ProjectPaths('libev', arch)
+
+    gevent.repo.exists() or git.clone('https://github.com/gevent/gevent.git', gevent.repo)
+    gevent.clean()
+    envs = {
+        'GEVENTSETUP_EMBED_LIBEV': '0',
+        'GEVENTSETUP_EMBED_CARES': '0',
+        'CFLAGS': f'{os.environ.get("CFLAGS", "")} -I{libev.include}',
+        'LDFLAGS': f'{os.environ.get("LDFLAGS", "")} -L{libev.lib}',
+    }
+
+    with chdir(gevent.repo):
+        git.checkout(version)
+        sh.sed('-i', '/LIBUV_CFFI_MODULE/d', 'setup.py')
+        with environ(envs):
+            pip.install('.')
 
 
 @banner("Build openssl {arch}")
@@ -120,6 +174,7 @@ def build_openssl(version: str, arch: str = 'linux-x86_64'):
     }
 
     openssl = ProjectPaths('openssl', arch)
+    pkgconfig.add(openssl)
     if openssl.is_installed():
         return
 
@@ -142,6 +197,7 @@ def build_openssl(version: str, arch: str = 'linux-x86_64'):
 @banner("Build libffi {arch}")
 def build_libffi(version: str, arch: str = 'linux-x86_64'):
     libffi = ProjectPaths('libffi', arch)
+    pkgconfig.add(libffi)
     if libffi.is_installed():
         return
 
@@ -149,7 +205,6 @@ def build_libffi(version: str, arch: str = 'linux-x86_64'):
     libffi.clean()
 
     with chdir(libffi.repo):
-        git.clean('-fxd')
         git.reset('--hard')
         git.checkout(version)
         Command("./autogen.sh")()
@@ -162,6 +217,7 @@ def build_libffi(version: str, arch: str = 'linux-x86_64'):
 @banner("Build sqlite {arch}")
 def build_sqlite(version: str, arch: str = 'linux-x86_64'):
     sqlite = ProjectPaths('sqlite', arch)
+    pkgconfig.add(sqlite)
     if sqlite.is_installed():
         return
 
@@ -169,7 +225,6 @@ def build_sqlite(version: str, arch: str = 'linux-x86_64'):
     sqlite.clean()
 
     with chdir(sqlite.repo):
-        git.clean('-fxd')
         git.checkout(version)
         configure(f"--prefix={sqlite.install}",
                   "--disable-shared",
@@ -185,6 +240,7 @@ def build_sqlite(version: str, arch: str = 'linux-x86_64'):
 @banner("Build cpython {arch}")
 def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64'):
     cpython = ProjectPaths('cpython', arch)
+    pkgconfig.add(cpython)
     if cpython.is_installed():
         return
 
@@ -200,7 +256,6 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
     cpython.clean()
 
     with chdir(cpython.repo):
-        git.clean('-fxd')
         git.checkout(version)
 
         pkgconfigs = ':'.join(str(v.pkgconfig) for v in (openssl, libffi, sqlite))
@@ -234,15 +289,69 @@ def setup_crossenv(python: Command, pip: Command, arch: str = 'linux-x86_64') ->
     crossenv.clean()
 
     pip.install('crossenv')
-    python('-m', 'crossenv', cpython.install / 'bin' / 'python3', crossenv.build)
+    python('-m', 'crossenv', cpython.install / 'bin' / 'python3', crossenv.install)
 
-    build_pip = crossenv.build / 'build' / 'bin' / 'pip'
+    build_pip = crossenv.install / 'build' / 'bin' / 'pip'
     Command(build_pip).install('cffi')
 
-    base = crossenv.build / 'cross' / 'bin'
+    base = crossenv.install / 'cross' / 'bin'
     python = Command(base / 'python3')
     pip = Command(base / 'pip3')
     return python, pip
+
+
+@banner("Build libev {arch}")
+def build_libev(version: str, arch: str = 'linux-x86_64'):
+    libev = ProjectPaths('libev', arch)
+    if libev.is_installed():
+        return
+
+    libev.repo.exists() or git.clone('https://github.com/xorangekiller/libev-git.git', libev.repo)
+    libev.clean()
+
+    with chdir(libev.repo):
+        git.checkout(version)
+
+    with chdir(libev.build):
+        cmake(libev.repo, '-DBUILD_SHARED_LIBS=OFF',
+                          '-DCMAKE_BUILD_TYPE=Release',
+                          '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
+                          f'-DCMAKE_INSTALL_PREFIX={libev.install}')
+        make()
+        make.install()
+        libev.set_installed()
+
+
+
+@banner("Build c-ares {arch}")
+def build_c_ares(version: str, arch: str = 'linux-x86_64'):
+    c_ares = ProjectPaths('c-ares', arch)
+    pkgconfig.add(c_ares)
+    if c_ares.is_installed():
+        return
+
+    c_ares.repo.exists() or git.clone('https://github.com/c-ares/c-ares.git', c_ares.repo)
+    c_ares.clean()
+
+    with chdir(c_ares.repo):
+        git.checkout(version)
+        sh.aclocal()
+        sh.autoheader()
+        sh.libtoolize()
+        sh.automake('--add-missing')
+        sh.autoconf()
+        configure(f"--prefix={c_ares.install}", "--disable-shared", "--enable-static")
+        make()
+        make.install()
+        c_ares.set_installed()
+
+
+@banner("Strip binaries {arch}")
+def strip_binaries(arch: str = 'linux-x86_64'):
+    strip = Command('llvm-strip')
+
+    for p in ProjectPaths.INSTALLS.glob(f'{arch}/**/*.so'):
+        strip(p)
 
 
 def main() -> int:
@@ -257,17 +366,19 @@ def main() -> int:
 
     os.environ['CFLAGS'] = '-fPIC'
     os.environ['CXXFLAGS'] = '-fPIC'
+    os.environ['MAKEFLAGS'] = f'-j {os.cpu_count()}'
 
     if options.arch != 'linux-x86_64':
         env = setup_android_ndk(options.arch, api_level=options.android_api_level)
         configure = configure.bake(*env.autoconf_cross_args)
         # cmake = cmake.bake(*env.cmake_defines)
 
-
     build_sqlite('version-3.41.2', options.arch)
     build_libffi('v3.4.4', options.arch)
     build_openssl('OpenSSL_1_1_1t', options.arch)
     build_libgit2('v1.6.4', options.arch)
+    build_libev('master', options.arch)
+    build_c_ares('cares-1_19_0', options.arch)
     build_cpython(python, 'v3.11.3', options.arch)
 
     if options.arch == 'linux-x86_64':
@@ -275,4 +386,8 @@ def main() -> int:
     else:
         host_python, host_pip = setup_crossenv(python, pip, options.arch)
 
+    build_trivial_packages(host_python, host_pip, options.arch)
+    build_gevent(host_python, host_pip, '22.10.2', options.arch)
     build_pygit2(host_python, host_pip, options.arch)
+
+    strip_binaries(options.arch)

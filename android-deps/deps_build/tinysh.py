@@ -100,7 +100,7 @@ pr = lambda *args: print(*args, file=sys.stderr, flush=True)
 
 
 class Command:
-    def __init__(self, *args: str):
+    def __init__(self, *args: Any):
         self.args = list((map(str, args)))
 
     def __getattribute__(self, name: str) -> Any:
@@ -109,12 +109,12 @@ class Command:
 
         return self.bake(name)
 
-    def bake(self, *moreargs: Sequence[str]) -> "Command":
+    def bake(self, *moreargs: Any) -> "Command":
         args = object.__getattribute__(self, "args")
         cls = object.__getattribute__(self, "__class__")
         return cls(*args, *moreargs)
 
-    def __call__(self, *moreargs: Sequence[str]) -> None:
+    def __call__(self, *moreargs: Any) -> None:
         args = object.__getattribute__(self, "args")
         args = args + list(map(str, moreargs))
 

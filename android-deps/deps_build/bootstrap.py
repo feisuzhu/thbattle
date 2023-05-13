@@ -67,12 +67,10 @@ class _EnvironWrapper(_Environ):
             p(f"{G}:: ENV+ {name}={new}{N}")
         elif new == None:
             p(f"{R}:: ENV- {name}={orig}{N}")
-        elif new.startswith(orig):
+        elif orig in new:
+            idx = new.index(orig)
             l = len(orig)
-            p(f"{G}:: ENV{N} {name}={new[:l]}{G}{new[l:]}{N}")
-        elif new.endswith(orig):
-            l = len(new) - len(orig)
-            p(f"{G}:: ENV{N} {name}={G}{new[:l]}{N}{new[l:]}")
+            p(f"{G}:: ENV{N} {name}={G}{new[:idx]}{N}{new[idx:idx+l]}{G}{new[idx+l:]}{N}")
         else:
             p(f"{R}:: ENV- {name}={orig}{N}")
             p(f"{G}:: ENV+ {name}={new}{N}")
