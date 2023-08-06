@@ -43,17 +43,17 @@ class Assault(Skill):
 
 
 class AssaultHandler(THBEventHandler):
-    interested = ["post_calcdistance"]
+    interested = ["calcdistance"]
 
     def handle(self, evt_type, arg):
-        if evt_type == "post_calcdistance":
-            src, card, dist = arg
+        if evt_type == "calcdistance":
+            src, _, dist = arg
             if not src.has_skill(Assault):
                 return arg
 
             cc = len(src.cards) + len(src.showncards)
             for t in dist:
-                dist[t] = max(0, dist[t] - cc)
+                dist[t] -= cc
 
         return arg
 
@@ -179,9 +179,6 @@ class SplashProofRetrieveAction(UserAction):
 
     def apply_action(self):
         c = self.card
-        if not c:
-            return False
-
         tgt = self.target
 
         ttags(tgt)["splash_proof"] = True
@@ -229,7 +226,6 @@ class SplashProofHandler(THBEventHandler):
             card = getattr(pact, "associated_card", None)
             if not card:
                 return act
-
         else:
             return act
 
@@ -264,7 +260,7 @@ class SplashProofHandler(THBEventHandler):
 
 @register_character_to("common", "-kof")
 class Yugi(Character):
-    skills = [Assault, FreakingPower,SplashProof]
+    skills = [Assault, FreakingPower, SplashProof]
     eventhandlers = [AssaultHandler, FreakingPowerHandler, SplashProofHandler]
     maxlife = 4
 
