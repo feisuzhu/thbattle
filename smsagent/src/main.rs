@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 use std::str;
 use std::time::Duration;
 
-use argparse::{ArgumentParser, Store};
+use argparse::{ArgumentParser, Store, StoreTrue};
 use log::{debug, error, info};
 use once_cell::sync::OnceCell;
 use serde_derive::{Deserialize, Serialize};
@@ -86,6 +86,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut callback: String = "http://localhost:8000/.callbacks/sms-verification".to_owned();
 
     let mut subscriber: String = "".to_owned();
+    let mut delete_sms: bool = false;
 
     {
         let mut parser = ArgumentParser::new();
@@ -96,6 +97,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         parser
             .refer(&mut subscriber)
             .add_option(&["--subscriber"], Store, "");
+        parser
+            .refer(&mut delete_sms)
+            .add_option(&["--delete"], StoreTrue, "");
         parser.parse_args_or_exit();
     }
 
@@ -116,6 +120,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &mut port,
         SetNewMessageIndication(CNMIMode::DirectOrDiscard, CNMIMessageType::SendIndicator),
     )?;
+
+    if delete_sms {
+        for i in 1..=20 {
+            send(&mut port, DeleteMessage(i))?;
+            std::thread::sleep(Duration::from_millis(100));
+        }
+    }
 
     let mut buf: Vec<u8> = vec![0; 512];
     let mut next: Option<Vec<u8>> = None;
