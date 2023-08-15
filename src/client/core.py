@@ -17,16 +17,16 @@ import wire
 # -- code --
 class Options(object):
     def __init__(self, options: Dict[str, Any]):
-        self.gate_uri = options.get("gate_uri", "tcp://127.84.72.66:23333")
-        self.disables = options.get("disables", [])
-        self.testing = options.get("testing", False)  # In tests?
+        self.gate_uri = options.get('gate_uri', 'tcp://127.84.72.66:23333')
+        self.disables = options.get('disables', [])
+        self.testing = options.get('testing', False)      # In tests?
 
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 class _ServerCommandMapping(dict):
-    __slots__ = ("core",)
+    __slots__ = ('core',)
 
     def __init__(self, core: Core):
         self.core = core
@@ -37,7 +37,7 @@ class _ServerCommandMapping(dict):
             return dict.__getitem__(self, k)
 
         hub = EventHub[T]()
-        hub.name = f"{self.core}::server_command"
+        hub.name = f'{self.core}::server_command'
         self[k] = hub
         return hub
 
@@ -77,7 +77,7 @@ class Events(object):
         self.observe_request = EventHub[int]()
 
         # Observer state
-        self.observe_started = EventHub[Game, int]()
+        self.observe_started = EventHub[Tuple[wire.model.GameDetail, int]]()
         self.observer_enter = EventHub[Tuple[int, int]]()
         self.observer_leave = EventHub[Tuple[int, int]]()
 
@@ -88,9 +88,7 @@ class Events(object):
         self.set_game_param = EventHub[wire.SetGameParam]()
 
         # Player presence changed
-        self.player_presence = EventHub[
-            Tuple[Game, List[Tuple[int, wire.PresenceState]]]
-        ]()
+        self.player_presence = EventHub[Tuple[Game, List[Tuple[int, wire.PresenceState]]]]()
 
         # Left a game
         self.game_left = EventHub[Game]()
@@ -120,13 +118,13 @@ class Events(object):
         self.auth_error = EventHub[str]()
 
     def __setattr__(self, name: str, v: Any) -> None:
-        if hasattr(v, "name"):
-            v.name = f"{repr(self.core)}::{name}"
+        if hasattr(v, 'name'):
+            v.name = f'{repr(self.core)}::{name}'
         object.__setattr__(self, name, v)
 
 
 class Core(core.Core):
-    core_type = "C"
+    core_type = 'C'
 
     def __init__(self, **options: Dict[str, Any]) -> None:
         super().__init__()
@@ -136,37 +134,37 @@ class Core(core.Core):
 
         disables = self.options.disables
 
-        if "server" not in disables:
+        if 'server' not in disables:
             self.server = parts.server.Server(self)
 
-        if "auth" not in disables:
+        if 'auth' not in disables:
             self.auth = parts.auth.Auth(self)
 
-        if "lobby" not in disables:
+        if 'lobby' not in disables:
             self.lobby = parts.lobby.Lobby(self)
 
-        if "room" not in disables:
+        if 'room' not in disables:
             self.room = parts.room.Room(self)
 
-        if "matching" not in disables:
+        if 'matching' not in disables:
             self.matching = parts.matching.Matching(self)
 
-        if "observe" not in disables:
+        if 'observe' not in disables:
             self.observe = parts.observe.Observe(self)
 
-        if "game" not in disables:
+        if 'game' not in disables:
             self.game = parts.game.GamePart(self)
 
-        if "contest" not in disables:
+        if 'contest' not in disables:
             self.contest = parts.contest.Contest(self)
 
-        if "replay" not in disables:
+        if 'replay' not in disables:
             self.replay = parts.replay.Replay(self)
 
-        if "admin" not in disables:
+        if 'admin' not in disables:
             self.admin = parts.admin.Admin(self)
 
-        if "gate" not in disables:
+        if 'gate' not in disables:
             self.gate = parts.gate.Gate(self, testing=self.options.testing)
         else:
             self.gate = parts.gate.MockGate(self)  # type: ignore

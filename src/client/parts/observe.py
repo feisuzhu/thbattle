@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 # -- code --
-log = logging.getLogger("client.parts.Observe")
+log = logging.getLogger('client.parts.Observe')
 STOP = EventHub.STOP_PROPAGATION
 
 
@@ -45,10 +45,11 @@ class Observe(object):
         core = self.core
         core.events.observe_request.emit(ev.pid)
         return ev
-
+    
     def _observe_started(self, ev: wire.ObserveStarted) -> wire.ObserveStarted:
         core = self.core
         core.events.observe_started.emit((ev.game, ev.observee))
+        return ev
 
     # ----- Public Method -----
     def observe(self, pid: int) -> None:
