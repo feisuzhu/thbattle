@@ -50,14 +50,18 @@ urlpatterns = [
     path(".callbacks/sms-verification", sms_verification),
 ]
 
-import os
-if os.uname()[:2] == ('Linux', 'Proton'):
-    # FIXME: broken due to package update, fix later
-    # from . import debug
-    # urlpatterns += [
-    #     path('.debug/console/<tb>', debug.debug_page),
-    #     path('.debug/static/<path:filename>', debug.static_files),
-    #     path('.debug/traceback/<tb>', debug.traceback),
-    #     path('.debug/frame/<frame>/exec', debug.frame_exec),
-    # ]
+import sys
+if sys.platform == 'win32':
     pass
+else:
+    import os
+    if os.uname()[:2] == ('Linux', 'Proton'):
+        # FIXME: broken due to package update, fix later
+        # from . import debug
+        # urlpatterns += [
+        #     path('.debug/console/<tb>', debug.debug_page),
+        #     path('.debug/static/<path:filename>', debug.static_files),
+        #     path('.debug/traceback/<tb>', debug.traceback),
+        #     path('.debug/frame/<frame>/exec', debug.frame_exec),
+        # ]
+        pass
