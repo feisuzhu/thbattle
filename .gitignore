@@ -243,4 +243,3 @@ target
 docker-compose.override.yml
 debug-run
 r
-.vscode/settings.json
