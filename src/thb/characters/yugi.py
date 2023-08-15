@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 # -- stdlib --
@@ -5,26 +6,10 @@ from typing import TYPE_CHECKING, cast
 
 # -- third party --
 # -- own --
-from thb.actions import (
-    Damage,
-    DropCards,
-    FatetellAction,
-    LaunchCard,
-    random_choose_card,
-    UserAction,
-    migrate_cards,
-    ttags,
-    PlayerTurn,
-)
+from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, PlayerTurn, UserAction, migrate_cards, random_choose_card, ttags
 from thb.cards.base import Card, Skill, VirtualCard
-from thb.cards.classes import (
-    AttackCard,
-    BaseAttack,
-    InevitableAttack,
-    TreatAs,
-    t_None,
-    Attack,
-)
+from thb.cards.basic import Attack
+from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from thb.mode import THBEventHandler, THBAction
@@ -38,15 +23,15 @@ if TYPE_CHECKING:
 # -- code --
 class Assault(Skill):
     associated_action = None
-    skill_category = ["character", "passive", "compulsory"]
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None()
 
 
 class AssaultHandler(THBEventHandler):
-    interested = ["calcdistance"]
+    interested = ['calcdistance']
 
     def handle(self, evt_type, arg):
-        if evt_type == "calcdistance":
+        if evt_type == 'calcdistance':
             src, _, dist = arg
             if not src.has_skill(Assault):
                 return arg
@@ -60,7 +45,7 @@ class AssaultHandler(THBEventHandler):
 
 class AssaultKOF(Skill):
     associated_action = None
-    skill_category = ["character", "passive"]
+    skill_category = ['character', 'passive']
     target = t_None()
 
 
@@ -69,11 +54,11 @@ class AssaultAttack(TreatAs, VirtualCard):
 
 
 class AssaultKOFHandler(THBEventHandler):
-    interested = ["character_debut"]
+    interested = ['character_debut']
     game: THBattleKOF
 
     def handle(self, evt_type, arg):
-        if evt_type == "character_debut":
+        if evt_type == 'character_debut':
             old, new = arg
             if not new.has_skill(AssaultKOF):
                 return arg
@@ -92,7 +77,7 @@ class AssaultKOFHandler(THBEventHandler):
 
 class FreakingPower(Skill):
     associated_action = None
-    skill_category = ["character", "passive"]
+    skill_category = ['character', 'passive']
     target = t_None()
 
 
@@ -108,7 +93,7 @@ class FreakingPowerAction(FatetellAction):
         if ft.succeeded:
             act.__class__ = classmix(InevitableAttack, act.__class__)
         else:
-            act._["freaking_power"] = True
+            act._['freaking_power'] = True
 
         return True
 
@@ -118,46 +103,37 @@ class FreakingPowerAction(FatetellAction):
 
 
 class FreakingPowerHandler(THBEventHandler):
-    interested = ["action_after", "action_before"]
-    execute_before = ["AyaRoundfanHandler"]
+    interested = ['action_after', 'action_before']
+    execute_before = ['AyaRoundfanHandler']
 
     def handle(self, evt_type, act):
-        if (
-            evt_type == "action_before"
-            and isinstance(act, BaseAttack)
-            and not act._["freaking_power"]
-        ):
+        if evt_type == 'action_before' and isinstance(act, BaseAttack) and not act._['freaking_power']:
             src = act.source
             g = self.game
-            if not src.has_skill(FreakingPower):
-                return act
+            if not src.has_skill(FreakingPower): return act
             if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
             tgt = act.target
             g.process_action(FreakingPowerAction(act))
 
-        elif evt_type == "action_after" and isinstance(act, Damage):
+        elif evt_type == 'action_after' and isinstance(act, Damage):
             g = self.game
 
-            if act.cancelled:
-                return act
+            if act.cancelled: return act
 
             pact = cast(THBAction, g.action_stack[-1])
-            if not pact._["freaking_power"]:
+            if not pact._['freaking_power']:
                 return act
 
             src, tgt = pact.source, act.target
-            if tgt.dead:
-                return act
+            if tgt.dead: return act
 
             if not (tgt.cards or tgt.showncards or tgt.equips):
                 return act
 
-            catnames = ("cards", "showncards", "equips")
+            catnames = ('cards', 'showncards', 'equips')
             card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
-            card = card or random_choose_card(
-                g, [tgt.cards, tgt.showncards, tgt.equips]
-            )
+            card = card or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             if card:
                 g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(src, tgt, [card]))
@@ -203,12 +179,12 @@ class SplashProofRetrieveAction(UserAction):
 
 
 class SplashProofHandler(THBEventHandler):
-    interested = ["action_done", "action_after"]
+    interested = ['action_done', 'action_after']
 
     def handle(self, evt_type, act):
         g = self.game
 
-        if evt_type == "action_after" and isinstance(act, BaseAttack):
+        if evt_type == 'action_after' and isinstance(act, BaseAttack):
             if act.succeeded:
                 return act
 
@@ -216,14 +192,14 @@ class SplashProofHandler(THBEventHandler):
             if not card:
                 return act
 
-        elif evt_type == "action_done" and isinstance(act, Damage):
+        elif evt_type == 'action_done' and isinstance(act, Damage):
             if not act.cancelled:
                 return act
 
             pact = g.action_stack[-1]
             if not isinstance(pact, Attack):
                 return act
-            card = getattr(pact, "associated_card", None)
+            card = getattr(pact, 'associated_card', None)
             if not card:
                 return act
         else:
@@ -248,7 +224,7 @@ class SplashProofHandler(THBEventHandler):
         if current is not src:
             return act
 
-        if ttags(src)["splash_proof"]:
+        if ttags(src)['splash_proof']:
             return act
 
         if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
@@ -256,16 +232,16 @@ class SplashProofHandler(THBEventHandler):
         g.process_action(SplashProofRetrieveAction(src, src, card))
 
         return act
+    
 
-
-@register_character_to("common", "-kof")
+@register_character_to('common', '-kof')
 class Yugi(Character):
     skills = [Assault, FreakingPower, SplashProof]
     eventhandlers = [AssaultHandler, FreakingPowerHandler, SplashProofHandler]
     maxlife = 4
 
 
-@register_character_to("kof")
+@register_character_to('kof')
 class YugiKOF(Character):
     skills = [AssaultKOF, FreakingPower]
     eventhandlers = [AssaultKOFHandler, FreakingPowerHandler]
