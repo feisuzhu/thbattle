@@ -60,7 +60,8 @@ class HeterodoxyAction(UserAction):
         g.players.reveal(card)
 
         if card.is_card(AttackCard):
-            ttags(src)['vitality'] -= 1
+            if not AttackCardVitalityHandler.is_disabled(src):
+                ttags(src)['vitality'] -= 1
 
         # XXX: Use card owned by other
         lc = LaunchCard(victim, tgts, card)
