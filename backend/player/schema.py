@@ -421,13 +421,36 @@ class AddCredit(object):
         return p
 
 
+class UpdatePrefs(object):
+    @classmethod
+    def Field(cls, **kw):
+        return gh.Boolean(
+            prefs=gh.String(required=True, description="偏好(msgpack+base64)"),
+            resolver=cls.mutate,
+            **kw,
+        )
+
+    @staticmethod
+    def mutate(root, info, prefs):
+        ctx = info.context
+        require_login(ctx)
+        p = ctx.user.player
+        p.prefs = prefs
+        p.save()
+        return p
+
+
 class PlayerOps(gh.ObjectType):
-    PlRegister = Register.Field(description="注册")
-    PlUpdate    = Update.Field(description="更新资料")
-    PlBindForum = BindForum.Field(description="绑定论坛帐号")
-    PlFriend    = Friend.Field(description="发起好友请求")
-    PlUnfriend  = Unfriend.Field(description="移除好友/拒绝好友请求")
-    PlBlock     = Block.Field(description="拉黑")
-    PlUnblock   = Unblock.Field(description="解除拉黑")
-    PlReport    = ReportOp.Field(description="举报玩家")
+    PlRegister    = Register.Field(description="注册")
+    PlUpdate      = Update.Field(description="更新资料")
+    PlBindForum   = BindForum.Field(description="绑定论坛帐号")
+    PlUpdatePrefs = UpdatePrefs.Field(description="更新个人偏好")
+
+    PlFriend   = Friend.Field(description="发起好友请求")
+    PlUnfriend = Unfriend.Field(description="移除好友/拒绝好友请求")
+
+    PlBlock   = Block.Field(description="拉黑")
+    PlUnblock = Unblock.Field(description="解除拉黑")
+    PlReport  = ReportOp.Field(description="举报玩家")
+
     PlAddCredit = AddCredit.Field(description="增加积分（服务器用）")
