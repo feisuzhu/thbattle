@@ -16,7 +16,7 @@ msgpack = "^1.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
-ipython = "^8.4.0"
+ipython = "^8.10.0"
 neovim = "^0.3.1"
 flake8 = "^4.0.1"
 coverage = "^6.4.1"
