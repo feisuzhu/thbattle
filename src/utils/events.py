@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from typing import Callable, Generic, List, Tuple, TypeVar, Union
+from typing import Callable, Generic, List, Tuple, TypeVar
 import logging
 import sys
 import zlib
@@ -12,6 +12,14 @@ import zlib
 # -- code --
 log = logging.getLogger('utils.events')
 T = TypeVar('T')
+EventCallback = Callable[[T], T | 'EventHub.StopPropagation']
+
+
+class WithPriority(Generic[T]):
+
+    def __init__(self, cb: EventCallback, prio: float):
+        self._cb = cb
+        self._prio = prio
 
 
 class EventHub(Generic[T]):
@@ -22,27 +30,35 @@ class EventHub(Generic[T]):
 
     STOP_PROPAGATION = StopPropagation()
 
-    _subscribers: List[Tuple[float, Callable[[T], Union[T, StopPropagation]]]]
+    _subscribers: List[Tuple[float, EventCallback]]
 
     def __init__(self):
         self._subscribers = []
         self.name: str = '[Anonymous]'
 
-    def subscribe(self, cb: Callable[[T], Union[T, StopPropagation]], prio: float):
+    def subscribe(self, cb: EventCallback, prio: float):
         self._subscribers.append((prio, cb))
         self._subscribers.sort(key=lambda v: v[0])
         return self
 
-    def __iadd__(self, cb: Callable[[T], Union[T, StopPropagation]]):
-        # deterministic priority
-        f = sys._getframe(1)
-        s = '{}:{}'.format(f.f_code.co_filename, f.f_lineno).encode('utf-8')
-        prio = zlib.crc32(s) * 1.0 / 0x100000000
-        self.subscribe(cb, prio)
+    def __iadd__(self, cb: EventCallback | WithPriority):
+        if isinstance(cb, WithPriority):
+            self.subscribe(cb._cb, cb._prio)
+        else:
+            # deterministic priority
+            f = sys._getframe(1)
+            s = '{}:{}'.format(f.f_code.co_filename, f.f_lineno).encode('utf-8')
+            prio = zlib.crc32(s) * 1.0 / 0x100000000
+            self.subscribe(cb, prio)
+
         return self
 
     def emit(self, ev: T):
-        log.debug('Handling event %s %s', self.name, ev)
+
+        if not (self.name.endswith('::client_command') and isinstance(ev, tuple) and ev[1].__class__.__name__ == 'Beat'):
+            # Filter out Beat messages to ease debugging
+            log.debug('Handling event %s %s', self.name, ev)
+
         if not self._subscribers:
             # log.debug('Emitting event %s when no subscribers present!', self.name)
             return
