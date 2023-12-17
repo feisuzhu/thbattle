@@ -145,6 +145,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         tail += v;
+        if v == 0 {
+            panic!("Port EOF");
+        }
         if tail == 0 {
             continue;
         }

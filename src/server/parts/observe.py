@@ -14,6 +14,7 @@ from game.base import Packet
 from server.base import Game
 from server.endpoint import Client
 from server.utils import command
+from utils.events import WithPriority
 from utils.misc import throttle
 import wire
 
@@ -49,7 +50,7 @@ class Observe(object):
         self.core = core
 
         # core.events.user_state_transition += self.handle_ust_observee
-        core.events.user_state_transition.subscribe(self.handle_ust_observee, -1)
+        core.events.user_state_transition += WithPriority(self.handle_ust_observee, -1)
         core.events.game_created += self.handle_game_created
         core.events.game_joined += self.handle_game_joined
         core.events.client_dropped += self.handle_client_dropped

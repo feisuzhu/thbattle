@@ -95,7 +95,7 @@ class PkgConfig:
 pkgconfig = PkgConfig()
 
 
-@banner("Build libgit2 {arch}")
+@banner("Build libgit2 - {arch}")
 def build_libgit2(version: str, arch: str = 'linux-x86_64'):
     libgit2 = ProjectPaths('libgit2', arch)
     pkgconfig.add(libgit2)
@@ -111,7 +111,7 @@ def build_libgit2(version: str, arch: str = 'linux-x86_64'):
         git.checkout(version)
 
     with chdir(libgit2.build):
-        cmake(libgit2.repo, '-DBUILD_SHARED_LIBS=OFF',
+        cmake(libgit2.repo, '-DBUILD_SHARED_LIBS=ON',  # dyn lib now needed by Unity client
                             '-DUSE_SSH=OFF',
                             '-DUSE_HTTPS=ON',
                             '-DUSE_BUNDLED_ZLIB=ON',
@@ -131,20 +131,20 @@ def build_libgit2(version: str, arch: str = 'linux-x86_64'):
         libgit2.set_installed()
 
 
-@banner("Build pygit2 {arch}")
-def build_pygit2(python: Command, pip: Command, arch: str = 'linux-x86_64'):
+@banner("Build pygit2 - {arch}")
+def build_pygit2(pip_install: Command, arch: str = 'linux-x86_64'):
     libgit2 = ProjectPaths('libgit2', arch)
     with environ({'LIBGIT2': str(libgit2.install)}):
-        pip.install('pygit2')
+        pip_install('pygit2')
 
 
-@banner("Build trivial python packages {arch}")
-def build_trivial_packages(python: Command, pip: Command, arch: str = 'linux-x86_64'):
-    pip.install('msgpack')
+@banner("Build Trivial Python Packages - {arch}")
+def build_trivial_packages(pip_install: Command, arch: str = 'linux-x86_64'):
+    pip_install('msgpack')
 
 
-@banner("Build gevent {arch}")
-def build_gevent(python: Command, pip: Command, version: str, arch: str = 'linux-x86_64'):
+@banner("Build gevent - {arch}")
+def build_gevent(pip_install: Command, version: str, arch: str = 'linux-x86_64'):
     gevent = ProjectPaths('gevent', arch)
 
     libev = ProjectPaths('libev', arch)
@@ -162,10 +162,10 @@ def build_gevent(python: Command, pip: Command, version: str, arch: str = 'linux
         git.checkout(version)
         sh.sed('-i', '/LIBUV_CFFI_MODULE/d', 'setup.py')
         with environ(envs):
-            pip.install('.')
+            pip_install('.')
 
 
-@banner("Build openssl {arch}")
+@banner("Build OpenSSL - {arch}")
 def build_openssl(version: str, arch: str = 'linux-x86_64'):
     arch_map = {
         'linux-x86_64': 'linux-x86_64',
@@ -194,7 +194,7 @@ def build_openssl(version: str, arch: str = 'linux-x86_64'):
         openssl.set_installed()
 
 
-@banner("Build libffi {arch}")
+@banner("Build libffi - {arch}")
 def build_libffi(version: str, arch: str = 'linux-x86_64'):
     libffi = ProjectPaths('libffi', arch)
     pkgconfig.add(libffi)
@@ -214,7 +214,7 @@ def build_libffi(version: str, arch: str = 'linux-x86_64'):
         libffi.set_installed()
 
 
-@banner("Build sqlite {arch}")
+@banner("Build sqlite - {arch}")
 def build_sqlite(version: str, arch: str = 'linux-x86_64'):
     sqlite = ProjectPaths('sqlite', arch)
     pkgconfig.add(sqlite)
@@ -237,7 +237,7 @@ def build_sqlite(version: str, arch: str = 'linux-x86_64'):
         sqlite.set_installed()
 
 
-@banner("Build cpython {arch}")
+@banner("Build CPython - {arch}")
 def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64'):
     cpython = ProjectPaths('cpython', arch)
     pkgconfig.add(cpython)
@@ -282,8 +282,8 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
         cpython.set_installed()
 
 
-@banner("Setup crossenv for {arch}")
-def setup_crossenv(python: Command, pip: Command, arch: str = 'linux-x86_64') -> Tuple[Command, Command]:
+@banner("Setup crossenv - {arch}")
+def setup_crossenv(python: Command, pip: Command, arch: str = 'linux-x86_64') -> Command:
     cpython = ProjectPaths('cpython', arch)
     crossenv = ProjectPaths('crossenv', arch)
     crossenv.clean()
@@ -291,16 +291,17 @@ def setup_crossenv(python: Command, pip: Command, arch: str = 'linux-x86_64') ->
     pip.install('crossenv')
     python('-m', 'crossenv', cpython.install / 'bin' / 'python3', crossenv.install)
 
-    build_pip = crossenv.install / 'build' / 'bin' / 'pip'
-    Command(build_pip).install('cffi')
+    build_pip = Command(crossenv.install / 'build' / 'bin' / 'pip')
+    build_pip.install('cffi')
 
     base = crossenv.install / 'cross' / 'bin'
     python = Command(base / 'python3')
-    pip = Command(base / 'pip3')
-    return python, pip
+    site = next(cpython.install.glob('**/site-packages'))
+    pip_install = Command(base / 'pip3', 'install', '--target', site)
+    return pip_install
 
 
-@banner("Build libev {arch}")
+@banner("Build libev - {arch}")
 def build_libev(version: str, arch: str = 'linux-x86_64'):
     libev = ProjectPaths('libev', arch)
     if libev.is_installed():
@@ -322,36 +323,39 @@ def build_libev(version: str, arch: str = 'linux-x86_64'):
         libev.set_installed()
 
 
-
-@banner("Build c-ares {arch}")
-def build_c_ares(version: str, arch: str = 'linux-x86_64'):
-    c_ares = ProjectPaths('c-ares', arch)
-    pkgconfig.add(c_ares)
-    if c_ares.is_installed():
+@banner("Build libcares - {arch}")
+def build_libcares(version: str, arch: str = 'linux-x86_64'):
+    libcares = ProjectPaths('c-ares', arch)
+    pkgconfig.add(libcares)
+    if libcares.is_installed():
         return
 
-    c_ares.repo.exists() or git.clone('https://github.com/c-ares/c-ares.git', c_ares.repo)
-    c_ares.clean()
+    libcares.repo.exists() or git.clone('https://github.com/c-ares/c-ares.git', libcares.repo)
+    libcares.clean()
 
-    with chdir(c_ares.repo):
+    with chdir(libcares.repo):
         git.checkout(version)
         sh.aclocal()
         sh.autoheader()
         sh.libtoolize()
         sh.automake('--add-missing')
         sh.autoconf()
-        configure(f"--prefix={c_ares.install}", "--disable-shared", "--enable-static")
+        configure(f"--prefix={libcares.install}", "--disable-shared", "--enable-static")
         make()
         make.install()
-        c_ares.set_installed()
+        libcares.set_installed()
 
 
-@banner("Strip binaries {arch}")
+@banner("Strip Binaries - {arch}")
 def strip_binaries(arch: str = 'linux-x86_64'):
     strip = Command('llvm-strip')
+    cpython = ProjectPaths('cpython', arch)
+    libgit2 = ProjectPaths('libgit2', arch)
 
-    for p in ProjectPaths.INSTALLS.glob(f'{arch}/**/*.so'):
-        strip(p)
+    for proj in (cpython, libgit2):
+        for pattern in ('*.so', '*.so.*'):
+            for p in proj.install.glob(f'**/{pattern}'):
+                strip(p)
 
 
 def main() -> int:
@@ -378,16 +382,20 @@ def main() -> int:
     build_openssl('OpenSSL_1_1_1t', options.arch)
     build_libgit2('v1.6.4', options.arch)
     build_libev('master', options.arch)
-    build_c_ares('cares-1_19_0', options.arch)
+    build_libcares('cares-1_19_0', options.arch)
     build_cpython(python, 'v3.11.3', options.arch)
 
     if options.arch == 'linux-x86_64':
-        host_python, host_pip = python, pip
+        host_pip_install = pip
     else:
-        host_python, host_pip = setup_crossenv(python, pip, options.arch)
+        host_pip_install = setup_crossenv(python, pip, options.arch)
 
-    build_trivial_packages(host_python, host_pip, options.arch)
-    build_gevent(host_python, host_pip, '22.10.2', options.arch)
-    build_pygit2(host_python, host_pip, options.arch)
+    build_trivial_packages(host_pip_install, options.arch)
+    build_gevent(host_pip_install, '22.10.2', options.arch)
+    # build_pygit2(host_pip_install, options.arch)
 
     strip_binaries(options.arch)
+
+    print("** Build complete")
+    print(f"  python is at {ProjectPaths('cpython', options.arch).install}")
+    print(f"  libgit2 is at {ProjectPaths('libgit2', options.arch).install}")
