@@ -20,6 +20,7 @@ from game.base import GameData, Player
 from server.base import Game as ServerGame, HumanPlayer, NPCPlayer
 from server.endpoint import Client
 from server.utils import command
+from utils.events import WithPriority
 from utils.misc import BatchList
 import wire
 
@@ -61,7 +62,7 @@ class GamePart(object):
         self.core = core
 
         core.events.game_started += self.handle_game_started
-        core.events.game_ended += self.handle_game_ended
+        core.events.game_ended += WithPriority(self.handle_game_ended, -3)  # must finish archiving before notify clients
         core.events.game_joined += self.handle_game_joined
         core.events.game_left += self.handle_game_left
         core.events.user_state_transition += self.handle_user_state_transition
@@ -131,6 +132,8 @@ class GamePart(object):
                 }
             }
         ''', game=meta, archive=archive)
+
+        log.error('Game %s archived', meta['gameId'])
 
         users = core.room.online_users_of(g)
         for u in users:

@@ -11,7 +11,7 @@ import logging
 from server.base import Game
 from server.endpoint import Client
 from server.utils import command
-from utils.events import EventHub
+from utils.events import EventHub, WithPriority
 import wire
 
 # -- typing --
@@ -42,8 +42,7 @@ class Invite(object):
         D = core.events.client_command
         D[wire.Invite] += self._invite
         D[wire.Kick] += self._kick
-
-        D[wire.JoinRoom].subscribe(self._room_join_invite_limit, -3)
+        D[wire.JoinRoom] += WithPriority(self._room_join_invite_limit, -3)
 
     def __repr__(self) -> str:
         return self.__class__.__name__

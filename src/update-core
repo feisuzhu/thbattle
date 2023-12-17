@@ -1,8 +1,8 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
-THIS=$(pwd)
-
-cd ~/my_projects/thb-update/core
+THIS=/home/proton/my_projects/thbattle/src
+OLD=$(pwd)
+cd /home/proton/my_projects/thb-update/core
 git checkout develop
 rm -rf *
 cp -a $THIS/* .
@@ -10,5 +10,6 @@ git checkout -- bundle.json
 find -name __pycache__ | xargs rm -rf
 git add -A .
 git commit -a -m "Updated at $(date -R)"
-git push gitcode
-git push self-hosted
+# git push gitcode
+# git push self-hosted
+cd $OLD

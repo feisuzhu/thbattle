@@ -10,7 +10,7 @@ import logging
 from server.base import Game, HumanPlayer
 from server.endpoint import Client
 from server.utils import command
-from utils.events import EventHub
+from utils.events import EventHub, WithPriority
 import wire
 
 # -- typing --
@@ -41,7 +41,7 @@ class Contest(object):
 
         D = core.events.client_command
         D[wire.SetupContest] += self._contest
-        D[wire.JoinRoom].subscribe(self._room_join_contest_limit, -3)
+        D[wire.JoinRoom] += WithPriority(self._room_join_contest_limit, -3)
 
     def __repr__(self) -> str:
         return self.__class__.__name__
