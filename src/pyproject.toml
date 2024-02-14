@@ -14,16 +14,6 @@ websocket-client = "^1.4.2"
 dnspython = "^2.2.1"
 msgpack = "^1.0.4"
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
-ipython = "^8.4.0"
-neovim = "^0.3.1"
-flake8 = "^4.0.1"
-coverage = "^6.4.1"
-mypy = "^0.961"
-jedi = "^0.18.1"
-itsdangerous = "^2.1.2"
-
 [[tool.poetry.source]]
 name = "tencent"
 url = "https://mirrors.cloud.tencent.com/pypi/simple"
