@@ -45,7 +45,6 @@ class VengeOfTsukumogamiAction:
     def sound_effect(self, act):
         return random.choice((
             'thb-cv-shinmyoumaru_venge1',
-            'thb-cv-shinmyoumaru_venge2',
         ))
 
 
