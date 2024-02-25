@@ -362,7 +362,7 @@ def main() -> int:
     global configure, cmake, options
     parser = argparse.ArgumentParser()
     parser.add_argument('--arch', default='linux-x86_64', choices=['linux-x86_64', 'x86_64', 'aarch64'])
-    parser.add_argument('--python', default='3.11')
+    parser.add_argument('--python', default='3.12')
     parser.add_argument('--android-api-level', type=int, default=21)
     options = parser.parse_args()
 
@@ -377,21 +377,21 @@ def main() -> int:
         configure = configure.bake(*env.autoconf_cross_args)
         # cmake = cmake.bake(*env.cmake_defines)
 
-    build_sqlite('version-3.41.2', options.arch)
-    build_libffi('v3.4.4', options.arch)
-    build_openssl('OpenSSL_1_1_1t', options.arch)
-    build_libgit2('v1.6.4', options.arch)
+    build_sqlite('version-3.45.1', options.arch)
+    build_libffi('v3.4.6', options.arch)
+    build_openssl('openssl-3.2.1', options.arch)
+    build_libgit2('v1.7.1', options.arch)
     build_libev('master', options.arch)
-    build_libcares('cares-1_19_0', options.arch)
-    build_cpython(python, 'v3.11.3', options.arch)
+    build_libcares('cares-1_27_0', options.arch)
+    build_cpython(python, 'v3.12.2', options.arch)
 
     if options.arch == 'linux-x86_64':
-        host_pip_install = pip
+        host_pip_install = pip.install
     else:
         host_pip_install = setup_crossenv(python, pip, options.arch)
 
     build_trivial_packages(host_pip_install, options.arch)
-    build_gevent(host_pip_install, '22.10.2', options.arch)
+    build_gevent(host_pip_install, '24.2.1', options.arch)
     # build_pygit2(host_pip_install, options.arch)
 
     strip_binaries(options.arch)
