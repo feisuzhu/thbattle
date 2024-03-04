@@ -13,7 +13,8 @@ from . import misc
 from .android import setup_android_ndk
 from .misc import banner
 from .python import setup_python
-from .tinysh import Command, chdir, git, make, environ, sh
+from .tinysh import Command, chdir, git, make, environ, sh, bash
+from .assets import assets
 
 
 # -- code --
@@ -258,6 +259,18 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
     with chdir(cpython.repo):
         git.checkout(version)
 
+        # grp_patch = assets / 'python3.12.2.grpmodule.patch'
+        # assert grp_patch.exists()
+        # bash('-c', f'patch -p1 < {grp_patch}')
+
+        with open('Modules/Setup.local', 'w') as f:
+            f.write('\n'.join([
+                '*disabled*',
+                '',
+                '_tkinter', '_lzma', 'grp', '_uuid',
+                '',
+            ]))
+
         pkgconfigs = ':'.join(str(v.pkgconfig) for v in (openssl, libffi, sqlite))
 
         configure(
@@ -269,12 +282,15 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
             "--with-pkg-config=yes",
             "--enable-ipv6",
             "--enable-shared",
+            # "--enable-optimizations",  # Does not work when cross compiling
             "--with-ensurepip=no",
             "--with-system-ffi",
             "--without-readline",
+            "--without-lzma",
             'ac_cv_file__dev_ptmx=no',
             'ac_cv_file__dev_ptc=no',
         )
+
         mj, mn, p = version[1:].split('.')
         make(f'libpython{mj}.{mn}.so')
         make('sharedmods')
