@@ -250,21 +250,26 @@ class Gate(object):
             self.connected = True
             self.sock = s
 
-            s.read = s.recv
-            # s.write = s.sendall
-            u = self.unpacker = msgpack.Unpacker(s, raw=False)
+            u = self.unpacker = msgpack.Unpacker(max_buffer_size=64 * 1024**2, raw=False)
 
             log.info('Gate is now connected to the shell')
 
-            for msg in u:
-                # {'op': 'xxx', 'v': Any}
-                log.debug('core msg: %s', repr(msg))
-                op, v = msg
+            while True:
+                buf = s.recv(1024**2)
+                if not buf:
+                    raise Exception("Gate socket closed")
 
-                if op == 'call':
-                    self.do_call(v)
-                elif op == 'exec':
-                    self.do_exec(v)
+                u.feed(buf)
+
+                for msg in u:
+                    # {'op': 'xxx', 'v': Any}
+                    log.debug('core msg: %s', repr(msg))
+                    op, v = msg
+
+                    if op == 'call':
+                        self.do_call(v)
+                    elif op == 'exec':
+                        self.do_exec(v)
 
             core.result.set('gate_collapsed')
 
@@ -444,6 +449,7 @@ class Gate(object):
         self.current_game = None
         gr = core.game.greenlet_of(g)
         import traceback
+        assert gr.exc_info
         s = ''.join(traceback.format_exception(*gr.exc_info))
         self.post("game_crashed", {
             'gid': core.game.gid_of(g),
