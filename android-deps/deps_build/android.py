@@ -66,6 +66,8 @@ def setup_android_ndk(arch: str = 'linux-x86_64', api_level: int = 21) -> Androi
     os.environ['LD']      = str(bin / "ld")
     os.environ['AS']      = str(bin / "llvm-as")
 
+    os.environ['ANDROID_NDK_ROOT'] = str(ndkroot)
+
     path_prepend("PATH", p / "toolchains/llvm/prebuilt/linux-x86_64/bin")
 
     return AndroidNDKEnviron(

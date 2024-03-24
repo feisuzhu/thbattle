@@ -17,7 +17,7 @@ import wire
 # -- code --
 class Options(object):
     def __init__(self, options: Dict[str, Any]):
-        self.gate_uri = options.get('gate_uri', 'tcp://127.84.72.66:23333')
+        self.gate_uri = options.get('gate_uri', 'tcp://127.0.0.1:23333')
         self.disables = options.get('disables', [])
         self.testing = options.get('testing', False)      # In tests?
 
@@ -125,7 +125,7 @@ class Events(object):
 class Core(core.Core):
     core_type = 'C'
 
-    def __init__(self, **options: Dict[str, Any]) -> None:
+    def __init__(self, **options: Any) -> None:
         super().__init__()
 
         self.options = Options(options)

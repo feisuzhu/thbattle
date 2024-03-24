@@ -17,9 +17,9 @@ from .tinysh import Command, environ, sh
 
 
 # -- code --
-def setup_mambaforge(prefix):
+def setup_miniforge(prefix):
     u = platform.uname()
-    url = "https://github.com/conda-forge/miniforge/releases/download/23.1.0-1/Mambaforge-23.1.0-1-Linux-x86_64.sh"
+    url = "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
     download_dep(url, prefix, args=["-bfp", str(prefix)])
 
 
@@ -51,16 +51,16 @@ def setup_python(version: str) -> Tuple[Command, Command]:
         pip = python.bake("-m", "pip")
         return python, pip
 
-    prefix = get_cache_home() / "mambaforge"
-    setup_mambaforge(prefix)
+    prefix = get_cache_home() / "miniforge3"
+    setup_miniforge(prefix)
 
     conda_path = prefix / "bin" / "conda"
 
     if not conda_path.exists():
         shutil.rmtree(prefix, ignore_errors=True)
-        setup_mambaforge(prefix)
+        setup_miniforge(prefix)
         if not conda_path.exists():
-            raise RuntimeError(f"Failed to setup mambaforge at {prefix}")
+            raise RuntimeError(f"Failed to setup miniforge at {prefix}")
 
     conda = sh.bake(str(conda_path))
 
