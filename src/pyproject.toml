@@ -1,34 +1,32 @@
-[tool.poetry]
+[project]
 name = "thbattle"
-version = "0.1.0"
-description = "THBattle"
-authors = ["Proton <feisuzhu@163.com>"]
-license = "GPL-3.0+"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-gevent = "^22.10.2"
-requests = "^2.28.1"
-raven = "^6.10.0"
-websocket-client = "^1.4.2"
-dnspython = "^2.2.1"
-msgpack = "^1.0.4"
-
-[[tool.poetry.source]]
-name = "tencent"
-url = "https://mirrors.cloud.tencent.com/pypi/simple"
+version = "2.0.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Proton", email = "feisuzhu@163.com"},
+]
+dependencies = [
+    "gevent>=24.2.1",
+    "requests>=2.31.0",
+    "raven>=6.10.0",
+    "websocket-client>=1.7.0",
+    "msgpack>=1.0.8",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "GPL-3.0+"}
 
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.2.0"
-ipython = "^8.7.0"
-neovim = "^0.3.1"
-flake8 = "^6.0.0"
-coverage = "^6.5.0"
-mypy = "^0.991"
-jedi = "^0.18.2"
-itsdangerous = "^2.1.2"
+[tool.pdm]
+distribution = false
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.masonry.api"
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest>=8.0.2",
+    "ipython>=8.22.2",
+    "neovim>=0.3.1",
+    "flake8>=7.0.0",
+    "coverage>=7.4.3",
+    "mypy>=1.8.0",
+    "itsdangerous>=2.1.2",
+]

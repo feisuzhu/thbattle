@@ -1,0 +1,22 @@
+index f570929633..13d9f5dcbf 100644
+--- a/Modules/grpmodule.c
++++ b/Modules/grpmodule.c
+@@ -278,18 +278,7 @@ grp_getgrall_impl(PyObject *module)
+
+     if ((d = PyList_New(0)) == NULL)
+         return NULL;
+-    setgrent();
+-    while ((p = getgrent()) != NULL) {
+-        PyObject *v = mkgrent(module, p);
+-        if (v == NULL || PyList_Append(d, v) != 0) {
+-            Py_XDECREF(v);
+-            Py_DECREF(d);
+-            endgrent();
+-            return NULL;
+-        }
+-        Py_DECREF(v);
+-    }
+-    endgrent();
++
+     return d;
+ }

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 # -- code --
 
-def run_core() -> None:
+def run_core(port: int) -> None:
     import sys
     import pathlib
 
@@ -30,7 +30,7 @@ def run_core() -> None:
 
     from client.core import Core
     from core import CoreRunner
-    core = Core()
+    core = Core(gate_uri=f'tcp://127.0.0.1:{port}')
     runner = CoreRunner(core)
     runner.run()
 
