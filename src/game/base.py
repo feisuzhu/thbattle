@@ -223,7 +223,7 @@ class Game(GameObject, Generic[A, EH]):
 
         return self.dispatcher.emit(evt_type, data)
 
-    def process_action(self, action: Action) -> bool:
+    def process_action(self, action: A) -> bool:
         if self.ended:
             return False
 

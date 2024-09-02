@@ -69,7 +69,7 @@ def main():
 
     for i, gd in enumerate(gdhist):
         fn = '%s_%s.thbrep' % (gid, i)
-        with open(fn, 'w') as f:
+        with open(fn, 'wb') as f:
             print 'Writing %s...' % fn
             rep.me_index = i
             rep.gamedata = gd

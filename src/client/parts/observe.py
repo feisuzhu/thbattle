@@ -28,6 +28,7 @@ class Observe(object):
         D[wire.ObserverEnter] += self._observer_enter
         D[wire.ObserverLeave] += self._observer_leave
         D[wire.ObserveRequest] += self._observe_request
+        D[wire.ObserveStarted] += self._observe_started
 
     # ---- Reactions -----
     def _observer_enter(self, ev: wire.ObserverEnter) -> wire.ObserverEnter:
@@ -43,6 +44,11 @@ class Observe(object):
     def _observe_request(self, ev: wire.ObserveRequest) -> wire.ObserveRequest:
         core = self.core
         core.events.observe_request.emit(ev.pid)
+        return ev
+    
+    def _observe_started(self, ev: wire.ObserveStarted) -> wire.ObserveStarted:
+        core = self.core
+        core.events.observe_started.emit((ev.game, ev.observee))
         return ev
 
     # ----- Public Method -----

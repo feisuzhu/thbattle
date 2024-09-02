@@ -6,6 +6,7 @@ from __future__ import annotations
 # -- own --
 from thb import characters
 from thb.meta.common import ui_meta, N
+from thb.cards.base import VirtualCard
 
 
 # -- code --
@@ -88,3 +89,27 @@ class FreakingPowerHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
     choose_option_prompt = '你要发动<style=Skill.Name>怪力</style>吗？'
+
+
+@ui_meta(characters.yugi.SplashProof)
+class SplashProof:
+    # Skill
+    name = '止洒'
+    description = '出牌阶段限一次，若你使用的<style=Card.Name>弹幕</style>未造成伤害，你可以获得之。'
+
+
+@ui_meta(characters.yugi.SplashProofRetrieveAction)
+class SplashProofRetrieveAction:
+    def effect_string_before(self, act: characters.yugi.SplashProofRetrieveAction):
+        c = VirtualCard.unwrap([act.card])
+        return f'{N.char(act.source)}算准距离，略微倾斜身体，打出去的{N.card(c)}又回到了手中！'
+
+    def sound_effect(self, act):
+        return 'thb-cv-yugi_fp'
+
+
+@ui_meta(characters.yugi.SplashProofHandler)
+class SplashProofHandler:
+    # choose_option
+    choose_option_buttons = (('发动', True), ('不发动', False))
+    choose_option_prompt = '你要发动<style=Skill.Name>止洒</style>吗？'
