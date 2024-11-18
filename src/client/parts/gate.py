@@ -197,6 +197,7 @@ class Gate(object):
         core.events.lobby_users          += self.on_lobby_users
         core.events.lobby_status         += self.on_lobby_status
         core.events.observe_request      += self.on_observe_request
+        core.events.observe_started      += self.on_observe_started
         core.events.observer_enter       += self.on_observer_enter
         core.events.observer_leave       += self.on_observer_leave
         core.events.game_joined          += self.on_game_joined
@@ -369,6 +370,14 @@ class Gate(object):
 
     def on_observe_request(self, v: int) -> int:
         self.post("observe_request", v)
+        return v
+    
+    def on_observe_started(self, v: Tuple[wire.model.GameDetail, int]) -> Tuple[wire.model.GameDetail, int]:
+        self.post("observer_started",{
+                "game": v[0],
+                "type": v[0]['type'],
+                "observee": v[1],
+            })
         return v
 
     def on_observer_enter(self, v: Tuple[int, int]) -> Tuple[int, int]:

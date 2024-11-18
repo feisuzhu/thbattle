@@ -77,6 +77,7 @@ class Events(object):
         self.observe_request = EventHub[int]()
 
         # Observer state
+        self.observe_started = EventHub[Tuple[wire.model.GameDetail, int]]()
         self.observer_enter = EventHub[Tuple[int, int]]()
         self.observer_leave = EventHub[Tuple[int, int]]()
 

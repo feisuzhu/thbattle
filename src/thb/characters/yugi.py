@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, cast
 
 # -- third party --
 # -- own --
-from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, random_choose_card
+from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, PlayerTurn, UserAction, migrate_cards, random_choose_card, ttags
 from thb.cards.base import Card, Skill, VirtualCard
-from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, RedUFOSkill, TreatAs, t_None
+from thb.cards.basic import Attack
+from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from thb.mode import THBEventHandler, THBAction
@@ -20,9 +21,26 @@ if TYPE_CHECKING:
 
 
 # -- code --
-class Assault(RedUFOSkill):
+class Assault(Skill):
+    associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    increment = 1
+    target = t_None()
+
+
+class AssaultHandler(THBEventHandler):
+    interested = ['calcdistance']
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'calcdistance':
+            src, _, dist = arg
+            if not src.has_skill(Assault):
+                return arg
+
+            cc = len(src.cards) + len(src.showncards)
+            for t in dist:
+                dist[t] -= cc
+
+        return arg
 
 
 class AssaultKOF(Skill):
@@ -123,10 +141,103 @@ class FreakingPowerHandler(THBEventHandler):
         return act
 
 
+class SplashProof(Skill):
+    associated_action = None
+    skill_category = ["character", "passive"]
+    target = t_None()
+
+
+class SplashProofRetrieveAction(UserAction):
+    def __init__(self, source: Character, target: Character, card: Card):
+        self.source = source
+        self.target = target
+        self.card = card
+
+    def apply_action(self):
+        c = self.card
+        tgt = self.target
+
+        ttags(tgt)["splash_proof"] = True
+
+        g = self.game
+
+        assert c.detached
+
+        shadow = SplashProof(tgt)
+        for a in reversed(g.action_stack):
+            if isinstance(a, LaunchCard) and a.card is c:
+                a.card = shadow
+            elif getattr(a, "associated_card", None) is c:
+                a.associated_card = shadow
+
+        migrate_cards([c], tgt.cards, unwrap=True)
+
+        return True
+
+    def is_valid(self):
+        return not ttags(self.target)["splash_proof"] and self.card
+
+
+class SplashProofHandler(THBEventHandler):
+    interested = ['action_done', 'action_after']
+
+    def handle(self, evt_type, act):
+        g = self.game
+
+        if evt_type == 'action_after' and isinstance(act, BaseAttack):
+            if act.succeeded:
+                return act
+
+            card = act.associated_card
+            if not card:
+                return act
+
+        elif evt_type == 'action_done' and isinstance(act, Damage):
+            if not act.cancelled:
+                return act
+
+            pact = g.action_stack[-1]
+            if not isinstance(pact, Attack):
+                return act
+            card = getattr(pact, 'associated_card', None)
+            if not card:
+                return act
+        else:
+            return act
+
+        if not card.detached or card.unwrapped:
+            return act
+
+        if not VirtualCard.unwrap([card]):
+            return act
+
+        src = act.source
+
+        if not src.has_skill(SplashProof):
+            return act
+
+        try:
+            current = PlayerTurn.get_current(g).target
+        except IndexError:
+            return act
+
+        if current is not src:
+            return act
+
+        if ttags(src)['splash_proof']:
+            return act
+
+        if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
+            return act
+        g.process_action(SplashProofRetrieveAction(src, src, card))
+
+        return act
+    
+
 @register_character_to('common', '-kof')
 class Yugi(Character):
-    skills = [Assault, FreakingPower]
-    eventhandlers = [FreakingPowerHandler]
+    skills = [Assault, FreakingPower, SplashProof]
+    eventhandlers = [AssaultHandler, FreakingPowerHandler, SplashProofHandler]
     maxlife = 4
 
 
