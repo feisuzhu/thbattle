@@ -16,9 +16,8 @@ dependencies = [
     "graphene-django>=3.2.0",
     "django-redis-sessions>=0.6.2",
     "itsdangerous>=2.1.2",
-    "msgpack>=1.0.8",
+    "msgpack>=1.1.0",
     "pymysql>=1.1.0",
-    "psycopg2-binary>=2.9.9",
     "pyyaml>=6.0.1",
     "django-schema-graph>=3.1.0",
     "trueskill>=0.4.5",
@@ -26,6 +25,8 @@ dependencies = [
     "Pillow>=10.2.0",
     "sentry-sdk>=1.40.6",
     "pytz>=2024.1",
+    "psycopg[binary]>=3.2.3",
+    "greenlet>=3.1.1",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
