@@ -242,5 +242,4 @@ FakesAssemblies/
 .vim
 target
 docker-compose.override.yml
-debug-run
 r

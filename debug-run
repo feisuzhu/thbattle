@@ -1,0 +1,7 @@
+#!/usr/bin/env -S bash "-c" "exec goreman -f \$0 start"
+
+backend: cd backend && exec pdm run python manage.py runserver 0.0.0.0:8000
+bot: cd src && sleep 2 && exec pdm run python bot.py --bots 3 --delay 1
+chat: cd chat && export AYA_LOG=debug && sleep 2 && exec cargo run
+game: cd src && sleep 1 && exec pdm run python start_server.py proton --log='file:///dev/shm/thb.log?level=DEBUG' --backend http://proton:feisuzhu@localhost:8000/graphql --interconnect=
+smsagent: cd smsagent && export RUST_LOG=debug && cargo build && exec target/debug/smsagent --serial /dev/ttyUSB2 --callback 'http://proton:feisuzhu@localhost:8000/.callbacks/sms-verification' --delete
