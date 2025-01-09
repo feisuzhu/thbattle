@@ -113,9 +113,10 @@ fn tp_scts(s: &[u8]) -> IResult<&[u8], DateTime<FixedOffset>> {
 
     Ok((
         s,
-        FixedOffset::east(3600 / 4 * tz)
-            .ymd(2000 + v[0] as i32, v[1], v[2])
-            .and_hms(v[3], v[4], v[5]),
+        FixedOffset::east_opt(3600 / 4 * tz)
+            .unwrap()
+            .with_ymd_and_hms(2000 + v[0] as i32, v[1], v[2], v[3], v[4], v[5])
+            .unwrap(),
     ))
 }
 

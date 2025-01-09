@@ -71,7 +71,7 @@ pub(crate) fn parse_missed_call(s: &[u8]) -> IResult<&[u8], Event> {
     Ok((
         s,
         Event::MissedCall(MissedCall {
-            time: NaiveTime::from_hms(hh, mm, 0),
+            time: NaiveTime::from_hms_opt(hh, mm, 0).unwrap(),
             number: String::from_utf8_lossy(num).into(),
         }),
     ))
