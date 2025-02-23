@@ -1,0 +1,8 @@
+#!/bin/sh
+
+chvt 7
+byobu new-session -d -s sms-agent "set -x; cd ~proton && python3 thb-sms.py"
+byobu new-window dmesg -w
+tmux set -s user-keys[0] $(echo -e "\e[26~")
+tmux bind -T root User0 next-window
+openvt -c 7 -f -- tmux a
