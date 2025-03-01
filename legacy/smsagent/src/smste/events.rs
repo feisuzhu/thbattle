@@ -183,7 +183,7 @@ AT+CNMI=1,1
         assert_eq!(
             v,
             Event::MissedCall(MissedCall {
-                time: NaiveTime::from_hms(19, 54, 00),
+                time: NaiveTime::from_hms_opt(19, 54, 00).unwrap(),
                 number: "18612748499".into()
             })
         );
