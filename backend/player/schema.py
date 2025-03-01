@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 # -- stdlib --
-from urllib.parse import unquote
 import random
 
 # -- third party --
@@ -15,6 +14,8 @@ import graphene as gh
 from . import models
 from authext.schema import User
 from utils.graphql import require_login, require_perm
+from discuz.models import ForumMember
+from discuz.auth import check_password
 
 
 # -- code --
@@ -36,7 +37,7 @@ class Player(DjangoObjectType):
     def resolve_friends(root, info):
         ctx = info.context
         require_login(ctx)
-        p = ctx.user.player
+        p = ctx.api_user.player
         if p.id != root.id:
             require_perm(ctx, 'player.view_player')
         return root.friends.filter(friends__id=root.id)
@@ -45,7 +46,7 @@ class Player(DjangoObjectType):
     def resolve_friend_requests(root, info):
         ctx = info.context
         require_login(ctx)
-        p = ctx.user.player
+        p = ctx.api_user.player
         if p.id != root.id:
             require_perm(ctx, 'player.view_player')
         return root.friended_by.exclude(
@@ -58,7 +59,7 @@ class Player(DjangoObjectType):
     def resolve_user(root, info):
         ctx = info.context
         require_login(ctx)
-        u = ctx.user
+        u = ctx.api_user
         if u.id == root.user.id or require_perm(ctx, 'player.view_user'):
             return root.user
 
@@ -120,6 +121,7 @@ class PlayerQuery(gh.ObjectType):
         Player,
         id=gh.Int(description="玩家ID"),
         name=gh.String(description="玩家昵称"),
+        token=gh.String(description="用户token"),
         description="获取玩家",
     )
 
@@ -129,6 +131,10 @@ class PlayerQuery(gh.ObjectType):
             return models.Player.objects.get(id=id)
         elif name is not None:
             return models.Player.objects.get(name=name.strip())
+        elif token is not None:
+            from authext.models import User
+            if id := User.uid_from_token(token):
+                return models.Player.objects.get(id=id)
 
         return None
 
@@ -197,7 +203,7 @@ class Update(object):
     def mutate(root, info, bio=None, avatar=None):
         ctx = info.context
         require_login(ctx)
-        p = ctx.user.player
+        p = ctx.api_user.player
         p.bio = bio or p.bio
         p.avatar = avatar or p.avatar
         p.save()
@@ -208,72 +214,47 @@ class BindForum(object):
     @classmethod
     def Field(cls, **kw):
         return gh.Boolean(
+            account=gh.String(description="账号"),
+            password=gh.String(description="密码"),
+            migrate_name=gh.Boolean(description="是否迁移昵称"),
             resolver=cls.mutate,
             **kw,
         )
 
     @staticmethod
-    def mutate(root, info):
-        from backend.settings import ForumInterconnect as F
-        import discuz.auth as dzauth
-        import pymysql
-        from urllib.parse import urlparse, parse_qsl
-        from utils.piper import one, Q
+    def mutate(root, info, account, password, migrate_name):
         ctx = info.context
         require_login(ctx)
-        p = ctx.user.player
-        if p.forum_id:
-            raise GraphQLError('不可以重复绑定')
 
-        cookies = {
-            k.split('_')[-1]: v for k, v in ctx.COOKIES.items()
-            if k.startswith(F.COOKIEPRE)
-        }
+        if m := ctx.api_user.forum_member:
+            if m.migrated:
+                raise GraphQLError('不可以重复绑定')
 
-        if not ('auth' in cookies and 'saltkey' in cookies):
-            raise GraphQLError('需要先登录论坛')
+        m = ForumMember.find(account)
+        if not m:
+            raise GraphQLError('该用户不存在')
 
-        auth = unquote(cookies['auth'])
-        saltkey = unquote(cookies['saltkey'])
+        plain = password.encode('utf-8')
+        hash  = m.password.encode('utf-8')
+        salt  = m.salt.encode('utf-8')
+        if not check_password(plain, hash, salt):
+            raise GraphQLError('密码错误')
 
-        decoded = dzauth.decode_cookie(auth, F.AUTHKEY, saltkey)
-        if 'uid' not in decoded:
-            raise GraphQLError('需要先登录论坛')
+        if m.migrated:
+            raise GraphQLError('该用户已迁移')
 
-        url = urlparse(F.DB)
-        db = pymysql.connect(
-            host=url.hostname,
-            user=url.username,
-            password=url.password,
-            database=url.path[1:],
-            port=int(url.port or 3306),
-            **dict(parse_qsl(url.query)),
-        )
 
-        _ = Q(db, '''
-            -- SQL
-            SELECT
-                m.username as name,
-                c.extcredits2 as jiecao,
-                c.extcredits7 as drops,
-                c.extcredits8 as games
-            FROM
-                pre_ucenter_members m,
-                pre_common_member_count c
-            WHERE
-                m.uid = c.uid AND m.uid = :uid
-        ''', {'uid': decoded['uid']}) | one
+        # TODO: Issue badge
+        p = ctx.api_user.player
+        p.forum_member = m
+        if migrate_name:
+            p.name = m.username
+        p.games = m.games
+        p.drops = m.drops
+        p.save()
 
-        del db
-
-        # FIXME: proper migration
-        # p.forum_id = decoded['uid']
-        # p.forum_name = rst['name']
-        # p.jiecao = rst['jiecao']
-        # p.games = rst['games']
-        # p.drops = rst['drops']
-
-        # p.save()
+        m.migrated = True
+        m.save()
 
         return True
 
@@ -291,7 +272,7 @@ class Friend(object):
     def mutate(root, info, id):
         ctx = info.context
         require_login(ctx)
-        me = ctx.user.player
+        me = ctx.api_user.player
         p = models.Player.objects.get(id=id)
         if not p:
             raise GraphQLError('找不到相应的玩家')
@@ -312,7 +293,7 @@ class Unfriend(object):
     def mutate(root, info, id):
         ctx = info.context
         require_login(ctx)
-        me = ctx.user.player
+        me = ctx.api_user.player
         p = models.Player.objects.get(id=id)
         if not p:
             raise GraphQLError('找不到相应的玩家')
@@ -334,7 +315,7 @@ class Block(object):
     def mutate(root, info, id):
         ctx = info.context
         require_login(ctx)
-        me = ctx.user.player
+        me = ctx.api_user.player
         tgt = models.Player.objects.get(id=id)
         if not tgt:
             raise GraphQLError('没有找到指定的玩家')
@@ -356,7 +337,7 @@ class Unblock(object):
     def mutate(root, info, id):
         ctx = info.context
         require_login(ctx)
-        me = ctx.user.player
+        me = ctx.api_user.player
         tgt = models.Player.objects.get(id=id)
         if not tgt:
             raise GraphQLError('没有找到指定的玩家')
@@ -382,7 +363,7 @@ class ReportOp(object):
     def mutate(root, info, id, reason, detail, game_id=None):
         ctx = info.context
         require_login(ctx)
-        me = ctx.user.player
+        me = ctx.api_user.player
         tgt = models.Player.objects.get(id=id)
         if not tgt:
             raise GraphQLError('没有找到指定的玩家')
@@ -434,7 +415,7 @@ class UpdatePrefs(object):
     def mutate(root, info, prefs):
         ctx = info.context
         require_login(ctx)
-        p = ctx.user.player
+        p = ctx.api_user.player
         p.prefs = prefs
         p.save()
         return p

@@ -20,6 +20,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'authext.apps.AuthExtConfig',
     'player.apps.PlayerConfig',
+    'discuz.apps.DiscuzConfig',
     'game.apps.GameConfig',
     'badge.apps.BadgeConfig',
     'unlock.apps.UnlockConfig',
