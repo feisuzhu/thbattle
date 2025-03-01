@@ -1,0 +1,31 @@
+@use "./color";
+
+@font-face {
+  font-family: "Yozai";
+  src: url("@/assets/fonts/Yozai-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "HYTMR";
+  src: url("@/assets/fonts/HYTangMeiRen55W.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("@/assets/fonts/FiraSans-Regular.ttf");
+}
+
+body {
+  margin: 0;
+  background-color: color.$base;
+  color: color.$text;
+  font-family: "HYTMR", "Fira Sans";
+}
+
+:root {
+  color-scheme: dark;
+}
+
+::selection {
+  background-color: color-mix(in srgb, color.$mauve, transparent 70%);
+}

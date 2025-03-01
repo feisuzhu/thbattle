@@ -1,0 +1,713 @@
+type Query {
+  """获取定型文"""
+  fixedTexts(
+    """定型文ID"""
+    ids: [Int!]!
+  ): [FixedText!]!
+
+  """获取大表情包"""
+  emojiPacks(
+    """大表情包ID"""
+    ids: [Int!]!
+  ): [EmojiPack!]!
+
+  """获取大表情"""
+  emojis(
+    """大表情ID"""
+    ids: [Int!]!
+  ): [Emoji!]!
+
+  """获取服务器列表"""
+  servers: [Server!]!
+
+  """获取全局设置"""
+  setting(key: String!): String
+
+  """获取当前新闻"""
+  news: String
+
+  """获取短信验证码"""
+  smsVerification(key: String!): SMSVerification
+
+  """获取游戏列表"""
+  games(
+    """关键字"""
+    keyword: String
+
+    """分页"""
+    paging: Paging
+  ): [Game]
+
+  """获取游戏"""
+  game(
+    """游戏ID"""
+    id: Int!
+  ): Game
+
+  """获取玩家"""
+  player(
+    """玩家ID"""
+    id: Int
+
+    """玩家昵称"""
+    name: String
+
+    """用户token"""
+    token: String
+  ): Player
+
+  """查询是否被占用"""
+  availability: Availability
+
+  """获取用户"""
+  user(
+    """用户ID"""
+    id: Int!
+  ): User
+
+  """登录"""
+  login: Login
+}
+
+type FixedText {
+  """ID"""
+  id: Int!
+
+  """文本"""
+  text: String!
+
+  """配音"""
+  voice: String
+
+  """配音演员"""
+  actor: String
+
+  """角色限定"""
+  character: String
+
+  """Pin 在常用列表的玩家"""
+  pinnedBy: [Player!]!
+
+  """可以使用"""
+  canUse(
+    """玩家ID"""
+    pid: Int!
+  ): Boolean!
+}
+
+type Player {
+  """ID"""
+  id: Int!
+
+  """关联用户"""
+  user: User
+
+  """昵称"""
+  name: String!
+
+  """签名"""
+  bio: String!
+
+  """头像"""
+  avatar: String!
+
+  """个人设置"""
+  prefs: String!
+
+  """等级"""
+  level: Int!
+
+  """经验值"""
+  exp: Int!
+
+  """+1UP"""
+  up: Int!
+
+  """B"""
+  bomb: Int!
+
+  """点"""
+  point: Int!
+
+  """游戏数"""
+  games: Int!
+
+  """逃跑数"""
+  drops: Int!
+
+  """玩家的勋章"""
+  badges: [PlayerBadge!]
+
+  """好友"""
+  friends: [Player!]!
+
+  """黑名单"""
+  blocks: [Player!]!
+
+  """举报者"""
+  reports: [Report!]!
+
+  """玩家"""
+  rewards: [GameReward!]!
+
+  """玩家"""
+  unlocks: [Unlocked!]!
+
+  """所有者"""
+  items: [Item!]!
+
+  """可使用玩家"""
+  fixedTexts: [FixedText!]!
+
+  """Pin 在常用列表的玩家"""
+  pinnedFixedTexts: [FixedText!]!
+
+  """可使用玩家"""
+  emojiSets: [EmojiPack!]!
+
+  """未处理的好友请求"""
+  friendRequests: [Player!]
+
+  """P"""
+  power: Int
+}
+
+type User {
+  id: Int!
+  lastLogin: DateTime
+
+  """指明该用户缺省拥有所有权限。"""
+  isSuperuser: Boolean!
+
+  """该用户归属的组。一个用户将得到其归属的组的所有权限。"""
+  groups: [Group!]!
+
+  """这个用户的特定权限。"""
+  userPermissions: [Permission!]!
+
+  """必填；长度为150个字符或以下；只能包含字母、数字、特殊字符“@”、“.”、“-”和“_”。"""
+  username: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+
+  """指明用户是否可以登录到这个管理站点。"""
+  isStaff: Boolean!
+
+  """指明用户是否被认为是活跃的。以反选代替删除帐号。"""
+  isActive: Boolean!
+  dateJoined: DateTime!
+  player: Player
+
+  """登录令牌"""
+  token: String
+}
+
+"""
+The `DateTime` scalar type represents a DateTime
+value as specified by
+[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
+"""
+scalar DateTime
+
+type Group {
+  id: Int!
+  name: String!
+  permissions: [Permission!]!
+
+  """该用户归属的组。一个用户将得到其归属的组的所有权限。"""
+  userSet: [User!]!
+}
+
+type Permission {
+  id: Int!
+  name: String!
+  codename: String!
+  groupSet: [Group!]!
+
+  """这个用户的特定权限。"""
+  userSet: [User!]!
+}
+
+type PlayerBadge {
+  id: Int!
+
+  """玩家"""
+  player: Player!
+
+  """勋章"""
+  badge: Badge!
+
+  """获得日期"""
+  grantedAt: DateTime!
+}
+
+type Badge {
+  id: Int!
+
+  """标题"""
+  title: String!
+
+  """描述"""
+  description: String!
+
+  """图标"""
+  icon: String!
+
+  """图标@2x"""
+  icon2x: String!
+
+  """勋章"""
+  players: [Player!]!
+}
+
+type Report {
+  """ID"""
+  id: Int!
+
+  """举报者"""
+  reporter: Player!
+
+  """嫌疑人"""
+  suspect: Player!
+
+  """原因"""
+  reason: String!
+
+  """原因"""
+  detail: String!
+
+  """游戏ID"""
+  gameId: Int
+
+  """举报时间"""
+  reportedAt: DateTime!
+
+  """处理结果"""
+  outcome: String
+}
+
+type GameReward {
+  id: Int!
+
+  """游戏"""
+  game: Game!
+
+  """玩家"""
+  player: Player!
+
+  """积分类型"""
+  type: String!
+
+  """数量"""
+  amount: Int!
+}
+
+type Game {
+  """游戏ID"""
+  id: Int!
+
+  """游戏名称"""
+  name: String!
+
+  """游戏类型"""
+  type: String!
+
+  """游戏选项"""
+  flags: GenericScalar!
+
+  """参与玩家"""
+  players: [Player!]!
+
+  """胜利玩家"""
+  winners: [Player!]!
+
+  """逃跑玩家"""
+  deserters: [Player!]!
+
+  """开始时间"""
+  startedAt: DateTime!
+
+  """持续时间"""
+  duration: Int!
+
+  """游戏"""
+  rewards: [GameReward!]!
+  archive: GameArchive
+
+  """游戏"""
+  ranking: [RankingHistory!]!
+}
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
+
+type GameArchive {
+  """游戏"""
+  game: Game!
+
+  """Replay 数据存在？"""
+  exists: Boolean
+
+  """Replay 数据（Base64）"""
+  replay: String
+}
+
+type RankingHistory {
+  """ID"""
+  id: Int!
+
+  """游戏"""
+  game: Game!
+
+  """玩家"""
+  player: Player!
+
+  """分类"""
+  category: String!
+
+  """赛季"""
+  season: Int!
+
+  """调整前分数"""
+  scoreBefore: Int!
+
+  """调整后分数"""
+  scoreAfter: Int!
+
+  """本赛季变动次数"""
+  changes: Int!
+}
+
+type Unlocked {
+  id: Int!
+
+  """玩家"""
+  player: Player!
+
+  """解锁项目"""
+  item: String!
+
+  """日期"""
+  unlockedAt: DateTime!
+}
+
+type Item {
+  id: Int!
+
+  """所有者"""
+  owner: Player!
+
+  """类型"""
+  sku: String!
+
+  """数量"""
+  count: Int!
+}
+
+type EmojiPack {
+  """ID"""
+  id: Int!
+
+  """表情包名称"""
+  name: String!
+
+  """表情包"""
+  items: [Emoji!]!
+
+  """可以使用"""
+  canUse(
+    """玩家ID"""
+    pid: Int!
+  ): Boolean!
+}
+
+type Emoji {
+  """ID"""
+  id: Int!
+
+  """表情包"""
+  pack: EmojiPack!
+
+  """名称"""
+  name: String!
+
+  """URL"""
+  url: String!
+}
+
+type Server {
+  id: Int!
+
+  """名称"""
+  name: String!
+
+  """兼容客户端版本"""
+  version: Int!
+
+  """服务器地址"""
+  url: String!
+
+  """Git 分支"""
+  branch: String!
+
+  """聊天服务"""
+  chat: String!
+
+  """服务器状态"""
+  status: String!
+}
+
+type SMSVerification {
+  id: Int!
+
+  """验证 Key"""
+  key: String!
+
+  """创建时间"""
+  time: DateTime!
+
+  """手机号"""
+  phone: String
+
+  """已使用"""
+  used: Boolean!
+}
+
+input Paging {
+  offset: Int
+  limit: Int
+  orderBy: String
+  token: String
+}
+
+type Availability {
+  """手机号可用"""
+  phone(
+    """手机号"""
+    phone: String
+  ): Boolean
+
+  """昵称可用"""
+  name(
+    """昵称"""
+    name: String
+  ): Boolean
+}
+
+type Login {
+  """手机登录"""
+  phone(
+    """验证码"""
+    smsVerificationKey: String!
+  ): User
+
+  """令牌登录"""
+  token(
+    """令牌"""
+    token: String!
+  ): User
+
+  """帐号密码登录"""
+  account(
+    """账号"""
+    account: String!
+
+    """密码"""
+    password: String!
+  ): User
+}
+
+type Mutation {
+  RkAdjustRanking(
+    """游戏元数据"""
+    game: GameInput!
+  ): [RankingHistory!]!
+
+  """请求短信验证码"""
+  SyRequestSmsVerification: RequestSMSVerification!
+
+  """解锁项目"""
+  UlAddUnlock(
+    """玩家ID"""
+    id: Int!
+
+    """解锁项目代码"""
+    item: String!
+  ): Boolean
+
+  """给予玩家一个物品"""
+  ItAdd(
+    """玩家ID"""
+    player: Int!
+
+    """物品SKU"""
+    sku: String!
+
+    """原因"""
+    reason: String!
+  ): Item
+
+  """移除玩家的一个物品"""
+  ItRemove(
+    """玩家ID"""
+    player: Int!
+
+    """物品SKU"""
+    sku: String!
+
+    """原因"""
+    reason: String!
+  ): Boolean
+
+  """保存游戏存档"""
+  GmArchive(
+    """游戏元数据"""
+    game: GameInput!
+
+    """游戏 Replay 数据（Base64）"""
+    archive: String!
+  ): Game!
+
+  """结算游戏奖励"""
+  GmSettleRewards(
+    """游戏元数据"""
+    game: GameInput!
+  ): [GameReward!]!
+
+  """分配游戏ID"""
+  GmAllocGameId: Int!
+
+  """注册"""
+  PlRegister(
+    """短信验证 Key"""
+    smsVerificationKey: String!
+  ): Register
+
+  """更新资料"""
+  PlUpdate(
+    """签名"""
+    bio: String
+
+    """头像"""
+    avatar: String
+  ): Player
+
+  """绑定论坛帐号"""
+  PlBindForum(
+    """是否迁移昵称"""
+    migrateName: Boolean
+  ): Boolean
+
+  """更新个人偏好"""
+  PlUpdatePrefs(
+    """偏好(msgpack+base64)"""
+    prefs: String!
+  ): Boolean
+
+  """发起好友请求"""
+  PlFriend(
+    """目标玩家ID"""
+    id: Int!
+  ): Boolean
+
+  """移除好友/拒绝好友请求"""
+  PlUnfriend(
+    """目标玩家ID"""
+    id: Int!
+  ): Boolean
+
+  """拉黑"""
+  PlBlock(
+    """目标玩家ID"""
+    id: Int!
+  ): Boolean
+
+  """解除拉黑"""
+  PlUnblock(
+    """目标玩家ID"""
+    id: Int!
+  ): Boolean
+
+  """举报玩家"""
+  PlReport(
+    """目标玩家ID"""
+    id: Int!
+
+    """举报原因"""
+    reason: String!
+
+    """详情"""
+    detail: String!
+
+    """游戏ID（如果有）"""
+    gameId: Int
+  ): Report
+
+  """增加积分（服务器用）"""
+  PlAddCredit(
+    """目标玩家ID"""
+    id: Int!
+
+    """节操"""
+    jiecao: Int
+
+    """游戏数"""
+    games: Int
+
+    """逃跑数"""
+    drops: Int
+  ): Player
+}
+
+input GameInput {
+  """游戏ID"""
+  gameId: Int!
+
+  """游戏名称"""
+  name: String!
+
+  """游戏类型"""
+  type: String!
+
+  """游戏选项"""
+  flags: GenericScalar!
+
+  """参与玩家UID"""
+  players: [Int!]!
+
+  """胜利玩家UID"""
+  winners: [Int!]!
+
+  """逃跑玩家UID"""
+  deserters: [Int!]!
+
+  """开始时间"""
+  startedAt: DateTime!
+
+  """持续时间"""
+  duration: Int!
+}
+
+type RequestSMSVerification {
+  key: String!
+  sendTo: String!
+
+  """二维码"""
+  qrCode: String!
+}
+
+type Register {
+  """登录令牌"""
+  token: String!
+
+  """用户"""
+  user: User!
+
+  """玩家"""
+  player: Player!
+}
