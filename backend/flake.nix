@@ -62,10 +62,6 @@
         pkgs = nixpkgs.legacyPackages.${system}.extend overlay;
       in {
         overlays.default = overlay;
-        packages = {
-          default = pkgs.callPackage ./default.nix {};
-        };
-
         devShells = {
           default = pkgs.mkShell {
             name = "thb-backend-shell";
