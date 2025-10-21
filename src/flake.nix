@@ -15,7 +15,7 @@
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
       in {
-        devShell = {
+        devShells = {
           default = pkgs.mkShell {
             name = "thbattle-shell";
             packages = [
