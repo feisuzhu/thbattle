@@ -1,10 +1,11 @@
 [project]
 name = "thbattle"
 version = "2.0.0"
-description = "Default template for PDM package"
-authors = [
-    {name = "Proton", email = "feisuzhu@163.com"},
-]
+description = "A Sanguosha board game clone, based on Touhou Project"
+readme = "README.md"
+license = { text = "GPL-3.0+" }
+authors = [{ name = "Proton", email = "feisuzhu@163.com" }]
+requires-python = ">=3.10"
 dependencies = [
     "gevent>=24.2.1",
     "requests>=2.31.0",
@@ -12,21 +13,69 @@ dependencies = [
     "websocket-client>=1.7.0",
     "msgpack>=1.0.8",
 ]
-requires-python = ">=3.10"
-readme = "README.md"
-license = {text = "GPL-3.0+"}
 
+[dependency-groups]
+dev = [
+    # "ipython>=8.22.2",
+    # "neovim>=0.3.1",
+    # "flake8>=7.0.0",
+    "coverage>=7.4.3",
+    "itsdangerous>=2.1.2",
+]
+tests = ["pytest>=8.0.2"]
+typing = ["mypy>=1.8.0"]
+
+[tool.uv]
+default-groups = ["dev", "tests", "typing"]
 
 [tool.pdm]
 distribution = false
 
-[tool.pdm.dev-dependencies]
-dev = [
-    "pytest>=8.0.2",
-    "ipython>=8.22.2",
-    "neovim>=0.3.1",
-    "flake8>=7.0.0",
-    "coverage>=7.4.3",
-    "mypy>=1.8.0",
-    "itsdangerous>=2.1.2",
+[tool.pyright]
+typeCheckingMode = "basic"
+reportUnusedExpression = false
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "F", # pyflakes
+    "W", # pycodestyle warnings
+    "E", # pycodestyle errors
+    # "I",     # isort
+    # "UP",    # pyupgrade
+    "ASYNC", # flake8-async
+    # "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "T10",   # flake8-debugger
+    "T20",   # flake8-print
+    "PYI",   # flake8-pyi
+    "PT",    # flake8-pytest-style
+    # "Q",     # flake8-quotes
+    "TID", # flake8-tidy-imports
+    # "RUF", # Ruff-specific rules
 ]
+ignore = [
+    "E501", # line-too-long
+    "E701", # multiple-statements-on-one-line(colon)
+    "E702", # multiple-statements-on-one-line(semicolon)
+    "E226", # missing-whitespace-around-arithmetic-operator
+    # "E124", # closing-bracket-does-not-match-visual-indentation
+    # "E128", # continuation-line-under-indented-for-visual-indent
+    "E221", # multiple-spaces-before-operator
+    "E241", # multiple-spaces-after-','
+    "E402", # module-import-not-at-top-of-file
+    "E731", # do-not-assign-a-lambda-expression-use-a-def
+    "E741", # do-not-use-variables-named-'I'-'O'-or-'l'
+    # "E127", # continuation-line-over-indented-for-visual-indent
+    # "E704", # multiple-statements-on-one-line(def)
+    # "W504", # line-break-occurred-after-a-binary-operator
+]
+
+[tool.ruff.lint.isort]
+# force-single-line = true
+# order-by-type = false
+
+[tool.ruff.format]
+quote-style = "single"

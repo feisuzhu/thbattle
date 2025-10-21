@@ -1,10 +1,13 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Default template for PDM package"
+description = "Backend for thbattle"
+readme = "README.md"
+license = {text = "GPL-3.0+"}
 authors = [
     {name = "Proton", email = "feisuzhu@163.com"},
 ]
+requires-python = ">=3.10"
 dependencies = [
     "redis>=5.0.2",
     "requests>=2.31.0",
@@ -28,22 +31,21 @@ dependencies = [
     "psycopg[binary]>=3.2.3",
     "greenlet>=3.1.1",
 ]
-requires-python = ">=3.10"
-readme = "README.md"
-license = {text = "GPL-3.0+"}
 
-
-[tool.pdm]
-distribution = false
-
-[tool.pdm.dev-dependencies]
+[dependency-groups]
 dev = [
-    "neovim>=0.3.1",
-    "flake8>=7.0.0",
+    # "neovim>=0.3.1",
+    # "flake8>=7.0.0",
     "werkzeug>=3.0.1",
     "pprintpp>=0.4.0",
-    "ipython>=8.22.2",
+    # "ipython>=8.22.2",
     "django-debug-permissions>=1.0.0",
     "pytest-django>=4.8.0",
     "factory-boy>=3.3.0",
 ]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.pdm]
+distribution = false
