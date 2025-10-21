@@ -15,19 +15,33 @@
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
       in {
-        devShell = pkgs.mkShell {
-          buildInputs = [
-            pkgs.uv
-            (pkgs.python3Minimal.withPackages
-              (ps:
-                with ps; [
-                  gevent
-                  requests
-                  raven
-                  websocket-client
-                  msgpack
-                ]))
-          ];
+        devShell = {
+          default = pkgs.mkShell {
+            name = "thbattle-shell";
+            packages = [
+              pkgs.uv
+              (
+                pkgs.python3.withPackages
+                (
+                  ps:
+                    with ps; let
+                      runtime = [
+                        gevent
+                        requests
+                        raven
+                        websocket-client
+                        msgpack
+                      ];
+                      dev = [
+                        coverage
+                        itsdangerous
+                      ];
+                    in
+                      runtime ++ dev
+                )
+              )
+            ];
+          };
         };
       }
     );

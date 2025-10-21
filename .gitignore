@@ -243,3 +243,5 @@ FakesAssemblies/
 target
 docker-compose.override.yml
 r
+
+.direnv
