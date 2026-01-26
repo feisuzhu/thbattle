@@ -2,7 +2,7 @@
   description = "A Sanguosha board game clone, based on Touhou Project";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "flake:nixpkgs";
     utils.url = "github:numtide/flake-utils";
   };
 
@@ -19,27 +19,8 @@
           default = pkgs.mkShell {
             name = "thbattle-shell";
             packages = [
-              pkgs.uv
-              (
-                pkgs.python3.withPackages
-                (
-                  ps:
-                    with ps; let
-                      runtime = [
-                        gevent
-                        requests
-                        raven
-                        websocket-client
-                        msgpack
-                      ];
-                      dev = [
-                        coverage
-                        itsdangerous
-                      ];
-                    in
-                      runtime ++ dev
-                )
-              )
+              pkgs.python3
+              pkgs.python3Packages.uv
             ];
           };
         };
