@@ -3,27 +3,27 @@
 
   inputs = {
     nixpkgs.url = "flake:nixpkgs";
-    utils.url = "github:numtide/flake-utils";
+    systems.url = "github:nix-systems/default";
   };
 
   outputs = {
     nixpkgs,
-    utils,
+    systems,
     ...
-  }:
-    utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in {
-        devShells = {
-          default = pkgs.mkShell {
-            name = "thbattle-shell";
-            packages = [
-              pkgs.python3
-              pkgs.python3Packages.uv
-            ];
-          };
-        };
-      }
-    );
+  }: let
+    eachSystem = nixpkgs.lib.genAttrs (import systems);
+    pkgsFor = nixpkgs.legacyPackages;
+  in {
+    devShells = eachSystem (system: let
+      pkgs = pkgsFor.${system};
+    in {
+      default = pkgs.mkShell {
+        name = "thbattle-shell";
+        packages = [
+          pkgs.python3
+          pkgs.python3Packages.uv
+        ];
+      };
+    });
+  };
 }
