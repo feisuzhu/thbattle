@@ -2,7 +2,6 @@
 
 # -- stdlib --
 from functools import lru_cache
-from typing import Tuple
 import argparse
 import os
 import shutil
@@ -14,7 +13,6 @@ from .android import setup_android_ndk
 from .misc import banner
 from .python import setup_python
 from .tinysh import Command, chdir, git, make, environ, sh, bash
-from .assets import assets
 
 
 # -- code --
@@ -230,7 +228,6 @@ def build_sqlite(version: str, arch: str = 'linux-x86_64'):
         configure(f"--prefix={sqlite.install}",
                   "--disable-shared",
                   "--enable-static",
-                  "--disable-docs",
                   "--disable-readline",
                   "--disable-tcl")
         make()
@@ -258,10 +255,6 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
 
     with chdir(cpython.repo):
         git.checkout(version)
-
-        # grp_patch = assets / 'python3.12.2.grpmodule.patch'
-        # assert grp_patch.exists()
-        # bash('-c', f'patch -p1 < {grp_patch}')
 
         with open('Modules/Setup.local', 'w') as f:
             f.write('\n'.join([
@@ -378,7 +371,7 @@ def main() -> int:
     global configure, cmake, options
     parser = argparse.ArgumentParser()
     parser.add_argument('--arch', default='linux-x86_64', choices=['linux-x86_64', 'x86_64', 'aarch64'])
-    parser.add_argument('--python', default='3.12')
+    parser.add_argument('--python', default='3.14')
     parser.add_argument('--android-api-level', type=int, default=21)
     options = parser.parse_args()
 
@@ -393,13 +386,13 @@ def main() -> int:
         configure = configure.bake(*env.autoconf_cross_args)
         # cmake = cmake.bake(*env.cmake_defines)
 
-    build_sqlite('version-3.45.1', options.arch)
-    build_libffi('v3.4.6', options.arch)
-    build_openssl('openssl-3.2.1', options.arch)
-    build_libgit2('v1.7.1', options.arch)
+    build_sqlite('version-3.51.2', options.arch)
+    build_libffi('v3.5.2', options.arch)
+    build_openssl('openssl-3.6.1', options.arch)
+    build_libgit2('v1.9.2', options.arch)
     build_libev('master', options.arch)
-    build_libcares('cares-1_27_0', options.arch)
-    build_cpython(python, 'v3.12.2', options.arch)
+    build_libcares('cares-1_29_0', options.arch)
+    build_cpython(python, 'v3.14.3', options.arch)
 
     if options.arch == 'linux-x86_64':
         host_pip_install = pip.install
@@ -407,7 +400,7 @@ def main() -> int:
         host_pip_install = setup_crossenv(python, pip, options.arch)
 
     build_trivial_packages(host_pip_install, options.arch)
-    build_gevent(host_pip_install, '24.2.1', options.arch)
+    build_gevent(host_pip_install, '25.9.1', options.arch)
     # build_pygit2(host_pip_install, options.arch)
 
     strip_binaries(options.arch)

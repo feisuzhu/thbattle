@@ -12,13 +12,6 @@ from .escapes import escape_codes
 
 
 # -- code --
-def is_in_venv() -> bool:
-    """
-    Are we in a virtual environment?
-    """
-    return hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
-
-
 def get_cache_home() -> Path:
     """
     Get the cache home directory. All intermediate files should be stored here.

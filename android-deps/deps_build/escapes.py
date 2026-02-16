@@ -12,7 +12,7 @@ Copied from colorlog
 This file is currently only used to display colored banner.
 """
 
-__all__ = ("escape_codes", "parse_colors")
+__all__ = ("escape_codes",)
 
 
 # Returns escape codes from format codes
@@ -43,8 +43,3 @@ PREFIXES = [
 for prefix, prefix_name in PREFIXES:
     for code, name in enumerate(COLORS):
         escape_codes[prefix_name + name] = esc(prefix + str(code))
-
-
-def parse_colors(sequence):
-    """Return escape codes from a color sequence."""
-    return "".join(escape_codes[n] for n in sequence.split(",") if n)
