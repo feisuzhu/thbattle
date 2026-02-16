@@ -245,6 +245,7 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
     openssl = ProjectPaths('openssl', arch)
     libffi = ProjectPaths('libffi', arch)
     sqlite = ProjectPaths('sqlite', arch)
+    zstd = ProjectPaths('zstd', arch)
 
     with open('/tmp/pkg-config-static', 'w') as f:
         f.write('#!/bin/bash\nexec pkg-config --static "$@"\n')
@@ -260,16 +261,16 @@ def build_cpython(build_python: Command, version: str, arch: str = 'linux-x86_64
             f.write('\n'.join([
                 '*disabled*',
                 '',
-                '_tkinter', '_lzma', 'grp', '_uuid',
+                '_tkinter', '_lzma', 'grp', '_uuid', '_remote_debugging',
                 '',
             ]))
 
-        pkgconfigs = ':'.join(str(v.pkgconfig) for v in (openssl, libffi, sqlite))
+        pkgconfigs = ':'.join(str(v.pkgconfig) for v in (openssl, libffi, sqlite, zstd))
 
         configure(
             'PKG_CONFIG=/tmp/pkg-config-static',
             f'PKG_CONFIG_PATH={pkgconfigs}',
-            f'LDFLAGS=-L{libffi.install}/lib',  # configure & setup.py is buggy, not respecting pkg-config
+            f'LDFLAGS=-L{libffi.install}/lib -L{zstd.install}/lib',
             f"--prefix={cpython.install}",
             f'--with-build-python={build_python.args[0]}',
             "--with-pkg-config=yes",
@@ -298,15 +299,38 @@ def setup_crossenv(python: Command, pip: Command, arch: str = 'linux-x86_64') ->
     crossenv.clean()
 
     pip.install('crossenv')
-    python('-m', 'crossenv', cpython.install / 'bin' / 'python3', crossenv.install)
+    python('-m', 'crossenv', '--without-cross-pip', cpython.install / 'bin' / 'python3', crossenv.install)
+
+    # Patch crossenv's platform-patch.py to add android_ver()
+    # (new in Python 3.13+, crossenv doesn't know about it yet)
+    patch_file = crossenv.install / 'lib' / 'platform-patch.py'
+    with open(patch_file, 'a') as f:
+        f.write('\n'.join([
+            '',
+            '',
+            'AndroidVer = namedtuple(',
+            '    "AndroidVer",',
+            '    ["release", "api_level", "manufacturer", "model", "device", "is_emulator"]',
+            ')',
+            '',
+            '',
+            f'def android_ver(release="", api_level=0, manufacturer="", model="",',
+            f'                device="", is_emulator=False):',
+            f'    if api_level == 0:',
+            f'        api_level = {options.android_api_level}',
+            f'    return AndroidVer(release, api_level, manufacturer, model, device, is_emulator)',
+            '',
+        ]))
 
     build_pip = Command(crossenv.install / 'build' / 'bin' / 'pip')
     build_pip.install('cffi')
 
+    cross_site = next((crossenv.install / 'cross').glob('**/site-packages'))
+    build_pip('install', 'pip', '--target', str(cross_site))
+
     base = crossenv.install / 'cross' / 'bin'
-    python = Command(base / 'python3')
     site = next(cpython.install.glob('**/site-packages'))
-    pip_install = Command(base / 'pip3', 'install', '--target', site)
+    pip_install = Command(str(base / 'python3'), '-m', 'pip', 'install', '--target', str(site))
     return pip_install
 
 
@@ -330,6 +354,33 @@ def build_libev(version: str, arch: str = 'linux-x86_64'):
         make()
         make.install()
         libev.set_installed()
+
+
+@banner("Build zstd - {arch}")
+def build_zstd(version: str, arch: str = 'linux-x86_64'):
+    zstd = ProjectPaths('zstd', arch)
+    pkgconfig.add(zstd)
+    if zstd.is_installed():
+        return
+
+    zstd.repo.exists() or git.clone('https://github.com/facebook/zstd.git', zstd.repo)
+    zstd.clean()
+
+    with chdir(zstd.repo):
+        git.checkout(version)
+
+    with chdir(zstd.build):
+        cmake(zstd.repo / 'build' / 'cmake',
+              '-DBUILD_SHARED_LIBS=OFF',
+              '-DZSTD_BUILD_PROGRAMS=OFF',
+              '-DZSTD_BUILD_TESTS=OFF',
+              '-DZSTD_BUILD_CONTRIB=OFF',
+              '-DCMAKE_BUILD_TYPE=Release',
+              '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
+              f'-DCMAKE_INSTALL_PREFIX={zstd.install}')
+        make()
+        make.install()
+        zstd.set_installed()
 
 
 @banner("Build libcares - {arch}")
@@ -392,6 +443,7 @@ def main() -> int:
     build_libgit2('v1.9.2', options.arch)
     build_libev('master', options.arch)
     build_libcares('cares-1_29_0', options.arch)
+    build_zstd('v1.5.7', options.arch)
     build_cpython(python, 'v3.14.3', options.arch)
 
     if options.arch == 'linux-x86_64':
