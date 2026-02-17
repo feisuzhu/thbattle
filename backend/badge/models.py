@@ -5,9 +5,8 @@
 from django.db import models
 
 # -- own --
+
 # -- code --
-
-
 class Badge(models.Model):
 
     class Meta:
