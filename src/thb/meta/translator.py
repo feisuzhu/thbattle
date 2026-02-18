@@ -9,8 +9,8 @@ import logging
 # -- own --
 from client.core import Core
 from game.base import Action, BootstrapAction, Player
-from thb.actions import Damage, Fatetell, MigrateCardsTransaction, Pindian, PlayerTurn, RevealRole
-from thb.actions import THBAction, UserAction
+from thb.actions import Damage, Fatetell, FatetellResult, MigrateCardsTransaction, Pindian
+from thb.actions import PlayerTurn, RevealRole, THBAction, UserAction
 from thb.cards.base import Card, VirtualCard
 from thb.meta import view
 from thb.mode import THBattle
@@ -162,6 +162,11 @@ def bootstrap_action_effect(g: THBattle, core: Core, evt: str, arg: Any):
     pass
 
 
+def fatetell_result_effect(g: THBattle, core: Core, evt: str, act: FatetellResult):
+    text = Fatetell.ui_meta.fatetell_prompt_string(act.fatetell)
+    core.gate.post('thb.ui.text', {'text': text})
+
+
 actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {
     'action_before': {
         Pindian:     pindian_effect_start,
@@ -174,10 +179,11 @@ actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {
         BootstrapAction: bootstrap_action_effect,
     },
     'action_after': {
-        Pindian:     pindian_effect_finish,
-        PlayerTurn:  player_turn_effect_after,
-        RevealRole:  reveal_role_effect,
-        THBAction:   general_action_effect,
+        FatetellResult: fatetell_result_effect,
+        Pindian:        pindian_effect_finish,
+        PlayerTurn:     player_turn_effect_after,
+        RevealRole:     reveal_role_effect,
+        THBAction:      general_action_effect,
     }
 }
 
@@ -224,11 +230,6 @@ def showcards_effect(g: THBattle, core: Core, evt: str, act: Any):
         })
 
 
-def fatetell_effect(g: THBattle, core: Core, evt: str, act: Any):
-    text = Fatetell.ui_meta.fatetell_prompt_string(act)
-    core.gate.post('thb.ui.text', {'text': text})
-
-
 def reseat_effects(g: THBattle, core: Core, evt: str, arg: Any):
     b4, after = arg
     core.gate.post('thb.ui.reseat', {
@@ -262,7 +263,6 @@ events_mapping: Dict[str, Callable] = {
     'action_before':       action_effects,
     'action_apply':        action_effects,
     'action_after':        fuse(sync_game_state, action_effects),
-    'fatetell':            fatetell_effect,
     'user_input_start':    sync_game_state,
     'post_card_migration': card_migration_effects,
     'detach_cards':        card_detach_effects,

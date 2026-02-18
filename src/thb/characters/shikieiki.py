@@ -46,7 +46,7 @@ class TrialAction(UseCard):
 
 
 class TrialHandler(THBEventHandler):
-    interested = ['fatetell']
+    interested = ['action_before']
     arbiter = FatetellMalleateHandler
     card_usage = 'use'
 

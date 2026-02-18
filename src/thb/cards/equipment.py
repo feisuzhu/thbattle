@@ -8,9 +8,9 @@ from typing import List, cast
 # -- own --
 from game.base import GameError
 from thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage
-from thb.actions import DropCards, FatetellAction, FatetellStage, FinalizeStage, ForEach
-from thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge
-from thb.actions import UserAction, VitalityLimitExceeded, detach_cards, migrate_cards
+from thb.actions import DropCards, FatetellAction, FatetellResult, FatetellStage, FinalizeStage
+from thb.actions import ForEach, GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction
+from thb.actions import Reforge, UserAction, VitalityLimitExceeded, detach_cards, migrate_cards
 from thb.actions import random_choose_card, register_eh, ttags, user_choose_cards
 from thb.cards import basic, spellcard
 from thb.cards.base import Card, PhysicalCard, Skill, TreatAs, t_None
@@ -922,18 +922,19 @@ class YinYangOrbSkill(AccessoriesSkill):
 
 @register_eh
 class YinYangOrbHandler(THBEventHandler):
-    interested = ['fatetell']
+    interested = ['action_before']
     execute_after = ['FatetellMalleateHandler']
 
     def handle(self, evt_type, act):
-        if evt_type == 'fatetell':
+        if evt_type == 'action_before' and isinstance(act, FatetellResult):
             g = self.game
-            tgt = act.target
+            ft = act.fatetell
+            tgt = ft.target
             if not tgt.has_skill(YinYangOrbSkill): return act
             if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            g.process_action(YinYangOrb(act))
+            g.process_action(YinYangOrb(ft))
 
         return act
 

@@ -1018,8 +1018,28 @@ class FatetellStage(GenericAction):
         return True
 
 
+class BaseFatetellResult(GenericAction):
+    fatetell: 'BaseFatetell'
+
+    def __init__(self, fatetell: 'BaseFatetell'):
+        self.fatetell = fatetell
+        self.source = fatetell.source
+        self.target = fatetell.target
+
+    def apply_action(self):
+        return True
+
+
+class FatetellResult(BaseFatetellResult):
+    pass
+
+
+class TurnOverCardResult(BaseFatetellResult):
+    pass
+
+
 class BaseFatetell(GenericAction):
-    type: str
+    result_cls: Type[BaseFatetellResult]
 
     def __init__(self, target, cond):
         self.source = target
@@ -1034,7 +1054,7 @@ class BaseFatetell(GenericAction):
         g.players.reveal(card)
         self.card = card
         detach_cards([card])
-        g.emit_event(self.type, self)
+        g.process_action(self.result_cls(self))
         return self.succeeded
 
     def set_card(self, card, card_manipulator):
@@ -1043,25 +1063,26 @@ class BaseFatetell(GenericAction):
 
     @property
     def succeeded(self):
-        # This is necessary, for ui
         return self.cond(self.card)
 
 
 class Fatetell(BaseFatetell):
-    type = 'fatetell'
+    result_cls = FatetellResult
 
 
 class TurnOverCard(BaseFatetell):
-    type = 'turnover'
+    result_cls = TurnOverCardResult
 
 
 class FatetellMalleateHandler(EventArbiter):
-    interested = ['fatetell']
+    interested = ['action_before']
     game: THBattle
 
-    def handle(self, evt_type, data):
-        if evt_type != 'fatetell': return data
+    def handle(self, evt_type, act):
+        if evt_type != 'action_before': return act
+        if not isinstance(act, FatetellResult): return act
 
+        ft = act.fatetell
         g = self.game
         try:
             tgt = PlayerTurn.get_current(g).target
@@ -1071,17 +1092,15 @@ class FatetellMalleateHandler(EventArbiter):
                     tgt = a.source
                     break
             else:
-                # No one's turn
-                # Only observed in `character_debut` events
                 tgt = g.players[0]
 
         n = len(g.players)
         idx = g.players.index(tgt) - n
         for i in range(idx, idx + n):
             for eh in self.handlers:
-                g.dispatcher.handle_single_event(eh, g.players[i], data)
+                g.dispatcher.handle_single_event(eh, g.players[i], ft)
 
-        return data
+        return act
 
 
 class FatetellAction(GenericAction):

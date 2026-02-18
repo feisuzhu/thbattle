@@ -46,7 +46,7 @@ class MiracleMalletAction(UseCard):
 
 
 class MiracleMalletHandler(THBEventHandler):
-    interested = ['fatetell']
+    interested = ['action_before']
     execute_before = ['YinYangOrbHandler']
     arbiter = FatetellMalleateHandler
     card_usage = 'use'
