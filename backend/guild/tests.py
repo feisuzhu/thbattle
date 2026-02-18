@@ -1,3 +1,2 @@
-from django.test import TestCase
-
-# Create your tests here.
+# -*- coding: utf-8 -*-
+# Guild app is not in INSTALLED_APPS, tests are skipped.

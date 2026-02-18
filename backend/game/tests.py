@@ -108,3 +108,91 @@ def test_GmSettleRewards(Q, auth_header):
     rid = rst['data']['GmSettleRewards'][0]['id']
     assert rid
     models.GameReward.objects.get(id=rid)
+
+
+@pytest.mark.django_db
+def test_game_query(Q, auth_header):
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+    PlayerFactory.create()
+
+    import random
+    gid = random.randint(100, 10000000)
+    game_input = {
+        'gameId': gid,
+        'name': 'TestGame',
+        'type': 'THBattle2v2',
+        'flags': {},
+        'players': [1, 2],
+        'winners': [1],
+        'deserters': [],
+        'startedAt': '2020-12-02T15:43:05Z',
+        'duration': 100,
+    }
+
+    Q('''
+        mutation CreateGame($game: GameInput!) {
+            GmArchive(game: $game, archive: "AAAA") { id }
+        }
+    ''', variables={'game': game_input}, headers=auth_header)
+
+    rst = Q('''
+        query TestGameQuery($id: Int!) {
+            game(id: $id) { id name type }
+        }
+    ''', variables={'id': gid}, headers=auth_header)
+
+    assert 'errors' not in rst
+    assert rst['data']['game']['id'] == gid
+    assert rst['data']['game']['name'] == 'TestGame'
+    assert rst['data']['game']['type'] == 'THBattle2v2'
+
+
+@pytest.mark.django_db
+def test_game_query_not_found(Q, auth_header):
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+
+    rst = Q('''
+        query {
+            game(id: 999999) { id }
+        }
+    ''', headers=auth_header)
+
+    assert 'errors' not in rst
+    assert rst['data']['game'] is None
+
+
+@pytest.mark.django_db
+def test_GmArchive_duplicate_rejected(Q, auth_header):
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+    PlayerFactory.create()
+
+    import random
+    gid = random.randint(100, 10000000)
+    game_input = {
+        'gameId': gid,
+        'name': 'foo',
+        'type': 'THBattle2v2',
+        'flags': {},
+        'players': [1, 2],
+        'winners': [1],
+        'deserters': [],
+        'startedAt': '2020-12-02T15:43:05Z',
+        'duration': 100,
+    }
+
+    Q('''
+        mutation A($game: GameInput!) {
+            GmArchive(game: $game, archive: "AAAA") { id }
+        }
+    ''', variables={'game': game_input}, headers=auth_header)
+
+    rst = Q('''
+        mutation B($game: GameInput!) {
+            GmArchive(game: $game, archive: "BBBB") { id }
+        }
+    ''', variables={'game': game_input}, headers=auth_header)
+
+    assert 'errors' in rst

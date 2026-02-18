@@ -27,8 +27,16 @@ class EmojiPackFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.EmojiPack
 
-    text = factory.Faker('lorem')
-    actor = factory.Faker('name')
+    name = factory.Sequence(lambda n: f'pack-{n}')
+
+
+class EmojiFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Emoji
+
+    pack = factory.SubFactory(EmojiPackFactory)
+    name = factory.Sequence(lambda n: f'emoji-{n}')
+    url  = factory.LazyAttribute(lambda o: f'http://example.com/{o.name}.png')
 
 
 @pytest.mark.django_db
@@ -59,3 +67,58 @@ def test_fixed_text_query(Q, auth_header):
     assert texts[1]['canUse']
     assert texts[2]['canUse']
     assert not texts[3]['canUse']
+
+
+@pytest.mark.django_db
+def test_emoji_packs_query(Q, auth_header):
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+
+    pack = EmojiPackFactory.create(name='Touhou Pack')
+    EmojiFactory.create(pack=pack, name='reimu')
+    EmojiFactory.create(pack=pack, name='marisa')
+
+    rst = Q('''
+        query TestEmojiPacks($ids: [Int!]!) {
+            emojiPacks(ids: $ids) { id name }
+        }
+    ''', variables={'ids': [pack.id]}, headers=auth_header)
+
+    assert 'errors' not in rst
+    assert len(rst['data']['emojiPacks']) == 1
+    assert rst['data']['emojiPacks'][0]['name'] == 'Touhou Pack'
+
+
+@pytest.mark.django_db
+def test_emojis_query(Q, auth_header):
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+
+    pack = EmojiPackFactory.create()
+    e1 = EmojiFactory.create(pack=pack, name='smile')
+    e2 = EmojiFactory.create(pack=pack, name='cry')
+
+    rst = Q('''
+        query TestEmojis($ids: [Int!]!) {
+            emojis(ids: $ids) { id name url }
+        }
+    ''', variables={'ids': [e1.id, e2.id]}, headers=auth_header)
+
+    assert 'errors' not in rst
+    names = {e['name'] for e in rst['data']['emojis']}
+    assert names == {'smile', 'cry'}
+
+
+@pytest.mark.django_db
+def test_fixed_text_empty_query(Q, auth_header):
+    from player.tests import PlayerFactory
+    PlayerFactory.create()
+
+    rst = Q('''
+        query {
+            fixedTexts(ids: [999]) { id }
+        }
+    ''', headers=auth_header)
+
+    assert 'errors' not in rst
+    assert rst['data']['fixedTexts'] == []

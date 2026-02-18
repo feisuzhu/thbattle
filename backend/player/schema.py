@@ -127,9 +127,9 @@ class PlayerQuery(gh.ObjectType):
     @staticmethod
     def resolve_player(root, info, id=None, forum_id=None, name=None, token=None):
         if id is not None:
-            return models.Player.objects.get(id=id)
+            return models.Player.objects.filter(id=id).first()
         elif name is not None:
-            return models.Player.objects.get(name=name.strip())
+            return models.Player.objects.filter(name=name.strip()).first()
 
         return None
 
