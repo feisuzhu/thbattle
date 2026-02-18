@@ -6,7 +6,7 @@ use actix::{Actor, Addr, AsyncContext, Context, Handler, Message, Recipient};
 use anyhow::{anyhow, bail};
 use log::debug;
 use rmp_serde as rmps;
-use serde_derive::Serialize;
+use serde::Serialize;
 
 use crate::actors::connection;
 use crate::actors::room;
@@ -228,20 +228,22 @@ impl Session {
             strip: "login.token.player.id".to_owned(),
         })?;
 
-        let resp = match ureq::post(&self.core.backend)
-            .set("Content-Type", "application/msgpack")
-            .send_bytes(&payload)
-        {
-            Ok(r) => r,
-            Err(ureq::Error::Status(_code, r)) => r,
-            Err(e) => bail!(e),
-        };
+        let agent = ureq::Agent::config_builder()
+            .http_status_as_error(false)
+            .build()
+            .new_agent();
 
+        let resp = agent
+            .post(&self.core.backend)
+            .header("Content-Type", "application/msgpack")
+            .send(&payload)?;
+
+        let mut body = resp.into_body();
         let mut rst: api::GraphQLResponse<Option<NonZeroU32>> =
-            rmps::from_read(resp.into_reader())?;
+            rmps::from_read(body.as_reader())?;
 
         if let Some(errors) = rst.errors.take() {
-            if errors.len() > 0 {
+            if !errors.is_empty() {
                 bail!("Backend GraphQL Error: {}", errors[0].message);
             }
         }

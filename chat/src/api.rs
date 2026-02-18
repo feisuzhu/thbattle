@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 
 use actix::prelude::*;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Message)]
 #[rtype(result = "()")]

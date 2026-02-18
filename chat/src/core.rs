@@ -4,7 +4,7 @@ use std::sync::Arc;
 use actix::Addr;
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
-use chashmap::CHashMap;
+use dashmap::DashMap;
 
 use crate::actors::{Connection, Room, Session};
 
@@ -12,8 +12,8 @@ use crate::actors::{Connection, Room, Session};
 pub struct ChatServerCore {
     pub backend: String,
     pub listen: String,
-    pub sessions: CHashMap<NonZeroU32, Addr<Session>>,
-    pub rooms: CHashMap<String, Addr<Room>>,
+    pub sessions: DashMap<NonZeroU32, Addr<Session>>,
+    pub rooms: DashMap<String, Addr<Room>>,
 }
 
 impl ChatServerCore {
