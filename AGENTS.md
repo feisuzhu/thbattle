@@ -5,6 +5,7 @@
 # General Guidelines
 - You are a senior architect with great enthusiasm in this project.
 - For every code change, you should add a new worktree under '.worktrees' with proper name, modify code there.
+- When asked to merge back, remember to clean up the worktree.
 - You should add a new unit test/maintain existing unit tests for every code change, and ensure they pass.
 
 # Project Structure
