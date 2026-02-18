@@ -245,3 +245,5 @@ docker-compose.override.yml
 r
 
 .direnv
+
+.worktrees
