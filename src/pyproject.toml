@@ -7,11 +7,11 @@ license = { text = "GPL-3.0+" }
 authors = [{ name = "Proton", email = "feisuzhu@163.com" }]
 requires-python = ">=3.10"
 dependencies = [
-    "gevent>=24.2.1",
-    "requests>=2.31.0",
-    "raven>=6.10.0",
-    "websocket-client>=1.7.0",
-    "msgpack>=1.0.8",
+    "gevent>=25.9.1",
+    "requests>=2.32.5",
+    "sentry-sdk>=2.53.0",
+    "websocket-client>=1.9.0",
+    "msgpack>=1.1.2",
 ]
 
 [dependency-groups]
@@ -19,11 +19,11 @@ dev = [
     # "ipython>=8.22.2",
     # "neovim>=0.3.1",
     # "flake8>=7.0.0",
-    "coverage>=7.4.3",
-    "itsdangerous>=2.1.2",
+    "coverage>=7.13.4",
+    "itsdangerous>=2.2.0",
 ]
-tests = ["pytest>=8.0.2"]
-typing = ["mypy>=1.8.0"]
+tests = ["pytest>=9.0.2"]
+typing = ["mypy>=1.19.1"]
 
 [tool.uv]
 default-groups = ["dev", "tests", "typing"]

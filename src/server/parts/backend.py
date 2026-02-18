@@ -90,8 +90,7 @@ class MockBackend(object):
 
     def _strip(self, q: str) -> str:
         q = q.strip()
-        q = re.sub(r'[\r\n]', '', q)
-        q = re.sub(r' +', ' ', q)
+        q = re.sub(r'\s+', ' ', q)
         return q
 
     def _reg(f: Callable, strip: Any = _strip, MOCKED: Any = MOCKED) -> Callable:  # type: ignore

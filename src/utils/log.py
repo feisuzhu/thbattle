@@ -2,16 +2,14 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any
 import datetime
 import logging
 import sys
 
 # -- third party --
-from raven.handlers.logging import SentryHandler
-from raven.transport.gevent import GeventedHTTPTransport
 import gevent
-import raven
+import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 # -- own --
 from utils.escapes import escape_codes
@@ -110,20 +108,24 @@ class ServerLogFormatter(logging.Formatter):
         return f'{prefix} {rec.message}'
 
 
+def _init_sentry(sentry_dsn, release):
+    if sentry_dsn:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            release=release,
+            integrations=[
+                LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
+            ],
+        )
+
+
 def init_embedded(level, sentry_dsn, release):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
     root.setLevel(0)
 
-    hdlr: Any
-
-    logging.getLogger('sentry.errors').setLevel(1000)
-
-    if sentry_dsn:
-        hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-        hdlr.setLevel(logging.ERROR)
-        root.addHandler(hdlr)
+    _init_sentry(sentry_dsn, release)
 
     hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setLevel(level)
@@ -146,12 +148,7 @@ def init_server(level, sentry_dsn, release, logfile, with_gr_name=True):
     std.setFormatter(fmter)
     root.addHandler(std)
 
-    if sentry_dsn:
-        hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-        hdlr.setLevel(logging.ERROR)
-        root.addHandler(hdlr)
-
-    logging.getLogger('sentry.errors').setLevel(1000)
+    _init_sentry(sentry_dsn, release)
 
     if logfile:
         from logging.handlers import WatchedFileHandler
