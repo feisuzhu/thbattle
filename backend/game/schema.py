@@ -20,6 +20,7 @@ from utils.graphql import Paging, require_perm
 class Game(DjangoObjectType):
     class Meta:
         model = models.Game
+        fields = '__all__'
 
     flags = ghg.GenericScalar(description='游戏选项', required=True)
 
@@ -27,12 +28,13 @@ class Game(DjangoObjectType):
 class GameReward(DjangoObjectType):
     class Meta:
         model = models.GameReward
+        fields = '__all__'
 
 
 class GameArchive(DjangoObjectType):
     class Meta:
         model = models.GameArchive
-        exclude = ['replay']
+        fields = ['game']
 
     exists = gh.Boolean(description='Replay 数据存在？')
     replay = gh.String(description='Replay 数据（Base64）')

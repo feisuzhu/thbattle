@@ -35,11 +35,13 @@ class User(DjangoObjectType):
 class Group(DjangoObjectType):
     class Meta:
         model = auth_models.Group
+        fields = '__all__'
 
 
 class Permission(DjangoObjectType):
     class Meta:
         model = auth_models.Permission
+        fields = '__all__'
 
 
 class Login(gh.ObjectType):

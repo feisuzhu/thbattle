@@ -20,6 +20,7 @@ class GameArchiveFactory(factory.django.DjangoModelFactory):
 class GameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Game
+        skip_postgeneration_save = True
 
     id         = factory.Sequence(lambda v: v)
     name       = 'name'

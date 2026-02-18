@@ -14,6 +14,7 @@ from . import models
 class Item(DjangoObjectType):
     class Meta:
         model = models.Item
+        fields = '__all__'
 
 
 '''

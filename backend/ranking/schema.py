@@ -22,6 +22,7 @@ TS = trueskill.TrueSkill(draw_probability=0.0)
 class RankingHistory(DjangoObjectType):
     class Meta:
         model = models.RankingHistory
+        fields = '__all__'
 
 
 class RankingQuery(gh.ObjectType):

@@ -18,6 +18,7 @@ from . import models
 class Server(DjangoObjectType):
     class Meta:
         model = models.Server
+        fields = '__all__'
 
     status = gh.String(required=True, description="服务器状态")
 
@@ -29,16 +30,19 @@ class Server(DjangoObjectType):
 class News(DjangoObjectType):
     class Meta:
         model = models.News
+        fields = '__all__'
 
 
 class Setting(DjangoObjectType):
     class Meta:
         model = models.Setting
+        fields = '__all__'
 
 
 class SMSVerification(DjangoObjectType):
     class Meta:
         model = models.SMSVerification
+        fields = '__all__'
 
 
 # ------------------------

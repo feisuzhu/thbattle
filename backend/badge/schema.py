@@ -12,8 +12,10 @@ from . import models
 class Badge(DjangoObjectType):
     class Meta:
         model = models.Badge
+        fields = '__all__'
 
 
 class PlayerBadge(DjangoObjectType):
     class Meta:
         model = models.PlayerBadge
+        fields = '__all__'

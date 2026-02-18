@@ -29,6 +29,7 @@ class FixedText(DjangoObjectType):
 class Emoji(DjangoObjectType):
     class Meta:
         model = models.Emoji
+        fields = '__all__'
 
 
 class EmojiPack(DjangoObjectType):

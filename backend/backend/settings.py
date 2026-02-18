@@ -131,7 +131,6 @@ SESSION_REDIS = {
     'db': 1,
     'prefix': 'session',
     'socket_timeout': 1,
-    'retry_on_timeout': False
 }
 
 REDIS_URL = 'redis://localhost:6379/0'

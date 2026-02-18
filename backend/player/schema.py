@@ -80,6 +80,7 @@ class Player(DjangoObjectType):
 class Report(DjangoObjectType):
     class Meta:
         model = models.Report
+        fields = '__all__'
 
 
 class Availability(gh.ObjectType):

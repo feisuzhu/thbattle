@@ -17,6 +17,7 @@ from utils.graphql import require_perm
 class Unlocked(DjangoObjectType):
     class Meta:
         model = models.Unlocked
+        fields = '__all__'
 
 
 class UnlockOps(gh.ObjectType):
