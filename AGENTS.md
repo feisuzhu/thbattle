@@ -39,7 +39,6 @@ Also ignore this.
 
 # Python Coding Styles
 - Use `format-imports` skill to format Python code top level import statements. MANDATORY.
+- Prefer to use early return style when possible. Avoid unnecessary indentation.
 - Prefer to use `pathlib` and its methods to operate on files, unless unfeasible.
 - Prefer to use vanilla `argparse` to parse args.
-
-
