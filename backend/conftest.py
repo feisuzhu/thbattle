@@ -20,7 +20,7 @@ def auth_header():
     signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
     data = base64.b64encode(msgpack.dumps({'type': 'user', 'id': 1}))
     tok = signer.sign(data).decode('utf-8')
-    return {'HTTP_AUTHORIZATION': f'Bearer {tok}'}
+    return {'Authorization': f'Bearer {tok}'}
 
 
 @pytest.fixture

@@ -49,15 +49,13 @@ def test_fixed_text_query(Q, auth_header):
 
     rst = Q('''
         query {
-            a: fixedText(id: 1) { canUse(pid: 1) }
-            b: fixedText(id: 2) { canUse(pid: 1) }
-            c: fixedText(id: 3) { canUse(pid: 1) }
+            fixedTexts(ids: [1, 2, 3]) { id canUse(pid: 1) }
         }
         ''', headers=auth_header
     )
 
     assert 'errors' not in rst
-    v = rst['data']
-    assert v['a']['canUse']
-    assert v['b']['canUse']
-    assert not v['c']['canUse']
+    texts = {t['id']: t for t in rst['data']['fixedTexts']}
+    assert texts[1]['canUse']
+    assert texts[2]['canUse']
+    assert not texts[3]['canUse']
