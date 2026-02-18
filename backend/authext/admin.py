@@ -6,7 +6,7 @@ from django.contrib import admin
 import django.contrib.auth.admin as auth_admin
 import django.contrib.auth.models as auth_models
 
-# -- own --
+# -- local --
 from . import models
 from player import models as player_models
 

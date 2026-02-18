@@ -13,19 +13,20 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # -- stdlib --
 from collections import defaultdict
+from pathlib import Path
 import argparse
 import ast
 import importlib.util
-import os
 import sys
 import sysconfig
 import warnings
 
 # -- third party --
+# -- local --
+# -- errord --
 from pyflakes.checker import Checker as PyflakesChecker
 from pyflakes.messages import UnusedImport
 
-# -- own --
 
 # -- code --
 MAX_LINE_WIDTH = 100
@@ -33,7 +34,7 @@ MAX_LINE_WIDTH = 100
 MARKER_PRIORITIZED = '# -- prioritized --'
 MARKER_STDLIB = '# -- stdlib --'
 MARKER_THIRD_PARTY = '# -- third party --'
-MARKER_OWN = '# -- own --'
+MARKER_LOCAL = '# -- local --'
 MARKER_TYPING = '# -- typing --'
 MARKER_ERRORD = '# -- errord --'
 MARKER_CODE = '# -- code --'
@@ -41,23 +42,59 @@ MARKER_CODE = '# -- code --'
 CATEGORY_FUTURE = 'future'
 CATEGORY_STDLIB = 'stdlib'
 CATEGORY_THIRD_PARTY = 'third_party'
-CATEGORY_OWN = 'own'
+CATEGORY_LOCAL = 'local'
 CATEGORY_TYPING = 'typing'
 CATEGORY_ERROR = 'error'
+
+_STDLIB_NAMES = getattr(sys, 'stdlib_module_names', None)
+_third_party_top_levels = set()
+_pyproject_root = None
 
 SECTION_ORDER = [
     (MARKER_STDLIB, CATEGORY_STDLIB),
     (MARKER_THIRD_PARTY, CATEGORY_THIRD_PARTY),
-    (MARKER_OWN, CATEGORY_OWN),
+    (MARKER_LOCAL, CATEGORY_LOCAL),
 ]
 
 SECTION_MARKERS = frozenset({
     MARKER_PRIORITIZED, MARKER_STDLIB, MARKER_THIRD_PARTY,
-    MARKER_OWN, MARKER_TYPING, MARKER_ERRORD, MARKER_CODE,
+    MARKER_LOCAL, MARKER_TYPING, MARKER_ERRORD, MARKER_CODE,
 })
 
 
 # -- Helpers --
+
+def _find_project_site_packages(start_dir=None):
+    """Find site-packages from the project's virtualenv.
+
+    Searches upward from start_dir (or cwd if not given) for .venv/venv
+    directories.
+    """
+    venv_path = None
+    directory = Path(start_dir).resolve() if start_dir else Path.cwd()
+    while True:
+        for candidate in ('.venv', 'venv'):
+            path = directory / candidate
+            if (path / 'lib').is_dir() or (path / 'Lib').is_dir():
+                venv_path = path
+                break
+        if venv_path:
+            break
+        parent = directory.parent
+        if parent == directory:
+            break
+        directory = parent
+
+    if not venv_path:
+        return []
+
+    return [
+        str(p) for p in (
+            *venv_path.glob('lib/python*/site-packages'),
+            *venv_path.glob('Lib/site-packages'),
+        )
+    ]
+
 
 def format_alias(node):
     """Format an ast.alias node as 'name' or 'name as alias'."""
@@ -83,6 +120,70 @@ def stmt_start_line(stmt):
     return stmt.lineno
 
 
+def _scan_third_party_top_levels(site_packages_dirs):
+    """Build a set of top-level package names from site-packages directories.
+
+    Uses only filesystem inspection, so it works regardless of which Python
+    version created the virtualenv.
+    """
+    names = set()
+    for sp_dir in site_packages_dirs:
+        sp = Path(sp_dir)
+        if not sp.is_dir():
+            continue
+        for dist_info in sp.glob('*.dist-info'):
+            top_level = dist_info / 'top_level.txt'
+            if top_level.is_file():
+                for line in top_level.read_text().splitlines():
+                    name = line.strip()
+                    if name:
+                        names.add(name)
+        for entry in sp.iterdir():
+            ename = entry.name
+            if ename == '__pycache__':
+                continue
+            if entry.is_dir() and not ename.endswith(('.dist-info', '.egg-info')):
+                names.add(ename)
+            elif ename.endswith('.py'):
+                names.add(entry.stem)
+    return names
+
+
+def _find_pyproject_root(start_dir=None):
+    """Find the nearest directory containing pyproject.toml by walking upward."""
+    directory = Path(start_dir).resolve() if start_dir else Path.cwd()
+    while True:
+        if (directory / 'pyproject.toml').is_file():
+            return directory
+        parent = directory.parent
+        if parent == directory:
+            return None
+        directory = parent
+
+
+def _is_stdlib(name):
+    """Check if a module belongs to the standard library."""
+    if _STDLIB_NAMES is not None:
+        return name in _STDLIB_NAMES
+    try:
+        spec = importlib.util.find_spec(name)
+    except (ModuleNotFoundError, ValueError):
+        return False
+    if spec is None:
+        return False
+    if spec.origin in ('built-in', 'frozen'):
+        return True
+    if spec.origin:
+        try:
+            Path(spec.origin).resolve().relative_to(
+                Path(sysconfig.get_path('stdlib')).resolve()
+            )
+            return True
+        except ValueError:
+            pass
+    return False
+
+
 def classify_module(name):
     """Classify a module into a category based on its origin."""
     if name.endswith('TT'):
@@ -93,31 +194,21 @@ def classify_module(name):
     if top_level == '__future__':
         return CATEGORY_FUTURE
     if not top_level:
-        return CATEGORY_OWN
+        return CATEGORY_LOCAL
 
-    spec = importlib.util.find_spec(top_level)
-    if spec is None:
-        return CATEGORY_ERROR
-    if spec.origin in ('built-in', 'frozen'):
-        return CATEGORY_STDLIB
-
-    path = spec.origin
-    if path is None:
-        if not spec.submodule_search_locations:
-            return CATEGORY_ERROR
-        path = spec.submodule_search_locations[0]
-
-    if not path:
-        return CATEGORY_ERROR
-
-    if '/site-packages/' in path or '/dist-packages/' in path:
+    if top_level in _third_party_top_levels:
         return CATEGORY_THIRD_PARTY
-    if path.startswith(os.path.realpath(sysconfig.get_path('stdlib'))):
+    if _is_stdlib(top_level):
         return CATEGORY_STDLIB
-    if path.startswith(os.getcwd()):
-        return CATEGORY_OWN
 
-    return CATEGORY_THIRD_PARTY
+    local_roots = [Path.cwd()]
+    if _pyproject_root is not None and _pyproject_root not in local_roots:
+        local_roots.append(_pyproject_root)
+    for root in local_roots:
+        if (root / top_level).is_dir() or (root / (top_level + '.py')).is_file():
+            return CATEGORY_LOCAL
+
+    return CATEGORY_ERROR
 
 
 # -- Parsing --
@@ -384,24 +475,53 @@ def parse_args():
         description='Format and sort Python imports.',
     )
     parser.add_argument(
-        '--files', nargs='+', default=None,
+        '--files', nargs='+', default=None, type=Path,
         help='Python files to format in place. If omitted, reads from stdin and writes to stdout.',
     )
-    return parser.parse_args()
+    parser.add_argument(
+        '--force-stdin', action='store_true', default=False,
+        help='Read source from stdin instead of the file. Requires exactly one --files arg '
+             'which is used only as the filename for virtualenv discovery and unused-import detection.',
+    )
+    args = parser.parse_args()
+    return args
 
 
 def main():
     args = parse_args()
-    sys.path.insert(0, os.getcwd())
 
-    if args.files:
-        for filename in args.files:
-            with open(filename) as f:
-                raw_src = f.read()
-            output = format_source(raw_src, filename)
-            with open(filename, 'w') as f:
-                f.write(output)
+    global _pyproject_root
+
+    if args.force_stdin and args.files:
+        assert len(args.files) == 1, '--force-stdin requires at most one --files argument'
+        filepath = args.files[0].resolve()
+        _third_party_top_levels.update(
+            _scan_third_party_top_levels(
+                _find_project_site_packages(filepath.parent)
+            )
+        )
+        _pyproject_root = _find_pyproject_root(filepath.parent)
+        raw_src = sys.stdin.read()
+        output = format_source(raw_src, str(filepath))
+        sys.stdout.write(output)
+    elif args.files:
+        for filepath in args.files:
+            filepath = filepath.resolve()
+            _third_party_top_levels.clear()
+            _third_party_top_levels.update(
+                _scan_third_party_top_levels(
+                    _find_project_site_packages(filepath.parent)
+                )
+            )
+            _pyproject_root = _find_pyproject_root(filepath.parent)
+            raw_src = filepath.read_text()
+            output = format_source(raw_src, str(filepath))
+            filepath.write_text(output)
     else:
+        _third_party_top_levels.update(
+            _scan_third_party_top_levels(_find_project_site_packages())
+        )
+        _pyproject_root = _find_pyproject_root()
         raw_src = sys.stdin.read()
         output = format_source(raw_src)
         sys.stdout.write(output)

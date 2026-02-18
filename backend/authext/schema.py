@@ -9,7 +9,7 @@ import django.contrib.auth as auth
 import django.contrib.auth.models as auth_models
 import graphene as gh
 
-# -- own --
+# -- local --
 from . import models
 from utils.graphql import require_perm
 

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 # -- third party --
-from player.models import Player
 from django.db import models
 
-# -- own --
+# -- local --
+from player.models import Player
 
 
 # -- code --
