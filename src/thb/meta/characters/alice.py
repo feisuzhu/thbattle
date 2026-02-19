@@ -33,7 +33,7 @@ class LittleLegion:
         '<style=Desc.Li>武器：视为对一名其他角色使用了<style=Card.Name>弹幕</style>。</style>'
         '<style=Desc.Li>防具：令一名角色回复1点体力。</style>'
         '<style=Desc.Li>饰品：摸一张牌并跳过弃牌阶段。</style>'
-        '<style=Desc.Li>UFO：视为使用一张<style=Card.Name>人型操控</style>。</style>'
+        '<style=Desc.Li>UFO：视为使用一张<style=Card.Name>人形操控</style>。</style>'
     )
 
 
@@ -107,7 +107,7 @@ class LittleLegionControlAction:
         g = self.game
 
         if not pl:
-            return (False, '控场：请选择2名玩家，视为使用<style=Card.Name>人型操控</style>')
+            return (False, '控场：请选择2名玩家，视为使用<style=Card.Name>人形操控</style>')
 
         from thb.cards.classes import DollControlCard
 
@@ -133,7 +133,7 @@ class LittleLegionHandler:
             elif c.equipment_category == 'accessories':
                 text = '（饰品）：跳过弃牌阶段。'
             elif c.equipment_category in ('redufo', 'greenufo'):
-                text = '（UFO）：视为使用<style=Card.Name>人型操控</style>。'
+                text = '（UFO）：视为使用<style=Card.Name>人形操控</style>。'
             else:
                 text = '（BUG）：什么鬼……'
 

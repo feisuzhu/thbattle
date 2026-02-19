@@ -14,7 +14,7 @@ from thb.meta.common import ui_meta, N
 class PerfectFreeze:
     # Skill
     name = '完美冻结'
-    description = '每当你使用<style=Card.Name>弹幕</style>或<style=Card.Name>弹幕战</style>对其他角色造成伤害时，你可以防止此次伤害，并令该角色弃置一张牌，若其弃置的不为装备区的牌，其失去1点体力。'
+    description = '每当你使用<style=Card.Name>弹幕</style>或<style=Card.Name>弹幕战</style>对其他角色造成伤害时，你可以防止此次伤害，并令该角色弃置一张牌，若其弃置的不为装备区的牌，其流失1点体力。'
 
 
 @ui_meta(characters.cirno.CirnoDropCards)

@@ -26,7 +26,7 @@ class THBattleRole(UIMetaBare):
         '<style=B>BOSS技</style>：<sprite=Role.Boss>身份的玩家在开场会获得BOSS技。某些角色在在设定上有专属的BOSS技，开局时会额外获得。没有专属BOSS技的角色会在如下几个通用BOSS技中选择一个获得：'
         '<style=Desc.Li><style=Skill.Name>同仇</style>：当你需要使用或打出一张<style=Card.Name>弹幕</style>时，其他玩家可以代替你使用或打出一张<style=Card.Name>弹幕</style>。</style>'
         '<style=Desc.Li><style=Skill.Name>协力</style>：当你需要使用或打出一张<style=Card.Name>擦弹</style>时，其他玩家可以代替你使用或打出一张<style=Card.Name>擦弹</style>。</style>'
-        '<style=Desc.Li><style=Skill.Name>牺牲</style>：当你于濒死状态下，被一名角色使用<style=Card.Name>麻薯</style>而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。</style>'
+        '<style=Desc.Li><style=Skill.Name>牺牲</style>：当你于濒死状态下，被一名角色使用<style=Card.Name>麻薯</style>而回复体力至1后，其可以流失一点体力，令你额外回复一点体力。</style>'
         '<style=Desc.Li><style=Skill.Name>应援</style>：<style=B>锁定技</style>，每有一名道中存活，你的手牌上限增加一。</style>'
     ).strip()
 
@@ -125,7 +125,7 @@ class AssistedHealHandler:
 class AssistedHeal:
     # Skill
     name = '牺牲'
-    description = '当你于濒死状态下，被一名角色使用<style=Card.Name>麻薯</style>而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。'
+    description = '当你于濒死状态下，被一名角色使用<style=Card.Name>麻薯</style>而回复体力至1后，其可以流失一点体力，令你额外回复一点体力。'
 
 
 @ui_meta(thbrole.ExtraCardSlot)

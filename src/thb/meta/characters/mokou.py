@@ -26,7 +26,7 @@ class Mokou:
 class Ashes:
     # Skill
     name = '浴火'
-    description = '结束阶段开始时，你可以失去1点体力，然后摸两张牌。'
+    description = '结束阶段开始时，你可以流失1点体力，然后摸两张牌。'
 
 
 @ui_meta(characters.mokou.AshesAction)
@@ -49,7 +49,7 @@ class AshesHandler:
 class Reborn:
     # Skill
     name = '重生'
-    description = '准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的体力值）'
+    description = '准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的体力）'
 
 
 @ui_meta(characters.mokou.RebornAction)

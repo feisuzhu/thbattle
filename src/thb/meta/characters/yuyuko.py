@@ -33,7 +33,7 @@ class Yuyuko:
 class GuidedDeath:
     # Skill
     name = '诱死'
-    description = '出牌阶段限一次，你可以令一名其它角色失去一点体力，然后其于回合结束阶段回复一点体力。回合结束阶段，若你于出牌阶段没有发动过该技能，则所有体力值为1的其它角色失去一点体力。'
+    description = '出牌阶段限一次，你可以令一名其它角色流失一点体力，然后其于结束阶段回复一点体力。结束阶段，若你于出牌阶段没有发动过该技能，则所有体力为1的其它角色流失一点体力。'
 
     def clickable(self):
         me = self.me
@@ -71,7 +71,7 @@ class SoulDrain:
     description = (
         '你的回合内，当一名其它角色进入濒死状态时，你摸一张牌，然后你可以与该角色拼点：'
         '<style=Desc.Li>若你赢，则将其体力上限改为1。</style>'
-        '<style=Desc.Li>若你没赢，则将其体力值改为1。</style>'
+        '<style=Desc.Li>若你没赢，则将其体力改为1。</style>'
     )
 
 

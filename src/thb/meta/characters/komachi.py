@@ -27,7 +27,7 @@ class Komachi:
 class Riverside:
     # Skill
     name = '彼岸'
-    description = '出牌阶段限一次，你可以弃置一张牌并指定一名其他角色，你与其距离视为1直到回合结束，然后若该角色的体力值为全场最少的（或之一），你选择一项：<style=Desc.Li>摸一张牌</style><style=Desc.Li>弃置其一张牌</style>'
+    description = '出牌阶段限一次，你可以弃置一张牌并指定一名其他角色，你与其距离视为1直到回合结束，然后若该角色的体力为全场最少的（或之一），你选择一项：<style=Desc.Li>摸一张牌</style><style=Desc.Li>弃置其一张牌</style>'
 
     def clickable(self):
         me = self.me
@@ -79,7 +79,7 @@ class Returning:
     # Skill
     name = '归航'
     description = (
-        '<style=B>觉醒技</style>，准备阶段开始时，若你体力值小于手牌数且不大于2，你减1点体力上限并获得技能<style=Skill.Name>渡钱</style>。'
+        '<style=B>觉醒技</style>，准备阶段开始时，若你体力小于手牌数且不大于2，你减1点体力上限并获得技能<style=Skill.Name>渡钱</style>。'
         '<style=Desc.Li><style=Skill.Name>渡钱</style>：每当你对距离1的其他角色造成伤害后，你可以获得其一张牌。</style>'
     )
 

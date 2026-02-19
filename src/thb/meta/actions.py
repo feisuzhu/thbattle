@@ -44,11 +44,11 @@ class ActiveDropCards:
         if act.cond(cards):
             return (True, 'OK，就这些了')
         else:
-            return (False, f'请弃掉{act.dropn}张牌…')
+            return (False, f'请弃置{act.dropn}张牌…')
 
     def effect_string(self, act):
         if act.dropn > 0 and act.cards:
-            return f'{N.char(act.target)}弃掉了{act.dropn}张牌：{N.card(act.cards)}。'
+            return f'{N.char(act.target)}弃置了{act.dropn}张牌：{N.card(act.cards)}。'
 
 
 @ui_meta(actions.Damage)

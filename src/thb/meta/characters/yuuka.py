@@ -52,7 +52,7 @@ class ReversedScales:
 class Sadist:
     # Skill
     name = '施虐'
-    description = '当你击坠一名角色时，你可以对攻击范围内一名其他角色造成1点伤害；你对体力值为1的其他角色造成的伤害+1。'
+    description = '当你击坠一名角色时，你可以对攻击范围内一名其他角色造成1点伤害；你对体力为1的其他角色造成的伤害+1。'
 
 
 @ui_meta(characters.yuuka.SadistKOF)

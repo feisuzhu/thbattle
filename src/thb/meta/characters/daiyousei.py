@@ -101,7 +101,7 @@ class SupportKOFHandler:
 class Moe:
     # Skill
     name = '卖萌'
-    description = '<style=B>锁定技</style>，摸牌阶段你额外摸X张牌（X为你已损失的体力值）。'
+    description = '<style=B>锁定技</style>，摸牌阶段你额外摸X张牌（X为你已损失的体力）。'
 
 
 @ui_meta(characters.daiyousei.MoeDrawCard)

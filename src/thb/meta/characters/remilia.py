@@ -17,7 +17,7 @@ class SpearTheGungnir:
     name = '神枪'
     description = (
         '满足下列条件之一时，你可以令你的<style=Card.Name>弹幕</style>不能被响应：'
-        '<style=Desc.Li>目标角色的体力值 大于 你的体力值。</style>'
+        '<style=Desc.Li>目标角色的体力 大于 你的体力。</style>'
         '<style=Desc.Li>目标角色的手牌数 小于 你的手牌数。</style>'
     )
 

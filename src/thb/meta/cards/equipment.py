@@ -410,7 +410,7 @@ class IbukiGourdCard:
     effect_string = suppress_launch_card_effect_string
 
     description = (
-        '装备后立即获得<style=B>喝醉</style>状态。并且，若你在出牌阶段没有造成过伤害，在回合结束阶段获得<style=B>喝醉</style>状态。'
+        '装备后立即获得<style=B>喝醉</style>状态。并且，若你在出牌阶段没有造成过伤害，在结束阶段获得<style=B>喝醉</style>状态。'
     )
 
 
@@ -502,7 +502,7 @@ class HakuroukenCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '攻击范围2，装备后：当你使用的草花色<style=Card.Name>弹幕</style>指定一名目标角色后，你可以令其选择一项：'
+        '攻击范围2，装备后：当你使用的梅花色<style=Card.Name>弹幕</style>指定一名目标角色后，你可以令其选择一项：'
         '<style=Desc.Li>弃置一张手牌。</style>'
         '<style=Desc.Li>令你摸一张牌。</style>'
         '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
@@ -524,7 +524,7 @@ class Hakurouken:
         if act.cond(cards):
             return (True, '弃置这张牌')
         else:
-            return (False, '请弃掉一张牌（否则对方摸一张牌）')
+            return (False, '请弃置一张牌（否则对方摸一张牌）')
 
     def effect_string_before(self, act):
         return f'{N.char(act.source)}祭起了<style=Card.Name>白楼剑</style>，试图斩断{N.char(act.target)}的迷惘！'
@@ -573,7 +573,7 @@ class AyaRoundfanHandler:
         if act.cond(cards):
             return (True, '这种妨碍拍摄的东西，统统脱掉！')
         else:
-            return (False, '请弃掉一张手牌发动团扇（否则不发动）')
+            return (False, '请弃置一张手牌发动团扇（否则不发动）')
 
 
 @ui_meta(equipment.AyaRoundfan)
@@ -654,7 +654,7 @@ class LaevateinHandler:
         if act.cond(cards):
             return (True, '灭世之炎岂能轻易闪过！')
         else:
-            return (False, '请弃掉两张牌发动莱瓦汀（否则不发动）')
+            return (False, '请弃置两张牌发动莱瓦汀（否则不发动）')
 
 
 @ui_meta(equipment.Laevatein)
@@ -879,7 +879,7 @@ class GrimoireCard:
         '<style=Desc.Li>黑桃♠视为<style=Card.Name>百鬼夜行</style>。</style>'
         '<style=Desc.Li>红桃♥视为<style=Card.Name>宴会</style>。</style>'
         '<style=Desc.Li>梅花♣视为<style=Card.Name>地图炮</style>。</style>'
-        '<style=Desc.Li>方片♦视为<style=Card.Name>五谷丰登</style>。</style>'
+        '<style=Desc.Li>方块♦视为<style=Card.Name>五谷丰登</style>。</style>'
         '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav

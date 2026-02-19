@@ -105,7 +105,7 @@ class WineCard:
     description = (
         '出牌阶段，对自己使用。使用后获得<style=B>喝醉</style>状态。'
         '<style=Desc.Li><style=B>喝醉</style>状态下，使用<style=Card.Name>弹幕</style>造成的伤害+1，受到致命伤害时伤害-1。</style>'
-        '<style=Desc.Li>效果触发或者到了自己的准备阶段开始时须弃掉<style=B>喝醉</style>状态。</style>'
+        '<style=Desc.Li>效果触发或者到了自己的准备阶段开始时须弃置<style=B>喝醉</style>状态。</style>'
         '<style=Desc.Li>你可以于喝醉状态下继续使用酒，但效果不叠加。</style>'
     )
 

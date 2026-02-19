@@ -16,7 +16,7 @@ class RiverBehind:
     # Skill
     name = '背水'
     description = (
-        '<style=B>觉醒技</style>，准备阶段开始时，若你体力值为全场最低或之一且不大于2时，你减1点体力上限并获得技能<style=Skill.Name>太极</style>。'
+        '<style=B>觉醒技</style>，准备阶段开始时，若你体力为全场最低或之一且不大于2时，你减1点体力上限并获得技能<style=Skill.Name>太极</style>。'
         '<style=Desc.Li><style=Skill.Name>太极</style>：你可将<style=Card.Name>弹幕</style>当<style=Card.Name>擦弹</style>，<style=Card.Name>擦弹</style>当<style=Card.Name>弹幕</style>使用或打出。</style>'
     )
 

@@ -156,7 +156,7 @@ class SummonKOF:
     name = '通灵'
     description = (
         '你可以将击坠角色的角色牌加入你的备选角色；出牌阶段，你可以和你的备选角色交换角色牌，然后结束出牌阶段。'
-        '<style=Desc.Attention>你的体力值保留，体力上限会调整到与新角色一致。</style>'
+        '<style=Desc.Attention>你的体力保留，体力上限会调整到与新角色一致。</style>'
     )
 
     def clickable(self):

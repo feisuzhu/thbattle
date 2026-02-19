@@ -28,7 +28,7 @@ class Kaguya:
 class Dilemma:
     # Skill
     name = '难题'
-    description = '每当一名角色令你回复1点体力后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：<style=Desc.Li>交给你一张方块牌，</style><style=Desc.Li>失去1点体力。</style>'
+    description = '每当一名角色令你回复1点体力后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：<style=Desc.Li>交给你一张方块牌，</style><style=Desc.Li>流失1点体力。</style>'
 
 
 @ui_meta(characters.kaguya.DilemmaDamageAction)
@@ -36,9 +36,9 @@ class DilemmaDamageAction:
     # choose_card meta
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '交出一张方片牌')
+            return (True, '交出一张方块牌')
         else:
-            return (False, '请选择交出一张方片牌（否则失去一点体力）')
+            return (False, '请选择交出一张方块牌（否则流失一点体力）')
 
     def effect_string_before(self, act):
         return f'{N.char(act.source)}对{N.char(act.target)}发动了<style=Skill.Name>难题</style>。'

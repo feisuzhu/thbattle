@@ -165,8 +165,8 @@ class KanakoFaithKOF:
     # Skill
     name = '信仰'
     description = (
-        '<style=B>锁定技</style>，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）：'
-        '<style=Desc.Li>你的体力值大于对方。\n'
+        '<style=B>锁定技</style>，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力）：'
+        '<style=Desc.Li>你的体力大于对方。\n'
         '<style=Desc.Li>你曾于出牌阶段对对方造成过伤害。\n'
 
     )

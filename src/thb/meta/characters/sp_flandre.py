@@ -26,7 +26,7 @@ class SpFlandre:
 class DestructionImpulse:
     # Skill
     name = '破坏冲动'
-    description = '<style=B>锁定技</style>，结束阶段结束后，若你本回合没有造成过伤害，你对距离最近的一名其他角色造成1点伤害，并失去1点体力。'
+    description = '<style=B>锁定技</style>，结束阶段结束后，若你本回合没有造成过伤害，你对距离最近的一名其他角色造成1点伤害，并流失1点体力。'
 
 
 @ui_meta(characters.sp_flandre.DestructionImpulseAction)
@@ -58,7 +58,7 @@ class DestructionImpulseHandler:
 class FourOfAKind:
     # Skill
     name = '四重存在'
-    description = '每当你受到一次不大于你当前体力值的伤害时，你可以减少1点体力上限并防止此伤害；你体力值为1时，你为伤害来源的卡牌造成的伤害+1。'
+    description = '每当你受到一次不大于你当前体力的伤害时，你可以减少1点体力上限并防止此伤害；你体力为1时，你为伤害来源的卡牌造成的伤害+1。'
 
 
 @ui_meta(characters.sp_flandre.FourOfAKindHandler)

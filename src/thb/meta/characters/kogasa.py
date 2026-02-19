@@ -96,8 +96,8 @@ class SurpriseAction:
     choose_option_buttons = (
         ('黑桃', Card.SPADE),
         ('红桃', Card.HEART),
-        ('草花', Card.CLUB),
-        ('方片', Card.DIAMOND),
+        ('梅花', Card.CLUB),
+        ('方块', Card.DIAMOND),
     )
 
     # choose_option

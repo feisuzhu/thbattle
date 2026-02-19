@@ -28,7 +28,7 @@ class Medicine:
 class Ciguatera:
     # Skill
     name = '神经之毒'
-    description = '一名角色准备阶段开始时，你可以弃置一张黑色牌，令其失去1点体力并获得<style=B>喝醉</style>状态。'
+    description = '一名角色准备阶段开始时，你可以弃置一张黑色牌，令其流失1点体力并获得<style=B>喝醉</style>状态。'
 
 
 @ui_meta(characters.medicine.CiguateraAction)
