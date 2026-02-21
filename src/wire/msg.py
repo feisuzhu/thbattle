@@ -33,7 +33,7 @@ class Message:
         raise Exception('Abstract')
 
     def encode(self) -> dict:
-        ...
+        raise NotImplementedError
 
     @classmethod
     def decode(cls, data: dict) -> Optional[Message]:
@@ -53,7 +53,7 @@ def message(cls: Type[Message]) -> Type[Message]:
 
     if cls.encode is Message.encode:
         env: Any = {}
-        fields = [f"    '{i.name}': self.{i.name}," for i in dataclasses.fields(cls)]
+        fields = [f"    '{i.name}': self.{i.name}," for i in dataclasses.fields(cls)]  # type: ignore[arg-type]
         code = (
             "def encode(self) -> dict:"
             "    return {"

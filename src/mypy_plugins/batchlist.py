@@ -7,7 +7,7 @@ from typing import Callable, Optional, cast
 # -- own --
 # -- errord --
 from mypy.checkmember import bind_self
-from mypy.nodes import Decorator, MemberExpr, CallExpr
+from mypy.nodes import Decorator, MemberExpr, CallExpr, NameExpr
 from mypy.plugin import AttributeContext, MethodSigContext, Plugin
 from mypy.types import AnyType, CallableType, Instance, Type, TypeOfAny, UnionType
 
@@ -52,6 +52,8 @@ def batchlist_attribute_hook(ctx: AttributeContext) -> Type:
         callee = expr.callee
         assert isinstance(callee, MemberExpr)
         field = callee.name
+    elif isinstance(expr, NameExpr):
+        field = expr.name
     else:
         assert False, expr
 

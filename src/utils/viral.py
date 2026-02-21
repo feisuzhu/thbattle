@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
+from types import FrameType
 from typing import Sequence, Type
 import sys
 
@@ -31,7 +32,7 @@ class ViralContext(object):
 
     @classmethod
     def viral_search(cls, start=1):
-        f = sys._getframe(start) or None
+        f: FrameType | None = sys._getframe(start)
         while f:
             for name in cls.VIRAL_SEARCH:
                 that = f.f_locals.get(name)

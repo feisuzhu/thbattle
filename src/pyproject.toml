@@ -23,7 +23,7 @@ dev = [
     "itsdangerous>=2.2.0",
 ]
 tests = ["pytest>=9.0.2"]
-typing = ["mypy>=1.19.1"]
+typing = ["mypy>=1.19.1", "types-requests>=2.32.0"]
 
 [tool.uv]
 default-groups = ["dev", "tests", "typing"]
