@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 
 use super::base::ZeroSized;
 use super::game::{Game, Result};
-use super::object::GameObject;
+use super::object::{GameObject, Handle};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActionPhase {
@@ -11,11 +11,11 @@ pub enum ActionPhase {
     Ready,
     /// Cancelled before execution (by event handlers during `action_before`).
     Cancelled,
-    /// Failed pre-validation (`is_valid()` returned false, or shootdown).
+    /// Failed pre-validation (`is_valid()` returned false, or being shotdown).
     Invalid,
-    /// Executed and completed. `succeeded` records the outcome of `apply()`.
-    Succeeded,
-    Failed,
+    /// Executed and completed. The boolean value indicates if the Action successfully 'applied',
+    /// or, finished its designed purpose (happy path)
+    Done(bool),
 }
 
 // Alias
@@ -64,5 +64,5 @@ pub trait Action {
     /// Only considers the Action's own requirements; does not consider interactions with other
     /// entities. So this is an necessary condition. Actions survived ActionShootdown are considere
     /// truly ready to fire.
-    fn is_valid(&self, g: &mut Game, act: &ActionObject) -> Result<bool>;
+    fn is_valid(&self, g: &mut Game, act: Handle) -> Result<bool>;
 }

@@ -1,9 +1,10 @@
-use std::cell::Ref;
+use std::rc::Rc;
 
 use log::debug;
 
 use super::action::{ActionEffect, ActionObject, ActionPhase};
-use super::object::{GameObject, Handle, ObjectArena};
+use super::event::EventDispatcher;
+use super::object::{with, GameObject, Handle, ObjectArena};
 
 #[derive(Debug, thiserror::Error)]
 pub enum AlternativePath {
@@ -59,8 +60,12 @@ pub struct Game {
 
     // Actions and EventHandlers currently resolving
     pub hybrid_stack: Vec<Handle>,
+
+    // GameEvents are dispatched by dispatcher
+    pub dispatcher: Rc<EventDispatcher>,
 }
 
+#[derive(Copy, Clone)]
 pub enum GameEvent {
     /// Action passed its own is_valid test, seeking for wider scope validation.
     /// Action object not push onto action_stack
@@ -104,6 +109,7 @@ impl Game {
             arena: ObjectArena::new(),
             action_stack: vec![],
             hybrid_stack: vec![],
+            dispatcher: EventDispatcher::new(),
         }
     }
 
@@ -111,71 +117,6 @@ impl Game {
         self.sequence += 1;
         self.sequence
     }
-
-    /*
-    def process_action(self, action: A) -> bool:
-        // if self.ended:
-        //     return False
-
-        if not action.can_fire():
-            log.debug('action invalid %s' % action.__class__.__name__)
-            return False
-
-        try:
-            action.succeeded = False
-        except AttributeError:
-            pass
-
-        action = self.emit_event('action_before', action)
-        if action.done:
-            log.debug('action already done %s' % action.__class__.__name__)
-            rst = action.succeeded
-        elif action.cancelled:
-            log.debug('action cancelled, not firing: %s' % action.__class__.__name__)
-            rst = False
-        elif not action.can_fire():
-            log.debug('action invalid, not firing: %s' % action.__class__.__name__)
-            action.invalid = True
-            rst = False
-        else:
-            log.debug('applying action %s' % action.__class__.__name__)
-            action = self.emit_event('action_apply', action)
-            assert not action.cancelled
-            try:
-                self.action_stack.append(action)
-                self.hybrid_stack.append(action)
-                hybrid = self.hybrid_stack  # noqa, when crashes pytest will show hybrid stack here by inspecting local variables
-                rst = action.apply_action()
-            except InterruptActionFlow as e:
-                if e.unwind_to is action:
-                    rst = False
-                else:
-                    raise
-            finally:
-                _a = self.action_stack.pop()
-                _b = self.hybrid_stack.pop()
-                assert _a is _b is action
-
-                # If exception occurs here,
-                # the action should be abandoned,
-                # code below makes no sense,
-                # so it's ok to ignore them.
-
-            assert rst in (True, False), 'Action.apply_action must return boolean!'
-            try:
-                action.succeeded = rst
-            except AttributeError:
-                pass
-
-            action = self.emit_event('action_after', action)
-
-            rst = action.succeeded
-            action.done = True
-
-        self.emit_event('action_done', action)
-
-        return rst
-    */
 
     /// Process a game action through the full lifecycle.
     ///
@@ -191,13 +132,11 @@ impl Game {
         use AlternativePath::*;
         use GameEvent::*;
 
-        let g = self;
-
         let effect: ActionEffect = *action.need();
         let phase: ActionPhase = *action.need();
 
         match phase {
-            Succeeded | Failed => {
+            Done(_) => {
                 panic!("action already done");
             }
             Cancelled => {
@@ -211,89 +150,106 @@ impl Game {
             _ => (),
         }
 
-        let aid = g.arena.add(action);
+        let act = self.arena.add(action);
 
         // Pre-validation.
-        if !g.can_fire(aid)? {
-            let [act] = g.arena.reference([aid]);
-            *act.need::<ActionPhase>() = Invalid;
+        if !self.can_fire(act)? {
+            with!(self, |phase: ActionPhase@act| {
+                *phase = Invalid;
+            });
             debug!("...");
             return Ok(false);
         }
 
-        g.action_stack.push(aid);
-        g.hybrid_stack.push(aid);
-        let mut g = {
-            let la = g.action_stack.len();
-            let lh = g.hybrid_stack.len();
-            scopeguard::guard(g, move |g| {
+        self.action_stack.push(act);
+        self.hybrid_stack.push(act);
+        let balancer = {
+            let la = self.action_stack.len();
+            let lh = self.hybrid_stack.len();
+            let g: *mut Game = self;
+            scopeguard::guard((), move |()| {
+                // SAFETY: We are not capturing &mut Game into anything, so it must be valid at the
+                // point of return
+                let g = unsafe { &mut *g };
                 assert!(g.action_stack.len() == la, "Unbalanced action_stack!");
                 assert!(g.hybrid_stack.len() == lh, "Unbalanced hybrid_stack!");
-                assert!(
-                    g.action_stack[g.action_stack.len() - 1] == aid,
-                    "Tampered action_stack!"
-                );
-                assert!(
-                    g.hybrid_stack[g.hybrid_stack.len() - 1] == aid,
-                    "Tampered hybrid_stack!"
-                );
                 g.action_stack.pop();
                 g.hybrid_stack.pop();
             })
         };
 
         // --- ActionBefore: handlers may cancel or resolve early ---
-        match g.emit_event(ActionBefore) {
+        match self.emit_event(ActionBefore) {
             Ok(()) => {}
             Err(ActionCancelled) => {
                 debug!("...");
-                let [act] = g.arena.reference([aid]);
-                *act.need::<ActionPhase>() = Cancelled;
+                with!(self, |phase: ActionPhase@act| {
+                    *phase = Cancelled;
+                });
             }
             Err(v) => return Err(v),
         }
 
-        {
-            let [act] = g.arena.reference([aid]);
-            let phase: ActionPhase = *act.need();
-            match phase {
-                rst @ (Succeeded | Failed) => {
-                    debug!("...");
-                    return Ok(rst == Succeeded);
-                }
-                Cancelled => {
-                    debug!("...");
-                    return Ok(false);
-                }
-                _ => {}
+        // act might be replaced
+        let act = *self.action_stack.last().unwrap();
+        let phase = with!(self, |phase: *ActionPhase@act| { phase });
+
+        match phase {
+            Done(rst) => {
+                debug!("...");
+                return Ok(rst);
             }
+            Cancelled => {
+                debug!("...");
+                return Ok(false);
+            }
+            _ => {}
         }
 
         // Re-validate after handler modifications.
-        if !g.can_fire(aid)? {
-            let [act] = g.arena.reference([aid]);
-            *act.need::<ActionPhase>() = Invalid;
+        if !self.can_fire(act)? {
+            with!(self, |phase: ActionPhase@act| {
+                *phase = Invalid;
+            });
             debug!("...");
             return Ok(false);
         }
 
         // --- action_apply + execute ---
-        match g.emit_event(ActionApply) {
-            Ok(v) => {
-                act.need::<i32>();
+        self.emit_event(ActionApply)?;
+        let phase = with!(self, |phase: *ActionPhase@act| { phase });
+        assert!(phase != Cancelled);
+        let rst = effect.apply(self);
+        drop(balancer);
+        let rst = match rst {
+            Ok(v) => v,
+            Err(InterruptActionFlow { unwind_to }) => {
+                if unwind_to != act {
+                    return Err(InterruptActionFlow { unwind_to });
+                } else {
+                    false
+                }
             }
-            _ => {}
-        }
-        Ok(true)
+            Err(v) => return Err(v),
+        };
+        with!(self, |phase: ActionPhase@act| {
+            *phase = Done(rst);
+        });
+
+        // --- action_done ---
+        self.emit_event(ActionDone(act))?;
+
+        Ok(rst)
     }
 
+    #[must_use]
     pub fn can_fire(&mut self, aid: Handle) -> Result<bool> {
         use AlternativePath::ActionWasShotdown;
         use GameEvent::ActionShootdown;
 
         let [act] = self.arena.reference([aid]);
-        let effect = act.need::<ActionEffect>();
-        if !(effect.is_valid(self, act)?) {
+        let effect = *act.need::<ActionEffect>();
+        if !(effect.is_valid(self, aid)?) {
             debug!("action failed is_valid check: {}", effect.name());
             return Ok(false);
         }
