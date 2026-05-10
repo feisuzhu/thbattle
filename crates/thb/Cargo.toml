@@ -1,0 +1,13 @@
+[package]
+name = "thb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+thiserror = "2"
+log = "0.4"
+heapless = "0.9.3"
+stack_dst = "0.8.1"
+scopeguard = "1.2.0"
+thb-macros = { path = "../thb-macros" }
