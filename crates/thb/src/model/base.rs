@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::ptr::{DynMetadata, Pointee};
 
-trait TraitObject = Pointee<Metadata = DynMetadata<Self>>;
+pub(crate) trait TraitObject = Pointee<Metadata = DynMetadata<Self>>;
 
 ///|
 /// Encapsuled zero sized trait object. Just a vtable ptr, useful for function dispatch.

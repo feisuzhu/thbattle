@@ -21,9 +21,6 @@ pub enum ActionPhase {
 // Alias
 pub type ActionObject = GameObject;
 
-///|
-type ActionEffectInner = stack_dst::Value<dyn Action, stack_dst::buffers::Ptr1>;
-
 /// Component, should be zero sized struct implements Action trait
 #[derive(Copy, Clone)]
 pub struct ActionEffect(ZeroSized<dyn Action>);
@@ -43,7 +40,7 @@ impl DerefMut for ActionEffect {
 }
 
 impl ActionEffect {
-    fn new<T: Action + Debug + Copy + 'static>(val: T) -> Self {
+    pub(crate) fn new<T: Action + Debug + Copy + 'static>(val: T) -> Self {
         Self(ZeroSized::new(val))
     }
 }

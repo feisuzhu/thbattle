@@ -65,7 +65,19 @@ pub struct Game {
     pub dispatcher: Rc<EventDispatcher>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, strum::EnumDiscriminants)]
+#[strum_discriminants(
+    name(GameEventKind),
+    derive(
+        Hash,
+        PartialOrd,
+        Ord,
+        strum::FromRepr,
+        strum::EnumIter,
+        strum::EnumCount
+    ),
+    repr(u8)
+)]
 pub enum GameEvent {
     /// Action passed its own is_valid test, seeking for wider scope validation.
     /// Action object not push onto action_stack
@@ -109,7 +121,7 @@ impl Game {
             arena: ObjectArena::new(),
             action_stack: vec![],
             hybrid_stack: vec![],
-            dispatcher: EventDispatcher::new(),
+            dispatcher: Rc::new(EventDispatcher::build(&[])),
         }
     }
 
@@ -263,91 +275,9 @@ impl Game {
         }
     }
 
-    /// Dispatch an event to observer → ad-hoc handlers → regular handlers.
-    ///
-    /// For action events (`action_*`), dispatch stops early if cancelled.
     #[must_use]
     pub fn emit_event(&mut self, ev: GameEvent) -> Result<()> {
-        /*
-        let is_action_event = evt_type.starts_with("action_");
-
-        // Observer gets first crack (swap pattern, same as handlers).
-        if let Some(mut observer) = self.ev_observer.take() {
-            let result = observer.handle(evt_type, action, self);
-            self.ev_observer = Some(observer);
-            result?;
-        }
-
-        // Ad-hoc handlers (highest priority, LIFO insertion order).
-        let adhoc_indices = self.dispatcher.relevant_adhoc_indices(evt_type);
-        for idx in adhoc_indices {
-            if is_action_event && action.meta().status.is_cancelled() {
-                return Ok(());
-            }
-            self.dispatch_adhoc_handler(idx, evt_type, action)?;
-        }
-
-        // Regular handlers (topologically sorted).
-        let handler_indices = self.dispatcher.relevant_handler_indices(evt_type);
-        for idx in handler_indices {
-            if is_action_event && action.meta().status.is_cancelled() {
-                return Ok(());
-            }
-            self.dispatch_handler(idx, evt_type, action)?;
-        }
-
-        Ok(())
-        */
-        Ok(())
+        // TODO: adhoc handlers
+        self.dispatcher.clone().dispatch(self, ev)
     }
-
-    /*
-
-    /// Dispatch to a regular handler via the swap pattern.
-    ///
-    /// The handler is [`Option::take`]n out of the dispatcher, called with
-    /// `&mut self`, then restored. This lets the handler call back into
-    /// `game.process_action()` (re-entrant dispatch) without borrow conflicts.
-    /// A `None` slot means the handler is already executing — skip it.
-    fn dispatch_handler(
-        &mut self,
-        idx: usize,
-        evt_type: &str,
-        action: &mut dyn Action,
-    ) -> GameResult<()> {
-        let mut handler = match self.dispatcher.handlers[idx].take() {
-            Some(h) => h,
-            None => return Ok(()), // handler is mid-execution (re-entrant skip)
-        };
-
-        let handler_name = handler.name().to_string();
-
-        let result = handler.handle(evt_type, action, self);
-
-        self.dispatcher.handlers[idx] = Some(handler);
-
-        result
-    }
-
-    /// Same swap pattern for ad-hoc handlers.
-    fn dispatch_adhoc_handler(
-        &mut self,
-        idx: usize,
-        evt_type: &str,
-        action: &mut dyn Action,
-    ) -> GameResult<()> {
-        let mut handler = match self.dispatcher.adhoc[idx].take() {
-            Some(h) => h,
-            None => return Ok(()),
-        };
-
-        let handler_name = handler.name().to_string();
-
-        let result = handler.handle(evt_type, action, self);
-
-        self.dispatcher.adhoc[idx] = Some(handler);
-
-        result
-    }
-    */
 }

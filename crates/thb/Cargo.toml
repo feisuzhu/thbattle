@@ -12,3 +12,4 @@ stack_dst = { version = "0.8.1", features = ["unsize"] }
 scopeguard = "1.2.0"
 thb-macros = { path = "../thb-macros" }
 nonmax = "0.5.5"
+strum = { version = "0.26", features = ["derive"] }
