@@ -16,4 +16,4 @@ strum = { version = "0.26", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 rmp-serde = "1"
 erased-serde = "0.4"
-trait-cast = "0.4"
+

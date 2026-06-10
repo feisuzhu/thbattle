@@ -4,23 +4,24 @@ use std::fmt::Debug;
 use nonmax::NonMaxU32;
 use stack_dst::array_buf;
 use stack_dst::Value;
-use trait_cast::{TraitcastableAny, TraitcastableAnyInfra};
 
-#[derive(Debug, Copy, Clone, Default, TraitcastableAny)]
-#[traitcast_targets()]
+use crate::utils::traitcast::{Castable, CastableInfra};
+
+#[derive(Debug, Copy, Clone, Default, Castable)]
+#[casts_to()]
 struct EmptyComponentSlot;
 
 const COMPONENTS: usize = 6;
 
 pub struct GameObject {
-    components: [Value<dyn TraitcastableAny, array_buf![usize; U2]>; COMPONENTS],
+    components: [Value<dyn Castable, array_buf![usize; U2]>; COMPONENTS],
 }
 
 macro_rules! find_slot {
     ($components:expr, $T:ty) => {
         $components
             .iter()
-            .position(|v| TraitcastableAnyInfra::<$T>::is(&**v))
+            .position(|v| CastableInfra::<$T>::is(&**v))
             .unwrap_or_else(|| panic!("need: {} not present", type_name::<$T>()))
     };
 }
@@ -57,10 +58,7 @@ impl GameObject {
             .components
             .get_disjoint_mut([a, b])
             .expect("need2: indices disjoint by construction");
-        (
-            s1.downcast_mut().unwrap(),
-            s2.downcast_mut().unwrap(),
-        )
+        (s1.downcast_mut().unwrap(), s2.downcast_mut().unwrap())
     }
 
     pub fn need3<T1: 'static, T2: 'static, T3: 'static>(&mut self) -> (&mut T1, &mut T2, &mut T3) {
@@ -78,9 +76,9 @@ impl GameObject {
         )
     }
 
-    pub fn add<T: TraitcastableAny + Debug + 'static>(&mut self, component: T) -> &mut T {
+    pub fn add<T: Castable + Debug + 'static>(&mut self, component: T) -> &mut T {
         for v in self.components.iter_mut() {
-            if TraitcastableAnyInfra::<EmptyComponentSlot>::is(&**v) {
+            if CastableInfra::<EmptyComponentSlot>::is(&**v) {
                 *v = Value::new(component).expect("Component size too big");
                 return v.downcast_mut().unwrap();
             }
@@ -88,7 +86,7 @@ impl GameObject {
         panic!("Too many components");
     }
 
-    pub fn ensure<T: TraitcastableAny + Debug + Default + 'static>(&mut self) -> &mut T {
+    pub fn ensure<T: Castable + Debug + Default + 'static>(&mut self) -> &mut T {
         // The borrow checker can't see that component()'s borrow ends
         // before add() in the `None` branch, since the returned reference
         // could alias with `self` through the `return v` path. A raw pointer
@@ -141,16 +139,16 @@ mod with_tests {
         arena: ObjectArena,
     }
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, TraitcastableAny)]
-    #[traitcast_targets()]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Castable)]
+    #[casts_to()]
     struct CompA(u32);
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, TraitcastableAny)]
-    #[traitcast_targets()]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Castable)]
+    #[casts_to()]
     struct CompB(i64);
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, TraitcastableAny)]
-    #[traitcast_targets()]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Castable)]
+    #[casts_to()]
     struct CompC(u8);
 
     fn make_host() -> (Host, Handle, Handle, Handle, Handle) {
