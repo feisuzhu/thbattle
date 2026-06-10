@@ -1,7 +1,5 @@
 use std::fmt;
 
-use crate::fundamentals::PlayerId;
-
 /// A player in the game.
 ///
 /// Game-specific data (character, skills, hand) lives in the game mode's
@@ -9,8 +7,7 @@ use crate::fundamentals::PlayerId;
 /// from mode specifics.
 #[derive(Clone)]
 pub struct Player {
-    pub pid: PlayerId,
-    pub name: String,
+    pub pid: u32,
 }
 
 impl Player {

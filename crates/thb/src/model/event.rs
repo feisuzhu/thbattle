@@ -11,6 +11,7 @@ use super::game::{Game, GameEvent, GameEventKind};
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct ShortId(u64);
 
+#[inline]
 pub const fn short_id(tid: TypeId) -> ShortId {
     let (a, b): (u64, u64) = unsafe { std::mem::transmute(tid) };
     ShortId(a ^ b)

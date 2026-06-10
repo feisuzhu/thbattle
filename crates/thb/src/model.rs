@@ -7,3 +7,4 @@ pub mod base;
 pub mod event;
 pub mod game;
 pub mod object;
+pub mod sync;
