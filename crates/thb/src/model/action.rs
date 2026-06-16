@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
 
-use super::base::ZeroSized;
+use crate::utils::embedded::Embedded;
 use super::game::{Game, Result};
 use super::object::{GameObject, Handle};
 
@@ -23,7 +23,7 @@ pub type ActionObject = GameObject;
 
 /// Component, should be zero sized struct implements Action trait
 #[derive(Copy, Clone)]
-pub struct ActionEffect(ZeroSized<dyn Action>);
+pub struct ActionEffect(Embedded<dyn Action, 0>);
 
 impl Deref for ActionEffect {
     type Target = dyn Action;
@@ -41,7 +41,7 @@ impl DerefMut for ActionEffect {
 
 impl ActionEffect {
     pub(crate) fn new<T: Action + Debug + Copy + 'static>(val: T) -> Self {
-        Self(ZeroSized::new(val))
+        Self(Embedded::new(val))
     }
 }
 
@@ -59,7 +59,7 @@ pub trait Action {
 
     /// Pre-check: is this action valid and ready to fire?
     /// Only considers the Action's own requirements; does not consider interactions with other
-    /// entities. So this is an necessary condition. Actions survived ActionShootdown are considere
-    /// truly ready to fire.
+    /// entities. So this is an necessary condition. Actions survived ActionShootdown are
+    /// considered truly ready to fire.
     fn is_valid(&self, g: &mut Game, act: Handle) -> Result<bool>;
 }

@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use strum::EnumCount;
 
-use super::base::ZeroSized;
+use crate::utils::embedded::Embedded;
 use super::game::Result;
 use super::game::{Game, GameEvent, GameEventKind};
 
@@ -62,7 +62,7 @@ where
 }
 
 pub struct EventDispatcher {
-    handlers: [Box<[ZeroSized<dyn EventHandler>]>; GameEventKind::COUNT],
+    handlers: [Box<[Embedded<dyn EventHandler, 0>]>; GameEventKind::COUNT],
 }
 
 impl EventDispatcher {
@@ -71,12 +71,12 @@ impl EventDispatcher {
     /// topo order. Direct port of `EventHandler.make_list` plus
     /// `_get_relevant_eh` cache in Python `src/game/base.py`. Panics on
     /// circular dependencies.
-    pub fn build(handlers: &[ZeroSized<dyn EventHandler>]) -> Self {
+    pub fn build(handlers: &[Embedded<dyn EventHandler, 0>]) -> Self {
         // Initial stable sort by `ShortId` to give the Kahn-style topo sort
         // a deterministic tie-breaker. `ShortId` order has no human meaning
         // and may shift across rustc/codegen versions, but it is stable
         // within a single build — which is all the algorithm requires.
-        let mut nodes: Vec<ZeroSized<dyn EventHandler>> = handlers.to_vec();
+        let mut nodes: Vec<Embedded<dyn EventHandler, 0>> = handlers.to_vec();
         nodes.sort_by_key(|h| h.id());
 
         let n = nodes.len();
@@ -119,7 +119,7 @@ impl EventDispatcher {
             }
         }
 
-        let mut toposorted: Vec<ZeroSized<dyn EventHandler>> = Vec::with_capacity(n);
+        let mut toposorted: Vec<Embedded<dyn EventHandler, 0>> = Vec::with_capacity(n);
         let mut remaining: Vec<usize> = (0..n).collect();
 
         while !remaining.is_empty() {
@@ -144,7 +144,7 @@ impl EventDispatcher {
             remaining = deferred;
         }
 
-        let mut buckets: [Vec<ZeroSized<dyn EventHandler>>; GameEventKind::COUNT] =
+        let mut buckets: [Vec<Embedded<dyn EventHandler, 0>>; GameEventKind::COUNT] =
             std::array::from_fn(|_| Vec::new());
         for h in &toposorted {
             for &kind in h.interested() {

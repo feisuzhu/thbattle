@@ -1,11 +1,9 @@
 use std::any::type_name;
 use std::fmt::Debug;
 
-use nonmax::NonMaxU32;
-use stack_dst::array_buf;
-use stack_dst::Value;
-
+use crate::utils::embedded::Embedded;
 use crate::utils::traitcast::{Castable, CastableInfra};
+use nonmax::NonMaxU32;
 
 #[derive(Debug, Copy, Clone, Default, Castable)]
 #[casts_to()]
@@ -14,7 +12,7 @@ struct EmptyComponentSlot;
 const COMPONENTS: usize = 6;
 
 pub struct GameObject {
-    components: [Value<dyn Castable, array_buf![usize; U2]>; COMPONENTS],
+    components: [Embedded<dyn Castable, 16>; COMPONENTS],
 }
 
 macro_rules! find_slot {
@@ -29,7 +27,7 @@ macro_rules! find_slot {
 impl GameObject {
     pub fn new() -> GameObject {
         GameObject {
-            components: std::array::from_fn(|_| Value::new(EmptyComponentSlot).unwrap()),
+            components: std::array::from_fn(|_| Embedded::new(EmptyComponentSlot)),
         }
     }
 
@@ -76,17 +74,17 @@ impl GameObject {
         )
     }
 
-    pub fn add<T: Castable + Debug + 'static>(&mut self, component: T) -> &mut T {
+    pub fn add<T: Castable + Copy + Debug + 'static>(&mut self, component: T) -> &mut T {
         for v in self.components.iter_mut() {
             if CastableInfra::<EmptyComponentSlot>::is(&**v) {
-                *v = Value::new(component).expect("Component size too big");
+                *v = Embedded::new(component);
                 return v.downcast_mut().unwrap();
             }
         }
         panic!("Too many components");
     }
 
-    pub fn ensure<T: Castable + Debug + Default + 'static>(&mut self) -> &mut T {
+    pub fn ensure<T: Castable + Copy + Debug + Default + 'static>(&mut self) -> &mut T {
         // The borrow checker can't see that component()'s borrow ends
         // before add() in the `None` branch, since the returned reference
         // could alias with `self` through the `return v` path. A raw pointer
