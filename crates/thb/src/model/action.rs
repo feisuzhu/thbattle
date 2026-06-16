@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
 
-use crate::utils::embedded::Embedded;
+use crate::utils::embedded::ZeroSized;
 use super::game::{Game, Result};
 use super::object::{GameObject, Handle};
 
@@ -23,7 +23,7 @@ pub type ActionObject = GameObject;
 
 /// Component, should be zero sized struct implements Action trait
 #[derive(Copy, Clone)]
-pub struct ActionEffect(Embedded<dyn Action, 0>);
+pub struct ActionEffect(ZeroSized<dyn Action>);
 
 impl Deref for ActionEffect {
     type Target = dyn Action;
@@ -41,7 +41,7 @@ impl DerefMut for ActionEffect {
 
 impl ActionEffect {
     pub(crate) fn new<T: Action + Debug + Copy + 'static>(val: T) -> Self {
-        Self(Embedded::new(val))
+        Self(ZeroSized::new(val))
     }
 }
 

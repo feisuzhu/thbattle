@@ -74,7 +74,7 @@ impl GameObject {
         )
     }
 
-    pub fn add<T: Castable + Copy + Debug + 'static>(&mut self, component: T) -> &mut T {
+    pub fn add<T: Castable + Debug + 'static>(&mut self, component: T) -> &mut T {
         for v in self.components.iter_mut() {
             if CastableInfra::<EmptyComponentSlot>::is(&**v) {
                 *v = Embedded::new(component);
@@ -84,7 +84,7 @@ impl GameObject {
         panic!("Too many components");
     }
 
-    pub fn ensure<T: Castable + Copy + Debug + Default + 'static>(&mut self) -> &mut T {
+    pub fn ensure<T: Castable + Debug + Default + 'static>(&mut self) -> &mut T {
         // The borrow checker can't see that component()'s borrow ends
         // before add() in the `None` branch, since the returned reference
         // could alias with `self` through the `return v` path. A raw pointer

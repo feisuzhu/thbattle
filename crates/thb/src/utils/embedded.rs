@@ -7,23 +7,69 @@ use std::ptr::{DynMetadata, Pointee};
 
 pub trait TraitObject = Pointee<Metadata = DynMetadata<Self>>;
 
-/// Inline storage for a DST (dynamically-sized type).
+/// Zero-sized trait object wrapper — stores only a vtable.
+/// Useful for function dispatch when the concrete type carries no data.
 ///
-/// `N` is the byte size of the inline data buffer.
-/// - `N == 0` (previously `ZeroSized`): stores only a vtable, requires the
-///   concrete type to be zero-sized, and derives `Copy` + `Clone`.
-/// - `N > 0`: stores the value inline in `N` bytes with word alignment
-///   (pinned by `DynMetadata`).
-pub struct Embedded<T: ?Sized + TraitObject, const N: usize> {
+/// `Copy` + `Clone`.
+pub struct ZeroSized<T: ?Sized + TraitObject> {
     metadata: DynMetadata<T>,
-    buf: [MaybeUninit<u8>; N],
 }
 
-// N == 0: vtable only — Copy + Clone (identical to old ZeroSized)
-impl<T: ?Sized + TraitObject> Copy for Embedded<T, 0> {}
-impl<T: ?Sized + TraitObject> Clone for Embedded<T, 0> {
+impl<T: ?Sized + TraitObject> Copy for ZeroSized<T> {}
+
+impl<T: ?Sized + TraitObject> Clone for ZeroSized<T> {
     fn clone(&self) -> Self {
         *self
+    }
+}
+
+impl<T: ?Sized + TraitObject> Deref for ZeroSized<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        let thin = ptr::without_provenance::<()>(self.metadata.align_of());
+        // SAFETY: size is 0 (asserted at new()), dangling ptr is fine.
+        unsafe { &*ptr::from_raw_parts(thin, self.metadata) }
+    }
+}
+
+impl<T: ?Sized + TraitObject> DerefMut for ZeroSized<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        let thin = ptr::without_provenance_mut::<()>(self.metadata.align_of());
+        unsafe { &mut *ptr::from_raw_parts_mut(thin, self.metadata) }
+    }
+}
+
+impl<T: ?Sized + TraitObject> ZeroSized<T> {
+    pub fn new<U: Debug + Copy + Unsize<T> + 'static>(val: U) -> Self {
+        const {
+            assert!(size_of::<U>() == 0, "ZeroSized requires a zero-sized type");
+        }
+        Self {
+            metadata: ptr::metadata(&raw const val as *const T),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+/// Inline storage for a DST (dynamically-sized type).
+///
+/// `N` is the byte capacity of the inline buffer. `N` must be > 0 (use
+/// [`ZeroSized`] for zero-sized types).
+pub struct Embedded<T: ?Sized + TraitObject, const N: usize> {
+    buf: [MaybeUninit<u8>; N],
+    metadata: DynMetadata<T>,
+}
+
+impl<T: ?Sized + TraitObject, const N: usize> Drop for Embedded<T, N> {
+    fn drop(&mut self) {
+        // SAFETY: vtable obtained from the concrete type at construction.
+        // The buffer holds a valid instance of the concrete type.
+        unsafe {
+            let fat: *mut T =
+                ptr::from_raw_parts_mut(self.buf.as_mut_ptr() as *mut (), self.metadata);
+            ptr::drop_in_place(fat);
+        }
     }
 }
 
@@ -31,57 +77,43 @@ impl<T: ?Sized + TraitObject, const N: usize> Deref for Embedded<T, N> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        let data = self.data_ptr();
-        // SAFETY: for N == 0, size is 0 (asserted at construction) — dangling
-        // ptr is fine. For N > 0, the buffer holds a valid instance.
-        unsafe { &*ptr::from_raw_parts(data, self.metadata) }
+        // SAFETY: buffer holds a valid instance.
+        unsafe {
+            &*ptr::from_raw_parts(
+                self.buf.as_ptr() as *const (),
+                self.metadata,
+            )
+        }
     }
 }
 
 impl<T: ?Sized + TraitObject, const N: usize> DerefMut for Embedded<T, N> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        let data = self.data_ptr_mut();
-        // SAFETY: same invariants as Deref above.
-        unsafe { &mut *ptr::from_raw_parts_mut(data, self.metadata) }
+        unsafe {
+            &mut *ptr::from_raw_parts_mut(
+                self.buf.as_mut_ptr() as *mut (),
+                self.metadata,
+            )
+        }
     }
 }
 
 impl<T: ?Sized + TraitObject, const N: usize> Embedded<T, N> {
-    fn data_ptr(&self) -> *const () {
-        if N == 0 {
-            ptr::without_provenance(self.metadata.align_of())
-        } else {
-            self.buf.as_ptr() as *const ()
-        }
-    }
-
-    fn data_ptr_mut(&mut self) -> *mut () {
-        if N == 0 {
-            ptr::without_provenance_mut(self.metadata.align_of())
-        } else {
-            self.buf.as_mut_ptr() as *mut ()
-        }
-    }
-
     /// Construct an `Embedded` from a concrete type.
     ///
-    /// - `N == 0`: the concrete type must be zero-sized.
-    /// - `N > 0`: the concrete type must fit within `N` bytes and have
-    ///   alignment ≤ `align_of::<usize>()`.
-    pub fn new<U: Debug + Copy + Unsize<T> + 'static>(val: U) -> Self {
+    /// The value must fit within `N` bytes and have alignment ≤
+    /// `align_of::<usize>()` (struct alignment is pinned by `DynMetadata`).
+    ///
+    /// # Panics
+    /// Compile-time panic if `N == 0` — use [`ZeroSized`] instead.
+    pub fn new<U: Debug + Unsize<T> + 'static>(val: U) -> Self {
         const {
-            if N == 0 {
-                assert!(
-                    size_of::<U>() == 0,
-                    "Embedded<_, 0> requires a zero-sized type"
-                );
-            } else {
-                assert!(size_of::<U>() <= N, "Value too large for Embedded buffer");
-                assert!(
-                    align_of::<U>() <= align_of::<usize>(),
-                    "Value alignment exceeds Embedded buffer alignment"
-                );
-            }
+            assert!(N > 0, "Embedded requires N > 0; use ZeroSized for zero-sized types");
+            assert!(size_of::<U>() <= N, "Value too large for Embedded buffer");
+            assert!(
+                align_of::<U>() <= align_of::<usize>(),
+                "Value alignment exceeds Embedded buffer alignment"
+            );
         }
 
         // Obtain vtable via unsizing coercion before the value is moved.
@@ -92,15 +124,12 @@ impl<T: ?Sized + TraitObject, const N: usize> Embedded<T, N> {
             metadata,
         };
 
-        if N > 0 {
-            // SAFETY: size and alignment checked at compile time above.
-            unsafe {
-                ptr::write(this.buf.as_mut_ptr() as *mut U, val);
-            }
+        // SAFETY: size and alignment checked at compile time above.
+        // ptr::read copies the bits; forget prevents double-drop.
+        unsafe {
+            ptr::write(this.buf.as_mut_ptr() as *mut U, ptr::read(&val));
         }
-
-        // `U: Copy` — drop is trivial.
-        let _ = val;
+        core::mem::forget(val);
 
         this
     }
