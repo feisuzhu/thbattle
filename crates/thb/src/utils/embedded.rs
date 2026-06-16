@@ -78,23 +78,13 @@ impl<T: ?Sized + TraitObject, const N: usize> Deref for Embedded<T, N> {
 
     fn deref(&self) -> &Self::Target {
         // SAFETY: buffer holds a valid instance.
-        unsafe {
-            &*ptr::from_raw_parts(
-                self.buf.as_ptr() as *const (),
-                self.metadata,
-            )
-        }
+        unsafe { &*ptr::from_raw_parts(self.buf.as_ptr() as *const (), self.metadata) }
     }
 }
 
 impl<T: ?Sized + TraitObject, const N: usize> DerefMut for Embedded<T, N> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe {
-            &mut *ptr::from_raw_parts_mut(
-                self.buf.as_mut_ptr() as *mut (),
-                self.metadata,
-            )
-        }
+        unsafe { &mut *ptr::from_raw_parts_mut(self.buf.as_mut_ptr() as *mut (), self.metadata) }
     }
 }
 
@@ -108,7 +98,10 @@ impl<T: ?Sized + TraitObject, const N: usize> Embedded<T, N> {
     /// Compile-time panic if `N == 0` — use [`ZeroSized`] instead.
     pub fn new<U: Debug + Unsize<T> + 'static>(val: U) -> Self {
         const {
-            assert!(N > 0, "Embedded requires N > 0; use ZeroSized for zero-sized types");
+            assert!(
+                N > 0,
+                "Embedded requires N > 0; use ZeroSized for zero-sized types"
+            );
             assert!(size_of::<U>() <= N, "Value too large for Embedded buffer");
             assert!(
                 align_of::<U>() <= align_of::<usize>(),
@@ -132,49 +125,5 @@ impl<T: ?Sized + TraitObject, const N: usize> Embedded<T, N> {
         core::mem::forget(val);
 
         this
-    }
-}
-
-/// Extension trait providing `get_disjoint_mut` for any slice.
-///
-/// Replaces `stack_dst::SliceDst` which we remove together with `stack_dst`.
-pub trait SliceExt {
-    type Item;
-
-    /// Returns mutable references to `M` distinct elements.
-    fn get_disjoint_mut<const M: usize>(
-        &mut self,
-        indices: [usize; M],
-    ) -> Result<[&mut Self::Item; M], &'static str>;
-}
-
-impl<T> SliceExt for [T] {
-    type Item = T;
-
-    fn get_disjoint_mut<const M: usize>(
-        &mut self,
-        indices: [usize; M],
-    ) -> Result<[&mut T; M], &'static str> {
-        let len = self.len();
-
-        for &i in &indices {
-            if i >= len {
-                return Err("index out of bounds");
-            }
-        }
-
-        for i in 0..M {
-            for j in (i + 1)..M {
-                if indices[i] == indices[j] {
-                    return Err("duplicate indices");
-                }
-            }
-        }
-
-        // SAFETY: all indices are in bounds and pairwise distinct.
-        unsafe {
-            let ptr = self.as_mut_ptr();
-            Ok(std::array::from_fn(|i| &mut *ptr.add(indices[i])))
-        }
     }
 }
