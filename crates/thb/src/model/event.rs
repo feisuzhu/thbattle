@@ -1,21 +1,12 @@
-use std::any::TypeId;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 
 use strum::EnumCount;
 
+use crate::utils::anycast::ShortTypeId;
 use crate::utils::embedded::ZeroSized;
 use super::game::Result;
 use super::game::{Game, GameEvent, GameEventKind};
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct ShortId(u64);
-
-#[inline]
-pub const fn short_id(tid: TypeId) -> ShortId {
-    let (a, b): (u64, u64) = unsafe { std::mem::transmute(tid) };
-    ShortId(a ^ b)
-}
 
 /// An event handler that reacts to game events.
 ///
@@ -37,17 +28,17 @@ where
     }
 
     /// Used for sorting
-    fn id(&self) -> ShortId {
-        short_id(std::any::TypeId::of::<Self>())
+    fn id(&self) -> ShortTypeId {
+        ShortTypeId::of::<Self>()
     }
 
     /// This EventHandler should run before said EventHandlers
-    fn execute_before(&self) -> &'static [ShortId] {
+    fn execute_before(&self) -> &'static [ShortTypeId] {
         &[]
     }
 
     /// This EventHandler should run after said EventHandlers
-    fn execute_after(&self) -> &'static [ShortId] {
+    fn execute_after(&self) -> &'static [ShortTypeId] {
         &[]
     }
 
@@ -72,16 +63,16 @@ impl EventDispatcher {
     /// `_get_relevant_eh` cache in Python `src/game/base.py`. Panics on
     /// circular dependencies.
     pub fn build(handlers: &[ZeroSized<dyn EventHandler>]) -> Self {
-        // Initial stable sort by `ShortId` to give the Kahn-style topo sort
-        // a deterministic tie-breaker. `ShortId` order has no human meaning
+        // Initial stable sort by `ShortTypeId` to give the Kahn-style topo sort
+        // a deterministic tie-breaker. `ShortTypeId` order has no human meaning
         // and may shift across rustc/codegen versions, but it is stable
         // within a single build — which is all the algorithm requires.
         let mut nodes: Vec<ZeroSized<dyn EventHandler>> = handlers.to_vec();
         nodes.sort_by_key(|h| h.id());
 
         let n = nodes.len();
-        let self_id: Vec<ShortId> = nodes.iter().map(|h| h.id()).collect();
-        let idx_of: HashMap<ShortId, usize> = self_id
+        let self_id: Vec<ShortTypeId> = nodes.iter().map(|h| h.id()).collect();
+        let idx_of: BTreeMap<ShortTypeId, usize> = self_id
             .iter()
             .copied()
             .enumerate()
@@ -90,12 +81,12 @@ impl EventDispatcher {
         assert_eq!(
             idx_of.len(),
             n,
-            "Duplicate EventHandler ShortId in dispatcher: {:?}",
+            "Duplicate EventHandler ShortTypeId in dispatcher: {:?}",
             nodes.iter().map(|h| h.name()).collect::<Vec<_>>()
         );
-        let allids: HashSet<ShortId> = self_id.iter().copied().collect();
+        let allids: BTreeSet<ShortTypeId> = self_id.iter().copied().collect();
 
-        let filter_in_scope = |slice: &[ShortId]| -> HashSet<ShortId> {
+        let filter_in_scope = |slice: &[ShortTypeId]| -> BTreeSet<ShortTypeId> {
             slice
                 .iter()
                 .copied()
@@ -103,11 +94,11 @@ impl EventDispatcher {
                 .collect()
         };
 
-        let before: Vec<HashSet<ShortId>> = nodes
+        let before: Vec<BTreeSet<ShortTypeId>> = nodes
             .iter()
             .map(|h| filter_in_scope(h.execute_before()))
             .collect();
-        let mut after: Vec<HashSet<ShortId>> = nodes
+        let mut after: Vec<BTreeSet<ShortTypeId>> = nodes
             .iter()
             .map(|h| filter_in_scope(h.execute_after()))
             .collect();

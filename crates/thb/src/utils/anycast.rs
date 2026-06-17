@@ -23,7 +23,7 @@ type ShortTypeIdInner = usize;
 /// underlying 128-bit representation.
 /// Collisions are unlikely, since in legacy THB we have roughly 1.5k classes,
 /// results in 0.03% collision rate for a 32bit hash (which is usize in wasm)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ShortTypeId(ShortTypeIdInner);
 
 impl ShortTypeId {
