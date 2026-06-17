@@ -1,22 +1,22 @@
-mod derive_castable;
+mod derive_anycast;
 mod with_macro;
 
 use proc_macro::TokenStream;
 
-/// Derive macro implementing `Castable` for a struct, enum or union.
+/// Derive macro implementing `Anycast` for a struct, enum or union.
 ///
 /// Adapted from trait-cast-rs (https://github.com/ink-feather-org/trait-cast-rs)
 /// Licensed under MIT OR Apache-2.0
 ///
-/// Use `#[casts_to(SomeTrait, ...)]` to specify all possible target traits
-/// for which trait objects can be downcast from `dyn Castable`.
+/// Use `#[anycast(SomeTrait, ...)]` to specify all possible target traits
+/// for which trait objects can be downcast from `dyn Anycast`.
 ///
 /// Example:
 /// ```ignore
-/// use thb::Castable;
+/// use thb::Anycast;
 ///
-/// #[derive(Castable)]
-/// #[casts_to(Print)]
+/// #[derive(Anycast)]
+/// #[anycast(Print)]
 /// struct Source(i32);
 ///
 /// trait Print {
@@ -26,9 +26,9 @@ use proc_macro::TokenStream;
 ///     fn print(&self) -> i32 { self.0 }
 /// }
 /// ```
-#[proc_macro_derive(Castable, attributes(casts_to))]
-pub fn derive_castable(input: TokenStream) -> TokenStream {
-    derive_castable::derive_castable(input)
+#[proc_macro_derive(Anycast, attributes(anycast))]
+pub fn derive_anycast(input: TokenStream) -> TokenStream {
+    derive_anycast::derive_anycast(input)
 }
 
 /// The `with!` proc macro provides ergonomic access to `GameObject` components

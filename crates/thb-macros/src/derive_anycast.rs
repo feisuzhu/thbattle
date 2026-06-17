@@ -10,12 +10,12 @@ use syn::{
     punctuated::Punctuated,
 };
 
-/// Helper struct to parse attribute arguments like `#[casts_to(Ident, Ident, ...)]`.
-struct CastTargets {
+/// Helper struct to parse attribute arguments like `#[anycast(Ident, Ident, ...)]`.
+struct AnycastTargets {
     targets: Vec<TypePath>,
 }
 
-impl Parse for CastTargets {
+impl Parse for AnycastTargets {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
         let targets: Vec<TypePath> = Punctuated::<TypePath, Token![,]>::parse_terminated(input)?
             .into_iter()
@@ -24,29 +24,29 @@ impl Parse for CastTargets {
     }
 }
 
-impl quote::ToTokens for CastTargets {
+impl quote::ToTokens for AnycastTargets {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let vars = &self.targets;
         tokens.extend(quote!(#(#vars),*));
     }
 }
 
-pub fn derive_castable(input: TokenStream) -> TokenStream {
+pub fn derive_anycast(input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
     let source_ident = &derive_input.ident;
 
-    let casts_to_attr = derive_input
+    let anycast_attr = derive_input
         .attrs
         .iter()
-        .find(|attr| attr.path().is_ident("casts_to"));
+        .find(|attr| attr.path().is_ident("anycast"));
 
-    let cast_targets = if let Some(attr) = casts_to_attr {
-        match attr.parse_args::<CastTargets>() {
+    let anycast_targets = if let Some(attr) = anycast_attr {
+        match attr.parse_args::<AnycastTargets>() {
             Ok(targets) => targets,
             Err(err) => {
                 return Error::new_spanned(
                     attr,
-                    format!("Failed to parse casts_to attribute: {err}"),
+                    format!("Failed to parse anycast attribute: {err}"),
                 )
                 .to_compile_error()
                 .into();
@@ -55,15 +55,15 @@ pub fn derive_castable(input: TokenStream) -> TokenStream {
     } else {
         return Error::new_spanned(
             derive_input.ident,
-            "Missing required attribute 'casts_to', e.g. #[casts_to(TargetTrait1, TargetTrait2)]",
+            "Missing required attribute 'anycast', e.g. #[anycast(TargetTrait1, TargetTrait2)]",
         )
         .to_compile_error()
         .into();
     };
 
     TokenStream::from(quote!(
-        crate::utils::traitcast::make_castable_decl! {
-            #source_ident => (#cast_targets)
+        crate::utils::anycast::make_anycast_decl! {
+            #source_ident => (#anycast_targets)
         }
     ))
 }
