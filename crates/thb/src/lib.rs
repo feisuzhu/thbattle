@@ -5,4 +5,5 @@
 #![feature(unsize)]
 
 pub mod model;
+pub mod thb;
 pub mod utils;
