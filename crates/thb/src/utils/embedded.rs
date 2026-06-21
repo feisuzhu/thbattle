@@ -8,6 +8,7 @@ use std::ptr::{DynMetadata, Pointee};
 pub trait TraitObject = Pointee<Metadata = DynMetadata<Self>>;
 
 /// Zero-sized trait object wrapper — stores only a vtable.
+/// This one implements Copy and Clone, while Embedded implements Drop
 /// Useful for function dispatch when the concrete type carries no data.
 ///
 /// `Copy` + `Clone`.
@@ -57,8 +58,8 @@ impl<T: ?Sized + TraitObject> ZeroSized<T> {
 /// `N` is the byte capacity of the inline buffer. `N` must be > 0 (use
 /// [`ZeroSized`] for zero-sized types).
 pub struct Embedded<T: ?Sized + TraitObject, const N: usize> {
-    buf: [MaybeUninit<u8>; N],
     metadata: DynMetadata<T>,
+    buf: [MaybeUninit<u8>; N],
 }
 
 impl<T: ?Sized + TraitObject, const N: usize> Drop for Embedded<T, N> {
