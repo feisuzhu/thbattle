@@ -1,7 +1,5 @@
 use std::fmt::Debug;
-use std::ops::{Deref, DerefMut};
 
-use crate::utils::embedded::ZeroSized;
 use super::game::{Game, Result};
 use super::object::{GameObject, Handle};
 
@@ -20,30 +18,6 @@ pub enum ActionPhase {
 
 // Alias
 pub type ActionObject = GameObject;
-
-/// Component, should be zero sized struct implements Action trait
-#[derive(Copy, Clone)]
-pub struct ActionEffect(ZeroSized<dyn Action>);
-
-impl Deref for ActionEffect {
-    type Target = dyn Action;
-
-    fn deref(&self) -> &Self::Target {
-        &*self.0
-    }
-}
-
-impl DerefMut for ActionEffect {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut *self.0
-    }
-}
-
-impl ActionEffect {
-    pub(crate) fn new<T: Action + Debug + Copy + 'static>(val: T) -> Self {
-        Self(ZeroSized::new(val))
-    }
-}
 
 pub trait Action {
     /// For debugging and logging
