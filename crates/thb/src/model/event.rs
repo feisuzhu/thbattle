@@ -3,10 +3,10 @@ use std::rc::Rc;
 
 use strum::EnumCount;
 
-use crate::utils::anycast::ShortTypeId;
-use crate::utils::embedded::ZeroSized;
 use super::game::Result;
 use super::game::{Game, GameEvent, GameEventKind};
+use crate::utils::anycast::ShortTypeId;
+use crate::utils::embedded::ZeroSized;
 
 /// An event handler that reacts to game events.
 ///
