@@ -55,6 +55,9 @@ pub struct Game {
     // All GameObject lies here, they don't destruct.
     pub arena: ObjectArena,
 
+    // In-game players, identified by their index.
+    pub players: Vec<Handle>,
+
     // Actions currently resolving
     pub action_stack: Vec<Handle>,
 
@@ -119,6 +122,7 @@ impl Game {
             variant: variant,
             sequence: 0,
             arena: ObjectArena::new(),
+            players: vec![],
             action_stack: vec![],
             hybrid_stack: vec![],
             dispatcher: Rc::new(EventDispatcher::build(&[])),
