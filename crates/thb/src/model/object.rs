@@ -1,8 +1,8 @@
 use std::any::type_name;
 use std::fmt::Debug;
 
-use crate::utils::embedded::Embedded;
 use crate::utils::anycast::{Anycast, AnycastInfra};
+use crate::utils::embedded::Embedded;
 use nonmax::NonMaxU32;
 
 #[derive(Debug, Copy, Clone, Default, Anycast)]
@@ -12,7 +12,7 @@ struct EmptyComponentSlot;
 const COMPONENTS: usize = 6;
 
 pub struct GameObject {
-    components: [Embedded<dyn Anycast, { 16 - size_of::<usize>() }>; COMPONENTS],
+    pub components: [Embedded<dyn Anycast, { 3 * size_of::<usize>() }>; COMPONENTS],
 }
 
 macro_rules! find_slot {
